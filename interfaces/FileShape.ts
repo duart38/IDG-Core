@@ -1,3 +1,6 @@
+import { instruction } from "./Actions.ts";
+
 export interface FileShape {
-    imageMap: Uint8ClampedArray
+    imageMap: number[],
+    instructions: instruction[]
 }
