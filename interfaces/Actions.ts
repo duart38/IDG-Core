@@ -1,4 +1,11 @@
-
+/**
+ * Since JSON supports true and false but we don't want to store it as such..
+ */
+export type bool = 0 | 1;
+export enum arithmetic {
+ ADDITION, SUBTRACTION, DIVISION, MULTIPLICATION,
+ BITSHIFT_LEFT, BITSIGNEDSHIFT_RIGHT, BITSHIFT_RIGHT, BIT_AND, BIT_OR, BIT_XOR, BIT_NOT
+}
 /**
  * Something the system should do.
  */
@@ -14,25 +21,34 @@ export enum ActionID {
     modifyPixel,
     changePixelOpacity,
     /** 
-        The easiest way is to multiply each of the R,G,B values by some constant
-        if the constant is >1 it will make it brighter, and if <1 it will be darker.
-       
-        If you're making it brighter then you must test each value to make sure it doesn't
-        go over the maximum (usually 255).
+     * 
+     * Brighter -> R+value , G+value B+value
+     * Darker -> the above but minus (-)
+     * [this#, value]
     */
-    changeBrightness,
+    changeImageBrightness,
 
     interval,
+    /**
+     * Calls the actions after the timer runs out.. 
+     * @param fromVar indicates wether the value in "n" is pointing to a variable or holds the value directly
+     * [this#, fromVar, n, action[]]
+     */
     timeout,
     atTime,
     /**
-     * newR = alpha - oldR
-     * newG = alpha - oldG
-     * newB = alpha - oldB
+     * newR = 255 - oldR
+     * newG = 255 - oldG
+     * newB = 255 - oldB
      * 
-     * [this#, index]
+     * [this#, isVariable, index]
      */
     invertPixel,
+    /**
+     * Inverts every pixel
+     * [this#]
+     */
+    invertImage,
     
 
     //////////////////////////////////////////////////////////////////////////
@@ -46,27 +62,30 @@ export enum ActionID {
      * !! This should be done beforehand and stored in json !!
      * [this#, locationString, urlString]
      */
-    $storeImageMatrix,
+    storeImageMatrix,
     /**
      * Loads the image matrix from the variable list and populates the displayed image
      * [this#, locationString, offsetX, offsetY]
      */
-    $loadImageMatrix,
+    loadImageMatrix,
     /**
      * Stores (or replaces) a value in the list of variables.
-     * [this#, locationString, valueAsNumber]
+     * @param rhsIsVar indicates if the value is another stored variable or if we need to store the one the user just provided
+     * @todo make sure that value here is a key to a variable or (number | number[])
+     * [this#, rhsIsVar, locationString, value]
      */
-    $storeValue,
+    storeValue,
     /**
      * Takes a set of coordinates and stores them in memory as an array of indexes.
      * Stored value can be used to do batch operations on a set of coordinates
      * [this#, ...number[]]
      */
-    $groupPixels,
+    groupPixels,
     /**
      * [this#, variableKey]
+     * @fires ActionID.render instruction after all has been updated
      */
-    $invertGroup,
+    invertGroup,
     /**
      * Moves the coordinates stored in the variable by the offsets given in the instruction..
      * If the value is negative it moves backwards, if positive it moves forward, i.e:
@@ -75,22 +94,27 @@ export enum ActionID {
      * 
      * @fires ActionID.render instruction after all has been updated
      */
-    $moveGroup,
-    $changeGroupOpacity,
+    moveGroup,
+    changeGroupOpacity,
     /**
      * Adds 2 colors together, takes the index to modify and the variable which contains the image data
      * [this#, index, variableKey]
      */
-    $addToPixel,
-    $addToGroup,
+    addToPixel,
+    addToGroup,
     /**
-     * Checks if the given value is equals to the stored value, if so we call an action
+     * Checks if 2 things are the same, if so call an action
+     * [this#, lhsIsVar, rhsIsVar, lhs, rhs, action]
      */
-    $ifEquals,
+    ifEquals,
     /**
-     * Checks if 2 vars are equal, if so we call an action
+     * Checks if 2 things are not the same, if so call an action
+     * [this#, lhsIsVar, rhsIsVar, lhs, rhs, action]
      */
-    $ifVarsEqual,
+    ifNotEquals,
+    ifGreaterThan,
+    ifLessThan,
+    
 
     /**
      * @todo try and see if we can write more instructions in this manner as it reduces the number of instructions we need
@@ -100,9 +124,14 @@ export enum ActionID {
      * if any of the 2 or both are 0 then it means multiply directly
      * ..
      * out is the variable to store to
-     * [this#, lhsIsVar, rhsIsVar, lhs, rhs, out]
+     * [this#, operation(enum), lhsIsVar, rhsIsVar, lhs, rhs, out]
      */
-    $calculateAndStore
+    calculateAndStore,
+    /**
+     * Do action if null
+     */
+    ifNull,
+    ifNotNull
 
 }
 
@@ -115,7 +144,7 @@ export type _instruction = [ActionID, ...number[]];
  * [1] -> the interval number,
  * [2..n] -> instructions to execute when the interval is to be executed
  */
-export type interval = [ActionID.interval, number, instruction[]];
+export type interval = [ActionID.interval, number, instruction[]]; // TODO: change these
 export type modifyPixel = [ActionID.modifyPixel, number, number[]];
 
 
