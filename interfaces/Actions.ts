@@ -142,7 +142,12 @@ export enum ActionID {
      * Do action if null
      */
     ifNull,
-    ifNotNull
+    ifNotNull,
+
+    /**
+     * Now we're getting into polymorphic stuff
+     */
+    modifyInstruction,
 
 }
 
@@ -157,9 +162,10 @@ export type _instruction = [ActionID, ...number[]];
  */
 export type interval = [ActionID.interval, number, instruction[]]; // TODO: change these
 export type modifyPixel = [ActionID.modifyPixel, number, number[]];
+export type render = [ActionID.render];
 
 
 /**
  * Represents all the actions you can take
  */
- export type instruction = interval | modifyPixel;
+ export type instruction = interval | modifyPixel | render;
