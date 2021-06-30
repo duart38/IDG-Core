@@ -9,10 +9,12 @@ import { clamp, coordinatesByIndex, indexByCoordinates } from "../utils/coordina
  */
 export default class IDGRuntime {
     private IDG: FileShape;
+    private imageCopy: number[];
     private imageMapLength;
     constructor(data: FileShape){
         this.IDG = data;
         this.imageMapLength = (data.width*data.width) * 4;
+        this.imageCopy = [...data.imageMap];
     }
 
 
@@ -23,11 +25,13 @@ export default class IDGRuntime {
         }, x[1] == 1 ? this.IDG.memory[x[2]] :x[2]);
     }
     modifyPixel(x: modifyPixel){
-        //[ActionID.modifyPixel, number, number[]]
-        this.IDG.imageMap[x[1]] = x[3][0]; // r
-        this.IDG.imageMap[x[1] + 1] = x[3][1]; // g
-        this.IDG.imageMap[x[1] + 2] = x[3][2]; // b
-        this.IDG.imageMap[x[1] + 3] = x[3][3]; // a
+        //ActionID.modifyPixel, fromVar, index, values
+        // return [ActionID.modifyPixel, fromVar, index, values];
+        const idx = x[1] == 1 ? this.IDG.memory[x[2]] : x[2];
+        this.imageCopy[idx]     = x[3][0]; // r
+        this.imageCopy[idx + 1] = x[3][1]; // g
+        this.imageCopy[idx + 2] = x[3][2]; // b
+        this.imageCopy[idx + 3] = x[3][3]; // a
     }
     storeValue(x: storeValue){
         this.IDG.memory[x[1] == 1 ? this.IDG.memory[x[2]] : x[2]] = x[3];
@@ -38,16 +42,20 @@ export default class IDGRuntime {
      * @todo in your own implementation this should render on screen directly
      */
     render(){
+        console.log("Rendering triggered");
+        this.IDG.imageMap = [...this.imageCopy];
         const data = new Uint8Array(this.IDG.imageMap);
         const png = encode(data, this.IDG.width, this.IDG.height);
+        
         Deno.writeFile("image.png", png).catch((x)=>{
             console.log(x);
         })
     }
 
     forEachPixel(x: forEachPixel) {
-        for(let i=0; i < this.IDG.imageMap.length;i += 4) { // i -> pixel index
-            this.IDG.memory[x[1]];
+        this.IDG.memory[x[1]] = 0;
+        for(let i=0; i < this.imageCopy.length;i += 4) { // i -> pixel index
+            this.IDG.memory[x[1]] = i;
             for(let b=0; b < x[2].length;b++) this.execute(x[2][b]);
         }
     }
@@ -99,8 +107,8 @@ export default class IDGRuntime {
     }
 
     storePixelOpacity(x: storePixelOpacity){
-        const index = x[1] == 1 ? this.IDG.memory[x[3]] : x[3];
-        this.IDG.memory[index] = this.IDG.imageMap[x[2] + 3]; // r,g,b,a  -> we are at r(0).. g(1), b(2), g(3), a(4)
+        const index = x[1] == 1 ? this.IDG.memory[x[2]] : x[2];
+        this.IDG.memory[x[3]] = this.IDG.imageMap[index + 3]; // r,g,b,a  -> we are at r(0).. g(1), b(2), g(3), a(4)
     }
     ifEquals(x: ifEquals){
         //return [ActionID.ifEquals, lhsIsVar, rhsIsVar, lhs, rhs, actions];
