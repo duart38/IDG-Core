@@ -1,3 +1,5 @@
+import { U255 } from "./RGBA.ts";
+
 /**
  * Since JSON supports true and false but we don't want to store it as such..
  */
@@ -5,6 +7,14 @@ export type bool = 0 | 1;
 export enum arithmetic {
  ADDITION, SUBTRACTION, DIVISION, MULTIPLICATION,
  BITSHIFT_LEFT, BITSIGNEDSHIFT_RIGHT, BITSHIFT_RIGHT, BIT_AND, BIT_OR, BIT_XOR, BIT_NOT
+}
+/**
+ * Direction from the current position
+ */
+export enum direction {
+    topLeft, top, topRight,
+    left, /** idx */ right,
+    bottomLeft, bottom, bottomRight
 }
 /**
  * Something the system should do.
@@ -39,6 +49,11 @@ export enum ActionID {
      */
     changeImageBrightness,
 
+    /**
+     * Calls the actions repeatedly every time the timer runs out.. 
+     * @param fromVar indicates wether the value in "n" is pointing to a variable or holds the value directly
+     * [this#, fromVar, n, action[]]
+     */
     interval,
     /**
      * Calls the actions after the timer runs out.. 
@@ -60,6 +75,11 @@ export enum ActionID {
      * [this#]
      */
     invertImage,
+    /**
+     * Evaluate the actions for each pixel. index is stored in provided memory key
+     * [this#, memoryKey, actions[]]
+     */
+    forEachPixel,
     
 
     //////////////////////////////////////////////////////////////////////////
@@ -141,8 +161,14 @@ export enum ActionID {
     /**
      * Do action if null
      */
-    ifNull,
-    ifNotNull,
+    ifNil,
+    ifNotNil,
+
+    /**
+     * Gets the pixel index in a given direction and stores it.
+     * [this#, isFromVar, direction, var, whereToStore]
+     */
+    getNeighboringPixel,
 
     /**
      * Now we're getting into polymorphic stuff
@@ -153,19 +179,23 @@ export enum ActionID {
 
 
 export type _instruction = [ActionID, ...number[]];
-
+export type memoryPointer = number;
 
 /**
  * Sets an interval. similar to setInterval(()=>{..}, n);
  * [1] -> the interval number,
  * [2..n] -> instructions to execute when the interval is to be executed
  */
-export type interval = [ActionID.interval, number, instruction[]]; // TODO: change these
-export type modifyPixel = [ActionID.modifyPixel, number, number[]];
+export type interval = [ActionID.interval, bool, number, instruction[]];
+export type modifyPixel = [ActionID.modifyPixel, bool, number, U255[]];
 export type render = [ActionID.render];
+export type storeValue = [ActionID.storeValue, bool, number, number];
+export type forEachPixel = [ActionID.forEachPixel, number, instruction[]];
+export type ifNotNil = [ActionID.ifNotNil, number, instruction[]];
+export type getNeighboringPixel = [ActionID.getNeighboringPixel, bool, direction, number | memoryPointer, memoryPointer]
 
 
 /**
  * Represents all the actions you can take
  */
- export type instruction = interval | modifyPixel | render;
+ export type instruction = interval | modifyPixel | render | storeValue | forEachPixel | ifNotNil | getNeighboringPixel;
