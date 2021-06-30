@@ -26,6 +26,7 @@ export enum ActionID {
     // TODO: we could get rid of inner arrays by pre-pending the size of any given instruction after the ActionID
     // TODO: Persistance method -> dump the in-memory modifications to disk.
     // TODO: width and height property in json
+    // TODO: stop interval instruction
 
     /**
      * Does absolutely nothing.. making it the most useful action there is
@@ -37,6 +38,11 @@ export enum ActionID {
     render,
     modifyPixel,
     changePixelOpacity,
+    /**
+     * Stores the alpha value of a pixel in memory
+     * [this#, indexFromMemory, pixelIndex, memoryKey]
+     */
+    storePixelOpacity,
     /** 
      * 
      * Brighter -> R+value , G+value B+value
@@ -193,9 +199,27 @@ export type storeValue = [ActionID.storeValue, bool, number, number];
 export type forEachPixel = [ActionID.forEachPixel, number, instruction[]];
 export type ifNotNil = [ActionID.ifNotNil, number, instruction[]];
 export type getNeighboringPixel = [ActionID.getNeighboringPixel, bool, direction, number | memoryPointer, memoryPointer]
+/**
+ * [this#, indexFromMemory(0|1), pixelIndex, memoryKey]
+ * */
+export type storePixelOpacity = [ActionID.storePixelOpacity, bool, number, memoryPointer];
+/** [this#, lhsIsVar, rhsIsVar, lhs, rhs, action] */
+export type ifEquals = [ActionID.ifEquals, bool,bool, number, number, instruction[]];
+/**
+ * [this#, operation(enum), lhsIsVar, rhsIsVar, lhs, rhs, out(memoryPointer)]
+ */
+export type calculateAndStore = [ActionID.calculateAndStore, arithmetic, bool, bool, number, number, memoryPointer];
 
+/**
+ * [this#, lhsIsVar, rhsIsVar, lhs, rhs, actions[]]
+ */
+export type ifGreaterThan = [ActionID.ifGreaterThan, bool, bool, number, number, instruction[]];
+/**
+ * [this#, lhsIsVar, rhsIsVar, lhs, rhs, actions[]]
+ */
+export type ifLessThan = [ActionID.ifLessThan, bool, bool, number, number, instruction[]];
 
 /**
  * Represents all the actions you can take
  */
- export type instruction = interval | modifyPixel | render | storeValue | forEachPixel | ifNotNil | getNeighboringPixel;
+ export type instruction = interval | modifyPixel | render | storeValue | forEachPixel | ifNotNil | getNeighboringPixel | storePixelOpacity | ifEquals | calculateAndStore | ifGreaterThan | ifLessThan;

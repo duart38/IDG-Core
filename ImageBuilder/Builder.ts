@@ -1,4 +1,4 @@
-import { ActionID, bool, direction, forEachPixel, getNeighboringPixel, ifNotNil, instruction, interval, memoryPointer, modifyPixel, render, storeValue } from "../interfaces/Actions.ts";
+import { ActionID, arithmetic, bool, calculateAndStore, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifLessThan, ifNotNil, instruction, interval, memoryPointer, modifyPixel, render, storePixelOpacity, storeValue } from "../interfaces/Actions.ts";
 import { FileShape } from "../interfaces/FileShape.ts";
 import { RGBA } from "../interfaces/RGBA.ts";
 
@@ -51,6 +51,21 @@ export default class Builder {
         // [ActionID.getNeighboringPixel, bool, direction, number, number]
         return [ActionID.getNeighboringPixel, indexFromMemory, where, index, locationToStore];
     }
+    storePixelOpacity(indexFromMemory: bool, pixelIndex: number, memoryKey: memoryPointer): storePixelOpacity {
+        return [ActionID.storePixelOpacity, indexFromMemory, pixelIndex, memoryKey];
+    }
+    ifEquals(lhsIsVar: bool, rhsIsVar: bool, lhs: number, rhs: number, actions: instruction[]): ifEquals{
+        return [ActionID.ifEquals, lhsIsVar, rhsIsVar, lhs, rhs, actions];
+    }
+    calculateAndStore(operation: arithmetic, lhsIsVar: bool, rhsIsVar: bool, lhs: number, rhs: number, out: memoryPointer): calculateAndStore {
+        return [ActionID.calculateAndStore, operation, lhsIsVar, rhsIsVar, lhs, rhs, out];
+    }
+    ifGreaterThan(lhsIsVar: bool, rhsIsVar: bool, lhs: number, rhs: number, actions: instruction[]): ifGreaterThan{
+       return [ActionID.ifGreaterThan, lhsIsVar, rhsIsVar, lhs, rhs, actions];
+    }
+    ifLessThan(lhsIsVar: bool, rhsIsVar: bool, lhs: number, rhs: number, actions: instruction[]): ifLessThan{
+        return [ActionID.ifLessThan, lhsIsVar, rhsIsVar, lhs, rhs, actions];
+     }
 
     /**
      * Adds instructions to be compiled

@@ -1,4 +1,4 @@
-import { ActionID, direction, forEachPixel, getNeighboringPixel, ifNotNil, instruction, interval, modifyPixel, storeValue } from "../interfaces/Actions.ts";
+import { ActionID, arithmetic, calculateAndStore, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifLessThan, ifNotNil, instruction, interval, modifyPixel, storePixelOpacity, storeValue } from "../interfaces/Actions.ts";
 import { FileShape } from "../interfaces/FileShape.ts";
 import { RGBA } from "../interfaces/RGBA.ts";
 import { encode } from "https://deno.land/x/pngs/mod.ts";
@@ -39,12 +39,8 @@ export default class IDGRuntime {
      */
     render(){
         const data = new Uint8Array(this.IDG.imageMap);
-        console.log(data);
         const png = encode(data, this.IDG.width, this.IDG.height);
-        Deno.writeFile("image.png", png).then(()=>{
-            console.log("Called render.. updating file")
-        })
-        .catch((x)=>{
+        Deno.writeFile("image.png", png).catch((x)=>{
             console.log(x);
         })
     }
@@ -102,6 +98,52 @@ export default class IDGRuntime {
         this.IDG.memory[x[4]] = res;
     }
 
+    storePixelOpacity(x: storePixelOpacity){
+        const index = x[1] == 1 ? this.IDG.memory[x[3]] : x[3];
+        this.IDG.memory[index] = this.IDG.imageMap[x[2] + 3]; // r,g,b,a  -> we are at r(0).. g(1), b(2), g(3), a(4)
+    }
+    ifEquals(x: ifEquals){
+        //return [ActionID.ifEquals, lhsIsVar, rhsIsVar, lhs, rhs, actions];
+        const lhs = x[1] == 1 ? this.IDG.memory[x[3]]: x[3];
+        const rhs = x[2] == 1 ? this.IDG.memory[x[4]]: x[4];
+        if(lhs === rhs) {
+            for(let b=0; b < x[5].length;b++) this.execute(x[5][b]);
+        }
+    }
+    calculateAndStore(x: calculateAndStore) {
+        //return [ActionID.calculateAndStore, operation, lhsIsVar, rhsIsVar, lhs, rhs, out];
+        const lhs = x[2] == 1 ? this.IDG.memory[x[4]]: x[4];
+        const rhs = x[3] == 1 ? this.IDG.memory[x[5]]: x[5];
+        let res = 0;
+        switch(x[1]){
+            case arithmetic.ADDITION: res = lhs + rhs; break;
+            case arithmetic.SUBTRACTION: res = lhs - rhs; break;
+            case arithmetic.MULTIPLICATION: res = lhs * rhs; break;
+            case arithmetic.DIVISION: res = lhs / rhs; break;
+            case arithmetic.BIT_AND: res = lhs & rhs; break;
+            case arithmetic.BIT_OR: res = lhs | rhs; break;
+            default: console.error("Arithmetic", x[1], "not implemented");
+        }
+        this.IDG.memory[x[6]] = res;
+    }
+
+    ifGreaterThan(x: ifGreaterThan){
+        //return [ActionID.ifGreaterThan, lhsIsVar, rhsIsVar, lhs, rhs, actions];
+        const lhs = x[1] == 1 ? this.IDG.memory[x[3]]: x[3];
+        const rhs = x[2] == 1 ? this.IDG.memory[x[4]]: x[4];
+        if(lhs > rhs) {
+            for(let b=0; b < x[5].length;b++) this.execute(x[5][b]);
+        }
+    }
+    ifLessThan(x: ifLessThan){
+        //return [ActionID.ifGreaterThan, lhsIsVar, rhsIsVar, lhs, rhs, actions];
+        const lhs = x[1] == 1 ? this.IDG.memory[x[3]]: x[3];
+        const rhs = x[2] == 1 ? this.IDG.memory[x[4]]: x[4];
+        if(lhs > rhs) {
+            for(let b=0; b < x[5].length;b++) this.execute(x[5][b]);
+        }
+    }
+
     start(){
         //this.IDG.instructions.forEach(this.execute);
         for(let i = 0; i < this.IDG.instructions.length; i++) this.execute(this.IDG.instructions[i]);
@@ -117,6 +159,11 @@ export default class IDGRuntime {
             case ActionID.forEachPixel: this.forEachPixel(x); break;
             case ActionID.ifNotNil: this.ifNotNil(x); break;
             case ActionID.getNeighboringPixel: this.getNeighboringPixel(x); break;
+            case ActionID.storePixelOpacity: this.storePixelOpacity(x); break;
+            case ActionID.ifEquals: this.ifEquals(x); break;
+            case ActionID.calculateAndStore: this.calculateAndStore(x); break;
+            case ActionID.ifGreaterThan: this.ifGreaterThan(x); break;
+            case ActionID.ifLessThan: this.ifLessThan(x); break;
             default: console.log(x[0], "Not implemented");
         }
     }
