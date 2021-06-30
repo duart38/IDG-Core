@@ -10,6 +10,13 @@ export enum arithmetic {
  * Something the system should do.
  */
 export enum ActionID {
+    // TODO: random pixel index -> stored to var
+    // TODO: random number -> stored to var
+    // TODO: MISC: on click instruction? (could be problematic)
+    // TODO: we could get rid of inner arrays by pre-pending the size of any given instruction after the ActionID
+    // TODO: Persistance method -> dump the in-memory modifications to disk.
+    // TODO: width and height property in json
+
     /**
      * Does absolutely nothing.. making it the most useful action there is
      */
@@ -24,8 +31,12 @@ export enum ActionID {
      * 
      * Brighter -> R+value , G+value B+value
      * Darker -> the above but minus (-)
-     * [this#, value]
+     * [this#, index, value]
     */
+    changePixelBrightness,
+    /**
+     * @fires changePixelBrightness for each pixel
+     */
     changeImageBrightness,
 
     interval,
