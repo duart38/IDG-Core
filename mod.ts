@@ -5,20 +5,10 @@ import { indexByCoordinates } from "./utils/coordinates.ts";
 
 const CelBuilder = new Builder(20,20);
 
-// CelBuilder.addInstructions([
-//     CelBuilder.storeValue(0, 0, 3000),
-//     CelBuilder.modifyPixel(0, 0, [0,0,0,1]),
-//     CelBuilder.render(),
-//     CelBuilder.atInterval(0, 1, [
-//         CelBuilder.modifyPixel(0, 0, [255,255,255,255]),
-//         CelBuilder.render()
-//     ])
-// ]);
-
 CelBuilder.addInstructions([
-    CelBuilder.modifyPixel(indexByCoordinates(8,10,20) ,0,[0,0,0,255]),
-    CelBuilder.modifyPixel(indexByCoordinates(9,10,20) ,0,[0,0,0,255]),
-    CelBuilder.modifyPixel(indexByCoordinates(10,10,20) ,0,[0,0,0,255]),
+    CelBuilder.modifyPixel(0, indexByCoordinates(8,10,20), [0,0,0,255]),
+    CelBuilder.modifyPixel(0, indexByCoordinates(9,10,20), [0,0,0,255]),
+    CelBuilder.modifyPixel(0, indexByCoordinates(10,10,20),[0,0,0,255]),
     CelBuilder.render(),
     CelBuilder.storeValue(0, 17, 0),
 
@@ -27,6 +17,8 @@ CelBuilder.addInstructions([
         CelBuilder.forEachPixel(0, [ // memory bank 0 -> index of loop
             // reset neighbor counter back to 0
             CelBuilder.storeValue(0, 17, 0),
+            CelBuilder.storePixelOpacity(1, 0, 18), // mem bank 18 will stores current pixel opacity
+
 
             CelBuilder.getNeighboringPixel(1, 0, direction.topLeft, 1), // memory bank 1
             CelBuilder.getNeighboringPixel(1, 0, direction.top, 2), // memory bank 2
@@ -61,7 +53,7 @@ CelBuilder.addInstructions([
                 CelBuilder.calculateAndStore(arithmetic.ADDITION, 1, 0, 17, 1, 17)
             ]),
             CelBuilder.ifEquals(1,0, 13, 255, [
-                CelBuilder.calculateAndStore(arithmetic.ADDITION, 1, 0, 17, 1, 17)
+                CelBuilder.calculateAndStore(arithmetic.ADDITION, 1, 0, 17, 1, 17),
             ]),
             CelBuilder.ifEquals(1,0, 14, 255, [
                 CelBuilder.calculateAndStore(arithmetic.ADDITION, 1, 0, 17, 1, 17)
@@ -72,31 +64,42 @@ CelBuilder.addInstructions([
             CelBuilder.ifEquals(1,0, 16, 255, [
                 CelBuilder.calculateAndStore(arithmetic.ADDITION, 1, 0, 17, 1, 17)
             ]),
-    
 
-            CelBuilder.storeValue(0, 19, 0), // bank 19 will store 1 if one of the 2 expressions below ran
-            // if neighbors is bigger than 3 then overpopulation
-            CelBuilder.ifGreaterThan(1,0, 17, 3, [
-                CelBuilder.modifyPixel(0,1, [255,255,255,254]),
-                CelBuilder.storeValue(0, 19, 1)
-            ]),
-            // if neighbors is smaller than 2 then dying of starvation
-            CelBuilder.ifLessThan(1,0, 17, 2, [
-                CelBuilder.modifyPixel(0,1, [255,255,255,254]),
-                CelBuilder.storeValue(0, 19, 1)
+            // 1. Any LIVE cell with fewer than two live neighbours dies, as if by underpopulation.
+            CelBuilder.allTrue([
+                CelBuilder.ifEquals(1,0, 18, 255, []), // live cell check.
+                CelBuilder.ifLessThan(1,0, 17, 2, []), // fewer than 2 check on memory bank 17
+            ], [
+                CelBuilder.modifyPixel(1, 0, [0,0,0,0]) // index stored in memory bank 0 is loaded.
             ]),
 
+            // 3. Any live cell with more than three live neighbours dies, as if by overpopulation.
+            CelBuilder.allTrue([
+                CelBuilder.ifEquals(1,0, 18, 255, []), // live cell check.
+                CelBuilder.ifGreaterThan(1,0, 17, 3, [CelBuilder.DEBUG(1)]) // larger than 3 check on memory bank 17
+            ], [
+                CelBuilder.DEBUG(2),
+                CelBuilder.modifyPixel(1, 0, [255,255,255,250]) // index stored in memory bank 0 is loaded.
+            ]),
 
-            CelBuilder.storePixelOpacity(1, 0, 18), // mem bank 18 will stores current pixel opacity
-    
-            // new born!!!
-            // CelBuilder.ifLessThan(1,0, 19, 1, [ // if neither of the above ran (indicates by value in bank 19)
-                // CelBuilder.ifEquals(1,0, 18, 0, [ // if bank 18 is invisible,
-                    CelBuilder.ifEquals(1,0, 17, 3, [ // AND bank 17 has exactly 3 neighbors
-                        CelBuilder.modifyPixel(0,1, [0,0,0, 255]) // change the current idx's (bank 0) alpha to 255
-                    ]),
-                // ]),
-            // ]),
+
+            // 2. Any live cell with two or three live neighbours lives on to the next generation.
+            CelBuilder.ifEquals(1,0, 18, 255, [ // is current pixel index alive?
+                CelBuilder.ifEquals(1,0, 17, 2, [ // is neighbor 2 ?
+                    CelBuilder.modifyPixel(1, 0, [255,0,0,255]) // yes..
+                ]), // two neighbors
+                CelBuilder.ifEquals(1,0, 17, 3, [ // is neighbor 3?
+                    CelBuilder.modifyPixel(1, 0, [255,0,0,255]) // yes
+                ]),
+            ]),
+
+            // 4. Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+            CelBuilder.allTrue([
+                CelBuilder.ifLessThan(1,0, 18, 255, []), // dead cell check. (<255)
+                CelBuilder.ifEquals(1,0, 17, 3, []), // three neighbors
+            ], [
+                CelBuilder.modifyPixel(1, 0, [0,0,0,255]) // index stored in memory bank 0 is loaded.
+            ])
 
         ]),
         CelBuilder.render() // render after we update the board
