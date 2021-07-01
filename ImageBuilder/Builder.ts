@@ -1,4 +1,4 @@
-import { ActionID, arithmetic, bool, calculateAndStore, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifLessThan, ifNotNil, instruction, interval, memoryPointer, modifyPixel, render, storePixelOpacity, storeValue } from "../interfaces/Actions.ts";
+import { ActionID, allTrue, arithmetic, bool, calculateAndStore, comparison, DEBUG, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifLessThan, ifNotNil, instruction, interval, memoryPointer, modifyPixel, render, storePixelOpacity, storeValue } from "../interfaces/Actions.ts";
 import { FileShape } from "../interfaces/FileShape.ts";
 import { RGBA } from "../interfaces/RGBA.ts";
 
@@ -24,8 +24,11 @@ export default class Builder {
      * @param fromVar indicates wether the value of "n" is a pointer to a variable or just static
      * @param values the values to replace the range with
      */
-    modifyPixel(index: number, fromVar: bool, values: RGBA): modifyPixel {
-        return [ActionID.modifyPixel, fromVar, index, values];
+    modifyPixel(indexFromVar: bool, index: number, values: RGBA): modifyPixel {
+        return [ActionID.modifyPixel, indexFromVar, index, values];
+    }
+    allTrue(checks: comparison[], actionsIfSuccess: instruction[]): allTrue {
+        return [ActionID.allTrue, checks, actionsIfSuccess];
     }
 
     /**
@@ -54,8 +57,8 @@ export default class Builder {
     storePixelOpacity(indexFromMemory: bool, pixelIndex: number, memoryKey: memoryPointer): storePixelOpacity {
         return [ActionID.storePixelOpacity, indexFromMemory, pixelIndex, memoryKey];
     }
-    ifEquals(lhsIsVar: bool, rhsIsVar: bool, lhs: number, rhs: number, actions: instruction[]): ifEquals{
-        return [ActionID.ifEquals, lhsIsVar, rhsIsVar, lhs, rhs, actions];
+    ifEquals(lhsIsVar: bool, rhsIsVar: bool, lhs: number, rhs: number, actions: instruction[], elseActions: instruction[] = []): ifEquals{
+        return [ActionID.ifEquals, lhsIsVar, rhsIsVar, lhs, rhs, actions, elseActions];
     }
     calculateAndStore(operation: arithmetic, lhsIsVar: bool, rhsIsVar: bool, lhs: number, rhs: number, out: memoryPointer): calculateAndStore {
         return [ActionID.calculateAndStore, operation, lhsIsVar, rhsIsVar, lhs, rhs, out];
@@ -65,6 +68,9 @@ export default class Builder {
     }
     ifLessThan(lhsIsVar: bool, rhsIsVar: bool, lhs: number, rhs: number, actions: instruction[]): ifLessThan{
         return [ActionID.ifLessThan, lhsIsVar, rhsIsVar, lhs, rhs, actions];
+     }
+     DEBUG(id: number): DEBUG {
+        return [ActionID.DEBUG, id];
      }
 
     /**

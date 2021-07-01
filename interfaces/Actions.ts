@@ -169,6 +169,7 @@ export enum ActionID {
      */
     ifNil,
     ifNotNil,
+    allTrue,
 
     /**
      * Gets the pixel index in a given direction and stores it.
@@ -180,6 +181,10 @@ export enum ActionID {
      * Now we're getting into polymorphic stuff
      */
     modifyInstruction,
+    /**
+     * Calls a debug in some form.
+     */
+    DEBUG
 
 }
 
@@ -203,12 +208,13 @@ export type getNeighboringPixel = [ActionID.getNeighboringPixel, bool, direction
  * [this#, indexFromMemory(0|1), pixelIndex, memoryKey]
  * */
 export type storePixelOpacity = [ActionID.storePixelOpacity, bool, number, memoryPointer];
-/** [this#, lhsIsVar, rhsIsVar, lhs, rhs, action] */
-export type ifEquals = [ActionID.ifEquals, bool,bool, number, number, instruction[]];
+/** [this#, lhsIsVar, rhsIsVar, lhs, rhs, actions[], elseActions[]] */
+export type ifEquals = [ActionID.ifEquals, bool,bool, number, number, instruction[], instruction[] | []];
 /**
  * [this#, operation(enum), lhsIsVar, rhsIsVar, lhs, rhs, out(memoryPointer)]
  */
 export type calculateAndStore = [ActionID.calculateAndStore, arithmetic, bool, bool, number, number, memoryPointer];
+export type DEBUG = [ActionID.DEBUG, number];
 
 /**
  * [this#, lhsIsVar, rhsIsVar, lhs, rhs, actions[]]
@@ -220,6 +226,16 @@ export type ifGreaterThan = [ActionID.ifGreaterThan, bool, bool, number, number,
 export type ifLessThan = [ActionID.ifLessThan, bool, bool, number, number, instruction[]];
 
 /**
+ * Does a bunch of comparisons, if all equal true then we run the instructions
+ * [this#, comparisonsToDo, actionsToCall]
+ */
+export type allTrue = [ActionID.allTrue, comparison[], instruction[]];
+
+/**
+ * Identifies the action that check a certain action
+ */
+ export type comparison = ifEquals | ifGreaterThan | ifLessThan | ifNotNil | allTrue;
+/**
  * Represents all the actions you can take
  */
- export type instruction = interval | modifyPixel | render | storeValue | forEachPixel | ifNotNil | getNeighboringPixel | storePixelOpacity | ifEquals | calculateAndStore | ifGreaterThan | ifLessThan;
+ export type instruction = interval | modifyPixel | render | storeValue | forEachPixel | ifNotNil | getNeighboringPixel | storePixelOpacity | ifEquals | calculateAndStore | ifGreaterThan | ifLessThan | DEBUG | allTrue;

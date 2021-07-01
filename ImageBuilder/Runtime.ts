@@ -1,4 +1,4 @@
-import { ActionID, arithmetic, calculateAndStore, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifLessThan, ifNotNil, instruction, interval, modifyPixel, storePixelOpacity, storeValue } from "../interfaces/Actions.ts";
+import { ActionID, allTrue, arithmetic, calculateAndStore, DEBUG, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifLessThan, ifNotNil, instruction, interval, modifyPixel, storePixelOpacity, storeValue } from "../interfaces/Actions.ts";
 import { FileShape } from "../interfaces/FileShape.ts";
 import { RGBA } from "../interfaces/RGBA.ts";
 import { encode } from "https://deno.land/x/pngs/mod.ts";
@@ -36,6 +36,10 @@ export default class IDGRuntime {
     storeValue(x: storeValue){
         this.IDG.memory[x[1] == 1 ? this.IDG.memory[x[2]] : x[2]] = x[3];
     }
+    DEBUG(_: DEBUG){
+        const [x,y] = coordinatesByIndex(this.IDG.memory[0], 20);
+        console.log(`DEBUG#:${_[1]} coords(${x},${y}) has (${this.IDG.memory[17]}) neighbors. current cell opacity(${this.IDG.memory[18]})`);
+    }
 
     /**
      * Renders an example to file
@@ -60,45 +64,61 @@ export default class IDGRuntime {
         }
     }
 
-    ifNotNil(x: ifNotNil) {
-        if(this.IDG.memory[x[1]] && this.IDG.memory[x[1]] !== undefined && this.IDG.memory[x[1]] !== null)
+    ifNotNil(x: ifNotNil): boolean {
+        if(this.IDG.memory[x[1]] && this.IDG.memory[x[1]] !== undefined && this.IDG.memory[x[1]] !== null){
             for(let b=0; b < x[2].length;b++) this.execute(x[2][b]);
+            return true;
+        }
+        return false;
     }
     getNeighboringPixel(x: getNeighboringPixel) {
         //[ActionID.getNeighboringPixel, indexFromMemory, where, index, locationToStore];
         let res = 0;
         const currentIndex = x[1] == 1 ? this.IDG.memory[x[3]] : x[3];
+
+        //TODO: clamping needs to happen also at x,y .. i.e. make sure x is not less than 0 and not greater than imageWidth
+
         switch(x[2]){
-            case direction.left: res = clamp(currentIndex - 4, this.imageMapLength); break;
-            case direction.right: res = clamp(currentIndex + 4, this.imageMapLength); break;
+            case direction.left: {
+                //res = currentIndex - 4, this.;
+                const [x,y] = coordinatesByIndex(currentIndex, this.IDG.width);
+                res = indexByCoordinates(x-1, y, this.IDG.width);
+                break;
+            }
+            case direction.right: {
+                // res = currentIndex + 4, this.;
+                const [x,y] = coordinatesByIndex(currentIndex, this.IDG.width);
+                res = indexByCoordinates(x+1, y, this.IDG.width);
+                break;
+            }
             case direction.topLeft: {
                 const [x,y] = coordinatesByIndex(currentIndex, this.IDG.width);
-                res = clamp(indexByCoordinates(x-1, y-1, this.IDG.width), this.imageMapLength);
+                res = indexByCoordinates(x-1, y-1, this.IDG.width);
                 break;
             }
             case direction.top: {
                 const [x,y] = coordinatesByIndex(currentIndex, this.IDG.width);
-                res = clamp(indexByCoordinates(x, y-1, this.IDG.width), this.imageMapLength);
+                res = indexByCoordinates(x, y-1, this.IDG.width);
                 break;
             }
             case direction.topRight: {
                 const [x,y] = coordinatesByIndex(currentIndex, this.IDG.width);
-                res = clamp(indexByCoordinates(x+1, y-1, this.IDG.width), this.imageMapLength);
+                res = indexByCoordinates(x+1, y-1, this.IDG.width);
                 break;
             }
             case direction.bottomRight: {
                 const [x,y] = coordinatesByIndex(currentIndex, this.IDG.width);
-                res = clamp(indexByCoordinates(x+1, y+1, this.IDG.width), this.imageMapLength);
+                res = indexByCoordinates(x+1, y+1, this.IDG.width);
                 break;
             }
             case direction.bottom: {
                 const [x,y] = coordinatesByIndex(currentIndex, this.IDG.width);
-                res = clamp(indexByCoordinates(x, y+1, this.IDG.width), this.imageMapLength);
+                res = indexByCoordinates(x, y+1, this.IDG.width);
                 break;
             }
             case direction.bottomLeft: {
                 const [x,y] = coordinatesByIndex(currentIndex, this.IDG.width);
-                res = clamp(indexByCoordinates(x-1, y+1, this.IDG.width), this.imageMapLength);
+                res = indexByCoordinates(x-1, y+1, this.IDG.width);
                 break;
             }
             default: console.log("Invalid directional instruction");
@@ -108,14 +128,18 @@ export default class IDGRuntime {
 
     storePixelOpacity(x: storePixelOpacity){
         const index = x[1] == 1 ? this.IDG.memory[x[2]] : x[2];
-        this.IDG.memory[x[3]] = this.IDG.imageMap[index + 3]; // r,g,b,a  -> we are at r(0).. g(1), b(2), g(3), a(4)
+        this.IDG.memory[x[3]] = this.IDG.imageMap[index + 3]; // r,g,b,a  -> we are at r(6) --> r(6), b(7), g(8), a(9)
     }
-    ifEquals(x: ifEquals){
-        //return [ActionID.ifEquals, lhsIsVar, rhsIsVar, lhs, rhs, actions];
+    ifEquals(x: ifEquals): boolean {
+        //[this#, lhsIsVar, rhsIsVar, lhs, rhs, actions[], elseActions[]]
         const lhs = x[1] == 1 ? this.IDG.memory[x[3]]: x[3];
         const rhs = x[2] == 1 ? this.IDG.memory[x[4]]: x[4];
         if(lhs === rhs) {
             for(let b=0; b < x[5].length;b++) this.execute(x[5][b]);
+            return true;
+        }else {
+            for(let b=0; b < x[6].length;b++) this.execute(x[6][b]);
+            return false;
         }
     }
     calculateAndStore(x: calculateAndStore) {
@@ -135,21 +159,35 @@ export default class IDGRuntime {
         this.IDG.memory[x[6]] = res;
     }
 
-    ifGreaterThan(x: ifGreaterThan){
+    ifGreaterThan(x: ifGreaterThan): boolean{
         //return [ActionID.ifGreaterThan, lhsIsVar, rhsIsVar, lhs, rhs, actions];
         const lhs = x[1] == 1 ? this.IDG.memory[x[3]]: x[3];
         const rhs = x[2] == 1 ? this.IDG.memory[x[4]]: x[4];
         if(lhs > rhs) {
             for(let b=0; b < x[5].length;b++) this.execute(x[5][b]);
+            return true;
         }
+        return false;
     }
-    ifLessThan(x: ifLessThan){
+
+    allTrue(x: allTrue): boolean {
+        // [ActionID.allTrue, checks, actionsIfSuccess];
+        for(let b=0; b < x[1].length;b++) {
+            let res = this.execute(x[1][b]);
+            if(res == false || res == undefined) return false; // early exit
+        }
+        for(let b=0; b < x[2].length;b++) this.execute(x[2][b]); // no exit -> call rest
+        return true;
+    }
+    ifLessThan(x: ifLessThan): boolean {
         //return [ActionID.ifGreaterThan, lhsIsVar, rhsIsVar, lhs, rhs, actions];
         const lhs = x[1] == 1 ? this.IDG.memory[x[3]]: x[3];
         const rhs = x[2] == 1 ? this.IDG.memory[x[4]]: x[4];
-        if(lhs > rhs) {
+        if(lhs < rhs) {
             for(let b=0; b < x[5].length;b++) this.execute(x[5][b]);
+            return true;
         }
+        return false;
     }
 
     start(){
@@ -158,20 +196,22 @@ export default class IDGRuntime {
     }
 
 
-    execute(x: instruction){
+    execute(x: instruction): boolean | undefined{
         switch(x[0]){
             case ActionID.interval: this.atInterval(x); break;
             case ActionID.modifyPixel: this.modifyPixel(x); break;
             case ActionID.render: this.render(); break;
             case ActionID.storeValue: this.storeValue(x); break;
             case ActionID.forEachPixel: this.forEachPixel(x); break;
-            case ActionID.ifNotNil: this.ifNotNil(x); break;
+            case ActionID.ifNotNil: return this.ifNotNil(x);
             case ActionID.getNeighboringPixel: this.getNeighboringPixel(x); break;
             case ActionID.storePixelOpacity: this.storePixelOpacity(x); break;
-            case ActionID.ifEquals: this.ifEquals(x); break;
+            case ActionID.ifEquals: return this.ifEquals(x);
             case ActionID.calculateAndStore: this.calculateAndStore(x); break;
-            case ActionID.ifGreaterThan: this.ifGreaterThan(x); break;
-            case ActionID.ifLessThan: this.ifLessThan(x); break;
+            case ActionID.ifGreaterThan: return this.ifGreaterThan(x);
+            case ActionID.ifLessThan: return this.ifLessThan(x);
+            case ActionID.allTrue: return this.allTrue(x);
+            case ActionID.DEBUG: this.DEBUG(x); break;
             default: console.log(x[0], "Not implemented");
         }
     }
