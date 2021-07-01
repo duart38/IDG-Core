@@ -1,6 +1,5 @@
-import { ActionID, allTrue, arithmetic, calculateAndStore, DEBUG, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifLessThan, ifNotNil, instruction, interval, modifyPixel, storePixelOpacity, storeValue } from "../interfaces/Actions.ts";
+import { ActionID,clearInterval, allTrue, arithmetic, calculateAndStore, coordinatesToIndex, DEBUG, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifInBounds, ifLessThan, ifNotNil, instruction, interval, modifyPixel, randomNumber, storePixelOpacity, storeValue } from "../interfaces/Actions.ts";
 import { FileShape } from "../interfaces/FileShape.ts";
-import { RGBA } from "../interfaces/RGBA.ts";
 import { encode } from "https://deno.land/x/pngs/mod.ts";
 import { clamp, coordinatesByIndex, indexByCoordinates } from "../utils/coordinates.ts";
 
@@ -20,10 +19,15 @@ export default class IDGRuntime {
 
 
     atInterval(x: interval){
-        setInterval(()=>{
-            for(let i = 0; i < x[3].length; i++) this.execute(x[3][i]);
+        this.IDG.memory[x[3]] = setInterval(()=>{
+            for(let i = 0; i < x[4].length; i++) this.execute(x[4][i]);
         }, x[1] == 1 ? this.IDG.memory[x[2]] :x[2]);
     }
+    clearInterval(x: clearInterval) {
+        //return [ActionID.clearInterval, key]
+        window.clearInterval(this.IDG.memory[x[1]]);
+    }
+
     modifyPixel(x: modifyPixel){
         //ActionID.modifyPixel, fromVar, index, values
         // return [ActionID.modifyPixel, fromVar, index, values];
@@ -38,7 +42,7 @@ export default class IDGRuntime {
     }
     DEBUG(_: DEBUG){
         const [x,y] = coordinatesByIndex(this.IDG.memory[0], 20);
-        console.log(`DEBUG#:${_[1]} coords(${x},${y}) has (${this.IDG.memory[17]}) neighbors. current cell opacity(${this.IDG.memory[18]})`);
+        console.log(`DEBUG#:${_[1]} `,this.IDG.memory[80],this.IDG.memory[81]);
     }
 
     /**
@@ -189,6 +193,32 @@ export default class IDGRuntime {
         }
         return false;
     }
+    randomNumber(x: randomNumber){
+        //[this#, lhsIsVar, rhsIsVar, min, max, out(memoryPointer)]
+        const min = Math.ceil(x[1] == 1 ? this.IDG.memory[x[3]]: x[3]);
+        const max = Math.floor(x[2] == 1 ? this.IDG.memory[x[4]]: x[4]);
+        const res = Math.floor(Math.random() * (max - min + 1) + min);
+        this.IDG.memory[x[5]] = res;
+    }
+
+    coordinatesToIndex(x:coordinatesToIndex){
+        //[this#, lhsIsVar, rhsIsVar, x, y, out(memoryPointer)]
+        const x_coord = x[1] == 1 ? this.IDG.memory[x[3]]: x[3];
+        const y_coord = x[2] == 1 ? this.IDG.memory[x[4]]: x[4];
+
+        this.IDG.memory[x[5]] = indexByCoordinates(x_coord, y_coord, this.IDG.width);
+    }
+
+    ifInBounds(x: ifInBounds): boolean {
+        //return [ActionID.ifInBounds, memoryKey, actions];
+        const mem = this.IDG.memory[x[1]];
+        if(mem >= 0 && mem < this.IDG.imageMap.length){
+            for(let b=0; b < x[2].length;b++) this.execute(x[2][b]);
+            return true;
+        }
+        return false;
+    }
+
 
     start(){
         //this.IDG.instructions.forEach(this.execute);
@@ -211,6 +241,10 @@ export default class IDGRuntime {
             case ActionID.ifGreaterThan: return this.ifGreaterThan(x);
             case ActionID.ifLessThan: return this.ifLessThan(x);
             case ActionID.allTrue: return this.allTrue(x);
+            case ActionID.randomNumber: this.randomNumber(x); break;
+            case ActionID.coordinatesToIndex: this.coordinatesToIndex(x); break;
+            case ActionID.ifInBounds: return this.ifInBounds(x);
+            case ActionID.clearInterval: this.clearInterval(x); break;
             case ActionID.DEBUG: this.DEBUG(x); break;
             default: console.log(x[0], "Not implemented");
         }

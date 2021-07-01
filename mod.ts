@@ -4,6 +4,52 @@ import { arithmetic, direction } from "./interfaces/Actions.ts";
 import { indexByCoordinates } from "./utils/coordinates.ts";
 
 const CelBuilder = new Builder(20,20);
+const w = CelBuilder.IDG.width - 1;
+const h = CelBuilder.IDG.height - 1;
+const RANDOM_SPAWN_AMOUNT = 20;
+
+
+const randomGliderDown = [
+    CelBuilder.randomNumber(0,0, 0 ,w, 69), // random X
+    CelBuilder.randomNumber(0,0, 0, h, 70), // random Y
+    CelBuilder.storeValue(0, 71, 0), // index from the coordinates
+    // CelBuilder.coordinatesToIndex(1,1,  69,70,  69),
+
+    CelBuilder.calculateAndStore(arithmetic.ADDITION, 1,0, 70, 1, 70), // Y + 1
+    CelBuilder.coordinatesToIndex(1,1,  69,70,  71),
+    CelBuilder.ifInBounds(71, [
+        CelBuilder.modifyPixel(1, 71, [0,0,255, 255]),
+    ]),
+    
+
+    CelBuilder.calculateAndStore(arithmetic.ADDITION, 1,0, 70, 1, 70), // Y + 1
+    CelBuilder.calculateAndStore(arithmetic.ADDITION, 1,0, 69, 1, 69), // X + 1
+    CelBuilder.coordinatesToIndex(1,1,  69,70,  71),
+    CelBuilder.ifInBounds(71, [
+        CelBuilder.modifyPixel(1, 71, [0,0,255, 255]),
+    ]),
+
+
+    CelBuilder.calculateAndStore(arithmetic.ADDITION, 1,0, 69, 1, 69), // X + 1
+    CelBuilder.coordinatesToIndex(1,1,  69,70,  71),
+    CelBuilder.ifInBounds(71, [
+        CelBuilder.modifyPixel(1, 71, [0,0,255, 255]),
+    ]),
+
+    CelBuilder.calculateAndStore(arithmetic.SUBTRACTION, 1,0, 70, 1, 70), // Y - 1
+    CelBuilder.coordinatesToIndex(1,1,  69,70,  71),
+    CelBuilder.ifInBounds(71, [
+        CelBuilder.modifyPixel(1, 71, [0,0,255, 255]),
+    ]),
+
+    CelBuilder.calculateAndStore(arithmetic.SUBTRACTION, 1,0, 70, 1, 70), // Y - 1
+    CelBuilder.coordinatesToIndex(1,1,  69,70,  71),
+    CelBuilder.ifInBounds(71, [
+        CelBuilder.modifyPixel(1, 71, [0,0,255, 255]),
+    ]),
+
+    CelBuilder.render()
+]
 
 CelBuilder.addInstructions([
     CelBuilder.modifyPixel(0, indexByCoordinates(8,10,20), [0,0,0,255]),
@@ -11,9 +57,20 @@ CelBuilder.addInstructions([
     CelBuilder.modifyPixel(0, indexByCoordinates(10,10,20),[0,0,0,255]),
     CelBuilder.render(),
     CelBuilder.storeValue(0, 17, 0),
+    CelBuilder.storeValue(0, 80, 0),
+    CelBuilder.randomNumber(0,0, 900,2000, 999), // random interval
+
+    // lets spawn something based on an interval
+    CelBuilder.atInterval(999, 1, 81, [
+        ...randomGliderDown,
+        CelBuilder.calculateAndStore(arithmetic.ADDITION, 1,0, 80, 1, 80), // increment amount of times we spawned
+        CelBuilder.ifEquals(1,0, 80, RANDOM_SPAWN_AMOUNT, [
+            CelBuilder.clearInterval(81)
+        ])
+    ]),
 
 
-    CelBuilder.atInterval(800, 0, [ // calculate game of life every "n" msecs
+    CelBuilder.atInterval(800, 0, -1, [ // calculate game of life every "n" msecs
         CelBuilder.forEachPixel(0, [ // memory bank 0 -> index of loop
             // reset neighbor counter back to 0
             CelBuilder.storeValue(0, 17, 0),
@@ -76,9 +133,8 @@ CelBuilder.addInstructions([
             // 3. Any live cell with more than three live neighbours dies, as if by overpopulation.
             CelBuilder.allTrue([
                 CelBuilder.ifEquals(1,0, 18, 255, []), // live cell check.
-                CelBuilder.ifGreaterThan(1,0, 17, 3, [CelBuilder.DEBUG(1)]) // larger than 3 check on memory bank 17
+                CelBuilder.ifGreaterThan(1,0, 17, 3, []) // larger than 3 check on memory bank 17
             ], [
-                CelBuilder.DEBUG(2),
                 CelBuilder.modifyPixel(1, 0, [255,255,255,250]) // index stored in memory bank 0 is loaded.
             ]),
 
@@ -86,10 +142,11 @@ CelBuilder.addInstructions([
             // 2. Any live cell with two or three live neighbours lives on to the next generation.
             CelBuilder.ifEquals(1,0, 18, 255, [ // is current pixel index alive?
                 CelBuilder.ifEquals(1,0, 17, 2, [ // is neighbor 2 ?
-                    CelBuilder.modifyPixel(1, 0, [255,0,0,255]) // yes..
-                ]), // two neighbors
+                    // CelBuilder.modifyPixel(1, 0, [0,0,0,255]) // yes..
+                ]),
+
                 CelBuilder.ifEquals(1,0, 17, 3, [ // is neighbor 3?
-                    CelBuilder.modifyPixel(1, 0, [255,0,0,255]) // yes
+                    CelBuilder.modifyPixel(1, 0, [0,0,0,255]) // yes
                 ]),
             ]),
 

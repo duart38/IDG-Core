@@ -1,4 +1,4 @@
-import { ActionID, allTrue, arithmetic, bool, calculateAndStore, comparison, DEBUG, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifLessThan, ifNotNil, instruction, interval, memoryPointer, modifyPixel, render, storePixelOpacity, storeValue } from "../interfaces/Actions.ts";
+import { ActionID, allTrue, arithmetic, bool, calculateAndStore, comparison, coordinatesToIndex, DEBUG, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifInBounds, ifLessThan, ifNotNil, instruction, interval, memoryPointer, modifyPixel, randomNumber, render, storePixelOpacity, storeValue, clearInterval } from "../interfaces/Actions.ts";
 import { FileShape } from "../interfaces/FileShape.ts";
 import { RGBA } from "../interfaces/RGBA.ts";
 
@@ -13,9 +13,13 @@ export default class Builder {
      * @param n interval timer in milliseconds
      * @param doAction instructions to execute when the timer hits 0
      * @param fromVar indicates wether the value of "n" is a pointer to a variable or just static
+     * @param timerStorageKey indicates where in memory to store the interval handler
      */
-    atInterval(n: number, fromVar: bool, doAction: instruction[]): interval {
-        return [ActionID.interval, fromVar, n, doAction];
+    atInterval(n: number, fromVar: bool, timerStorageKey: number, doAction: instruction[]): interval {
+        return [ActionID.interval, fromVar, n, timerStorageKey, doAction];
+    }
+    clearInterval(key: number): clearInterval {
+        return [ActionID.clearInterval, key]
     }
     
     /**
@@ -71,6 +75,17 @@ export default class Builder {
      }
      DEBUG(id: number): DEBUG {
         return [ActionID.DEBUG, id];
+     }
+
+     randomNumber(lhsIsVar: bool, rhsIsVar: bool, min: number, max: number, out: memoryPointer): randomNumber {
+        return [ActionID.randomNumber, lhsIsVar, rhsIsVar, min, max, out];
+     }
+     coordinatesToIndex(lhsIsVar: bool, rhsIsVar: bool, x: number, y: number, out: memoryPointer): coordinatesToIndex{
+        //[this#, lhsIsVar, rhsIsVar, x, y, out(memoryPointer)]
+        return [ActionID.coordinatesToIndex, lhsIsVar, rhsIsVar, x, y, out];
+     }
+     ifInBounds(memoryKey: number, actions: instruction[]): ifInBounds{
+        return [ActionID.ifInBounds, memoryKey, actions];
      }
 
     /**

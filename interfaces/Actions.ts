@@ -22,10 +22,7 @@ export enum direction {
 export enum ActionID {
     // TODO: random pixel index -> stored to var
     // TODO: random number -> stored to var
-    // TODO: MISC: on click instruction? (could be problematic)
-    // TODO: we could get rid of inner arrays by pre-pending the size of any given instruction after the ActionID
     // TODO: Persistance method -> dump the in-memory modifications to disk.
-    // TODO: width and height property in json
     // TODO: stop interval instruction
 
     /**
@@ -38,6 +35,11 @@ export enum ActionID {
     render,
     modifyPixel,
     changePixelOpacity,
+    /**
+     * random number between 2.
+     */
+    randomNumber,
+
     /**
      * Stores the alpha value of a pixel in memory
      * [this#, indexFromMemory, pixelIndex, memoryKey]
@@ -61,6 +63,7 @@ export enum ActionID {
      * [this#, fromVar, n, action[]]
      */
     interval,
+    clearInterval,
     /**
      * Calls the actions after the timer runs out.. 
      * @param fromVar indicates wether the value in "n" is pointing to a variable or holds the value directly
@@ -86,6 +89,7 @@ export enum ActionID {
      * [this#, memoryKey, actions[]]
      */
     forEachPixel,
+    coordinatesToIndex,
     
 
     //////////////////////////////////////////////////////////////////////////
@@ -169,6 +173,7 @@ export enum ActionID {
      */
     ifNil,
     ifNotNil,
+    ifInBounds,
     allTrue,
 
     /**
@@ -194,15 +199,19 @@ export type memoryPointer = number;
 
 /**
  * Sets an interval. similar to setInterval(()=>{..}, n);
- * [1] -> the interval number,
- * [2..n] -> instructions to execute when the interval is to be executed
+ * [this#, intervalFromVar, interval, timerStorageKey, instructions[]]
  */
-export type interval = [ActionID.interval, bool, number, instruction[]];
+export type interval = [ActionID.interval, bool, number, number, instruction[]];
+export type clearInterval = [ActionID.clearInterval, number];
 export type modifyPixel = [ActionID.modifyPixel, bool, number, U255[]];
 export type render = [ActionID.render];
 export type storeValue = [ActionID.storeValue, bool, number, number];
 export type forEachPixel = [ActionID.forEachPixel, number, instruction[]];
 export type ifNotNil = [ActionID.ifNotNil, number, instruction[]];
+/**
+ * [this#, memoryKey, instructions[]]
+ */
+export type ifInBounds = [ActionID.ifInBounds, number, instruction[]];
 export type getNeighboringPixel = [ActionID.getNeighboringPixel, bool, direction, number | memoryPointer, memoryPointer]
 /**
  * [this#, indexFromMemory(0|1), pixelIndex, memoryKey]
@@ -214,6 +223,14 @@ export type ifEquals = [ActionID.ifEquals, bool,bool, number, number, instructio
  * [this#, operation(enum), lhsIsVar, rhsIsVar, lhs, rhs, out(memoryPointer)]
  */
 export type calculateAndStore = [ActionID.calculateAndStore, arithmetic, bool, bool, number, number, memoryPointer];
+/**
+ * [this#, lhsIsVar, rhsIsVar, min, max, out(memoryPointer)]
+ */
+export type randomNumber = [ActionID.randomNumber, bool, bool, number, number, memoryPointer];
+/**
+ * [this#, lhsIsVar, rhsIsVar, x, y, out(memoryPointer)]
+ */
+export type coordinatesToIndex = [ActionID.coordinatesToIndex, bool,bool,  number,number,  memoryPointer]
 export type DEBUG = [ActionID.DEBUG, number];
 
 /**
@@ -234,8 +251,8 @@ export type allTrue = [ActionID.allTrue, comparison[], instruction[]];
 /**
  * Identifies the action that check a certain action
  */
- export type comparison = ifEquals | ifGreaterThan | ifLessThan | ifNotNil | allTrue;
+ export type comparison = ifEquals | ifGreaterThan | ifLessThan | ifNotNil | allTrue | ifInBounds;
 /**
  * Represents all the actions you can take
  */
- export type instruction = interval | modifyPixel | render | storeValue | forEachPixel | ifNotNil | getNeighboringPixel | storePixelOpacity | ifEquals | calculateAndStore | ifGreaterThan | ifLessThan | DEBUG | allTrue;
+ export type instruction = interval | modifyPixel | render | storeValue | forEachPixel | ifNotNil | getNeighboringPixel | storePixelOpacity | ifEquals | calculateAndStore | ifGreaterThan | ifLessThan | DEBUG | allTrue | randomNumber | coordinatesToIndex | ifInBounds | clearInterval;
