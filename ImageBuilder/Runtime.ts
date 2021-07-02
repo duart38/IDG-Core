@@ -50,7 +50,6 @@ export default class IDGRuntime {
      * @todo in your own implementation this should render on screen directly
      */
     render(){
-        console.log("Rendering triggered");
         this.IDG.imageMap = [...this.imageCopy];
         const data = new Uint8Array(this.IDG.imageMap);
         const png = encode(data, this.IDG.width, this.IDG.height);

@@ -4,7 +4,7 @@ import { arithmetic, direction } from "../../interfaces/Actions.ts";
 import { indexByCoordinates } from "../../utils/coordinates.ts";
 import {inf} from "./dump.ts";
 
-const CelBuilder = new Builder(300,200);
+const CelBuilder = new Builder(200,200);
 const w = CelBuilder.IDG.width - 1;
 const h = CelBuilder.IDG.height - 1;
 const RANDOM_SPAWN_AMOUNT = 20;
@@ -165,8 +165,6 @@ CelBuilder.addInstructions([
         
     ]),
 ]);
-
-// Deno.writeTextFileSync("t.idg", CelBuilder.compile());
 
 const x = new IDGRuntime(CelBuilder.IDG);
 x.start();

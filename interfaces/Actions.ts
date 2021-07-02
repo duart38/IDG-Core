@@ -21,7 +21,6 @@ export enum direction {
  */
 export enum ActionID {
     // TODO: random pixel index -> stored to var
-    // TODO: random number -> stored to var
     // TODO: Persistance method -> dump the in-memory modifications to disk.
     // TODO: stop interval instruction
 
@@ -193,6 +192,8 @@ export enum ActionID {
 
 }
 
+// TODO: same size instructions.
+// TODO: turing complete instructions
 
 export type _instruction = [ActionID, ...number[]];
 export type memoryPointer = number;
