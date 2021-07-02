@@ -1,10 +1,15 @@
-// const createMemory = require('./create-memory');
-// const registers = require('./registers');
-// const instructions = require('./instructions');
 import {Instructions, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
 
 export default class CPU {
+
+
+  // TODO: flushState(); -> flushes memory and other info to the idg file for hard storage.
+  // TODO: image specific instructions like drawing lines and filling a sections.
+  // TODO: pixel specific instructions.
+  // TODO: choose where to storage image in memory and standardize it (could also be done outside of the Machine)
+  // TODO: any method that requires combining more instructions should be done in a higher level language
+
   private registers: DataView;
   private memory: MemoryMapper;
   private registerMap: Record<string, number>;
