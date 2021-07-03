@@ -59,7 +59,7 @@ export default class IDGVM {
   }
 
   debug() {
-    for(let name in this.registerMap){
+    for(const name in this.registerMap){
       try{
         console.log(`${name}: 0x${this.getRegister(name).toString(16).padStart(4, '0')}`);
       }catch(e){
