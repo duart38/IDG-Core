@@ -5,7 +5,7 @@ import { RGBA } from "../interfaces/RGBA.ts";
 export default class Builder {
     public IDG: FileShape;
     constructor(w: number, h: number){
-        this.IDG = {width: w, height: h, imageMap: new Array((w*h) * 4).fill(0), instructions: [], memory: {}};
+        this.IDG = {width: w, height: h, imageMap: new Array(w*h).fill(0), instructions: [], memory: {}};
     }
 
     /**
