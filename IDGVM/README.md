@@ -1,6 +1,13 @@
 # What this is.
 We already have a "working" prototype of the system but we would like to transition to a VM
 
+# The rules
+1. We need to define interfaces so that the VM can be implemented with other languages
+2. No platform or language specific code in the VM, only in the connected I/O or Loader
+3. Our base-line language target is C (i.e. if it works in C and can be implemented in C without platform specific packages then it's good enough for us)
+4. If the code can be done mathematically with a limited number of parameters then put it in the VM
+5. If the code contains a bunch of instructions chained together consider implementing that in a higher level language or abstraction that generates this code.. (this keeps the VM less cluttered)
+
 # The new file
 The new file only includes numbers... and maybe some other non numerical characters to differentiate more easily between different parts of the file..
 
