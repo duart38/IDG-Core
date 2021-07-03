@@ -1,7 +1,7 @@
 import {Instructions, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
 
-export default class CelVM {
+export default class IDGVM {
 
 
   // TODO: flushState(); -> flushes memory and other info to the idg file for hard storage. (probably should be a module)

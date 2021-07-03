@@ -1,4 +1,4 @@
-import CelVM from "./Machine.ts";
+import IDGVM from "./Machine.ts";
 import { createMemory, MemoryMapper } from "./Memory.ts";
 import { Instructions } from "./Registers.ts";
 
@@ -12,7 +12,7 @@ MM.map(memory, 0, 0xffff);
 
 const writableBytes = new Uint8Array(memory.buffer);
 let i = 0;
-const cpu = new CelVM(MM);
+const cpu = new IDGVM(MM);
 
 
 writableBytes[i++] = Instructions.MOV_LIT_REG
