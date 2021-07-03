@@ -14,13 +14,18 @@ const writableBytes = new Uint8Array(memory.buffer);
 let i = 0;
 const cpu = new CPU(MM);
 
-writableBytes[i++] = Instructions.ADD_LIT_REG
-writableBytes[i++] = R1
-writableBytes[i++] = 2
+
+writableBytes[i++] = Instructions.MOV_LIT_REG
+writableBytes[i++] = 0x12
+writableBytes[i++] = 0x34
+writableBytes[i++] = 0x02
+// writableBytes[i++] = 0x01
 
 
-cpu.debug();
+cpu.debug()
+cpu.step()
+cpu.debug()
 
 
 
-cpu.run();
+// cpu.run();
