@@ -33,7 +33,6 @@ export enum ActionID {
      */
     render,
     modifyPixel,
-    changePixelOpacity,
     /**
      * random number between 2.
      */
@@ -43,7 +42,7 @@ export enum ActionID {
      * Stores the alpha value of a pixel in memory
      * [this#, indexFromMemory, pixelIndex, memoryKey]
      */
-    storePixelOpacity,
+    storePixelColor,
     /** 
      * 
      * Brighter -> R+value , G+value B+value
@@ -135,7 +134,6 @@ export enum ActionID {
      * @fires ActionID.render instruction after all has been updated
      */
     moveGroup,
-    changeGroupOpacity,
     /**
      * Adds 2 colors together, takes the index to modify and the variable which contains the image data
      * [this#, index, variableKey]
@@ -217,7 +215,7 @@ export type getNeighboringPixel = [ActionID.getNeighboringPixel, bool, direction
 /**
  * [this#, indexFromMemory(0|1), pixelIndex, memoryKey]
  * */
-export type storePixelOpacity = [ActionID.storePixelOpacity, bool, number, memoryPointer];
+export type storePixelColor = [ActionID.storePixelColor, bool, number, memoryPointer];
 /** [this#, lhsIsVar, rhsIsVar, lhs, rhs, actions[], elseActions[]] */
 export type ifEquals = [ActionID.ifEquals, bool,bool, number, number, instruction[], instruction[] | []];
 /**
@@ -256,4 +254,4 @@ export type allTrue = [ActionID.allTrue, comparison[], instruction[]];
 /**
  * Represents all the actions you can take
  */
- export type instruction = interval | modifyPixel | render | storeValue | forEachPixel | ifNotNil | getNeighboringPixel | storePixelOpacity | ifEquals | calculateAndStore | ifGreaterThan | ifLessThan | DEBUG | allTrue | randomNumber | coordinatesToIndex | ifInBounds | clearInterval;
+ export type instruction = interval | modifyPixel | render | storeValue | forEachPixel | ifNotNil | getNeighboringPixel | storePixelColor | ifEquals | calculateAndStore | ifGreaterThan | ifLessThan | DEBUG | allTrue | randomNumber | coordinatesToIndex | ifInBounds | clearInterval;
