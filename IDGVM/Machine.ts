@@ -9,6 +9,14 @@ export default class CPU {
   // TODO: pixel specific instructions.
   // TODO: choose where to storage image in memory and standardize it (could also be done outside of the Machine)
   // TODO: any method that requires combining more instructions should be done in a higher level language
+  // TODO: MAYBE even define a separate memory for the Image, 
+  // TODO: LOOP instruction..
+
+  // TODO: i want clock based events built in here... this saves me time when i potentially need to interrupt to check clock time..
+  //        also what if a different VM does not implement clock? this could be problematic..
+  //        also part 2.. all systems have a clock... and if they don't we emulate it..
+  //        the clock does not REALLY have to be here we could also define a volatile memory location for it and let some thread or something update it as it sees fit..
+  //        this reduces the internal instructions required here and forces a modularity approach which could be used depending on the system.
 
   private registers: DataView;
   private memory: MemoryMapper;
@@ -25,8 +33,17 @@ export default class CPU {
   constructor(memory: MemoryMapper, interuptVectorAddress = 0x1000) {
     this.memory = memory;
 
+    /**
+     * Creating memory for actual values of register
+     * System is currently 16-bits so that's 2 bytes for each register
+     */
     this.registers = createMemory(REGISTERS.length * 2);
+    /**
+     * Defining where in the registers (defined above) the values
+     * in the map will be pointing to.
+     */
     this.registerMap = REGISTERS.reduce((map, name, i) => {
+      // multiply by 2 to make sure that the offsets do not overlap one another
       map[name] = i * 2;
       return map;
     }, {} as Record<string, number>);
@@ -61,6 +78,9 @@ export default class CPU {
     console.log(`0x${address.toString(16).padStart(4, '0')}: ${nextNBytes.join(' ')}`);
   }
 
+  /**
+   * @returns the pointer to an address that houses the value of the register
+   */
   getRegister(name: string) {
     if (!(name in this.registerMap)) {
       throw new Error(`getRegister: No such register '${name}'`);
@@ -75,14 +95,22 @@ export default class CPU {
     return this.registers.setUint16(this.registerMap[name], value);
   }
 
-  fetch() {
+  /**
+   * Fetches the current instruction to be returned and increments the instruction pointer
+   * to the next address to be executed next
+   * @returns an executable instruction
+   */
+  fetchCurrentInstruction() {
+    // get the instruction pointer address that houses the next instruction
     const nextInstructionAddress = this.getRegister('ip');
+    // gets the actual instruction value from that location in memory
     const instruction = this.memory.getUint8(nextInstructionAddress);
+    // increment the program counter (instruction pointer) to the next instruction.
     this.setRegister('ip', nextInstructionAddress + 1);
     return instruction;
   }
 
-  fetch16() {
+  fetchCurrentInstruction16() {
     const nextInstructionAddress = this.getRegister('ip');
     const instruction = this.memory.getUint16(nextInstructionAddress);
     this.setRegister('ip', nextInstructionAddress + 2);
@@ -145,7 +173,8 @@ export default class CPU {
   }
 
   fetchRegisterIndex() {
-    return (this.fetch() % REGISTERS.length) * 2;
+    // clamped for bounds, *2 because we're pointing to a byte but each register takes up 2 bytes
+    return (this.fetchCurrentInstruction() % REGISTERS.length) * 2;
   }
 
   handleInterupt(value: number) {
@@ -191,14 +220,14 @@ export default class CPU {
 
       case Instructions.INT: {
         // We're only looking at the least significant nibble
-        const interuptValue = this.fetch16() & 0xf;
+        const interuptValue = this.fetchCurrentInstruction16() & 0xf;
         this.handleInterupt(interuptValue);
         return;
       }
 
       // Move literal into register
       case Instructions.MOV_LIT_REG: {
-        const literal = this.fetch16();
+        const literal = this.fetchCurrentInstruction16();
         const register = this.fetchRegisterIndex();
         this.registers.setUint16(register, literal);
         return;
@@ -216,7 +245,7 @@ export default class CPU {
       // Move register to memory
       case Instructions.MOV_REG_MEM: {
         const registerFrom = this.fetchRegisterIndex();
-        const address = this.fetch16();
+        const address = this.fetchCurrentInstruction16();
         const value = this.registers.getUint16(registerFrom);
         this.memory.setUint16(address, value);
         return;
@@ -224,7 +253,7 @@ export default class CPU {
 
       // Move memory to register
       case Instructions.MOV_MEM_REG: {
-        const address = this.fetch16();
+        const address = this.fetchCurrentInstruction16();
         const registerTo = this.fetchRegisterIndex();
         const value = this.memory.getUint16(address);
         this.registers.setUint16(registerTo, value);
@@ -233,8 +262,8 @@ export default class CPU {
 
       // Move literal to memory
       case Instructions.MOV_LIT_MEM: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        const value = this.fetchCurrentInstruction16();
+        const address = this.fetchCurrentInstruction16();
         this.memory.setUint16(address, value);
         return;
       }
@@ -251,7 +280,7 @@ export default class CPU {
 
       // Move value at [literal + register] to register
       case Instructions.MOV_LIT_OFF_REG: {
-        const baseAddress = this.fetch16();
+        const baseAddress = this.fetchCurrentInstruction16();
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
         const offset = this.registers.getUint16(r1);
@@ -273,7 +302,7 @@ export default class CPU {
 
       // Add literal to register
       case Instructions.ADD_LIT_REG: {
-        const literal = this.fetch16();
+        const literal = this.fetchCurrentInstruction16();
         const r1 = this.fetchRegisterIndex();
         const registerValue = this.registers.getUint16(r1);
         this.setRegister('acc', literal + registerValue);
@@ -282,7 +311,7 @@ export default class CPU {
 
       // Subtract literal from register value
       case Instructions.SUB_LIT_REG: {
-        const literal = this.fetch16();
+        const literal = this.fetchCurrentInstruction16();
         const r1 = this.fetchRegisterIndex();
         const registerValue = this.registers.getUint16(r1);
         const res = registerValue - literal;
@@ -293,7 +322,7 @@ export default class CPU {
       // Subtract register value from literal
       case Instructions.SUB_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetch16();
+        const literal = this.fetchCurrentInstruction16();
         const registerValue = this.registers.getUint16(r1);
         const res = literal - registerValue;
         this.setRegister('acc', res);
@@ -313,7 +342,7 @@ export default class CPU {
 
       // Multiply literal by register value
       case Instructions.MUL_LIT_REG: {
-        const literal = this.fetch16();
+        const literal = this.fetchCurrentInstruction16();
         const r1 = this.fetchRegisterIndex();
         const registerValue = this.registers.getUint16(r1);
         const res = literal * registerValue;
@@ -353,7 +382,7 @@ export default class CPU {
       // Left shift register by literal (in place)
       case Instructions.LSF_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetch();
+        const literal = this.fetchCurrentInstruction();
         const oldValue = this.registers.getUint16(r1);
         const res = oldValue << literal;
         this.registers.setUint16(r1, res);
@@ -374,7 +403,7 @@ export default class CPU {
       // Right shift register by literal (in place)
       case Instructions.RSF_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetch();
+        const literal = this.fetchCurrentInstruction();
         const oldValue = this.registers.getUint16(r1);
         const res = oldValue >> literal;
         this.registers.setUint16(r1, res);
@@ -395,7 +424,7 @@ export default class CPU {
       // And register with literal
       case Instructions.AND_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetch16();
+        const literal = this.fetchCurrentInstruction16();
         const registerValue = this.registers.getUint16(r1);
 
         const res = registerValue & literal;
@@ -418,7 +447,7 @@ export default class CPU {
       // Or register with literal
       case Instructions.OR_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetch16();
+        const literal = this.fetchCurrentInstruction16();
         const registerValue = this.registers.getUint16(r1);
 
         const res = registerValue | literal;
@@ -441,7 +470,7 @@ export default class CPU {
       // Xor register with literal
       case Instructions.XOR_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetch16();
+        const literal = this.fetchCurrentInstruction16();
         const registerValue = this.registers.getUint16(r1);
 
         const res = registerValue ^ literal;
@@ -473,8 +502,8 @@ export default class CPU {
 
       // Jump if literal not equal
       case Instructions.JMP_NOT_EQ: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        const value = this.fetchCurrentInstruction16();
+        const address = this.fetchCurrentInstruction16();
 
         if (value !== this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -487,7 +516,7 @@ export default class CPU {
       case Instructions.JNE_REG: {
         const r1 = this.fetchRegisterIndex();
         const value = this.registers.getUint16(r1);
-        const address = this.fetch16();
+        const address = this.fetchCurrentInstruction16();
 
         if (value !== this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -498,8 +527,8 @@ export default class CPU {
 
       // Jump if literal equal
       case Instructions.JEQ_LIT: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        const value = this.fetchCurrentInstruction16();
+        const address = this.fetchCurrentInstruction16();
 
         if (value === this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -512,7 +541,7 @@ export default class CPU {
       case Instructions.JEQ_REG: {
         const r1 = this.fetchRegisterIndex();
         const value = this.registers.getUint16(r1);
-        const address = this.fetch16();
+        const address = this.fetchCurrentInstruction16();
 
         if (value === this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -523,8 +552,8 @@ export default class CPU {
 
       // Jump if literal less than
       case Instructions.JLT_LIT: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        const value = this.fetchCurrentInstruction16();
+        const address = this.fetchCurrentInstruction16();
 
         if (value < this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -537,7 +566,7 @@ export default class CPU {
       case Instructions.JLT_REG: {
         const r1 = this.fetchRegisterIndex();
         const value = this.registers.getUint16(r1);
-        const address = this.fetch16();
+        const address = this.fetchCurrentInstruction16();
 
         if (value < this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -548,8 +577,8 @@ export default class CPU {
 
       // Jump if literal greater than
       case Instructions.JGT_LIT: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        const value = this.fetchCurrentInstruction16();
+        const address = this.fetchCurrentInstruction16();
 
         if (value > this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -562,7 +591,7 @@ export default class CPU {
       case Instructions.JGT_REG: {
         const r1 = this.fetchRegisterIndex();
         const value = this.registers.getUint16(r1);
-        const address = this.fetch16();
+        const address = this.fetchCurrentInstruction16();
 
         if (value > this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -573,8 +602,8 @@ export default class CPU {
 
       // Jump if literal less than or equal to
       case Instructions.JLE_LIT: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        const value = this.fetchCurrentInstruction16();
+        const address = this.fetchCurrentInstruction16();
 
         if (value <= this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -587,7 +616,7 @@ export default class CPU {
       case Instructions.JLE_REG: {
         const r1 = this.fetchRegisterIndex();
         const value = this.registers.getUint16(r1);
-        const address = this.fetch16();
+        const address = this.fetchCurrentInstruction16();
 
         if (value <= this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -598,8 +627,8 @@ export default class CPU {
 
       // Jump if literal greater than or equal to
       case Instructions.JGE_LIT: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        const value = this.fetchCurrentInstruction16();
+        const address = this.fetchCurrentInstruction16();
 
         if (value >= this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -612,7 +641,7 @@ export default class CPU {
       case Instructions.JGE_REG: {
         const r1 = this.fetchRegisterIndex();
         const value = this.registers.getUint16(r1);
-        const address = this.fetch16();
+        const address = this.fetchCurrentInstruction16();
 
         if (value >= this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -623,7 +652,7 @@ export default class CPU {
 
       // Push Literal
       case Instructions.PSH_LIT: {
-        const value = this.fetch16();
+        const value = this.fetchCurrentInstruction16();
         this.push(value);
         return;
       }
@@ -645,7 +674,7 @@ export default class CPU {
 
       // Call literal
       case Instructions.CAL_LIT: {
-        const address = this.fetch16();
+        const address = this.fetchCurrentInstruction16();
         this.pushState();
         this.setRegister('ip', address);
         return;
@@ -674,7 +703,7 @@ export default class CPU {
   }
 
   step() {
-    const instruction = this.fetch();
+    const instruction = this.fetchCurrentInstruction();
     return this.execute(instruction);
   }
 
