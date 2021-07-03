@@ -1,9 +1,16 @@
+/**
+ * ip = instruction pointer (pc), indicates where we are
+ * acc = place where results of math operations will land (accumulator)
+ * r1..n = registers<n> , small temp storage on the CPU
+ * 
+ */
 export const REGISTERS = [
     'ip', 'acc',
     'r1', 'r2', 'r3', 'r4',
     'r5', 'r6', 'r7', 'r8',
     'sp', 'fp', 'mb', 'im'
 ];
+
 export enum Instructions {
     // movement instructions
     MOV_LIT_REG     = 0x10,
