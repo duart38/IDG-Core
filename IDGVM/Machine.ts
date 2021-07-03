@@ -1,10 +1,10 @@
 import {Instructions, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
 
-export default class CPU {
+export default class CelVM {
 
 
-  // TODO: flushState(); -> flushes memory and other info to the idg file for hard storage.
+  // TODO: flushState(); -> flushes memory and other info to the idg file for hard storage. (probably should be a module)
   // TODO: image specific instructions like drawing lines and filling a sections.
   // TODO: pixel specific instructions.
   // TODO: choose where to storage image in memory and standardize it (could also be done outside of the Machine)
@@ -21,16 +21,16 @@ export default class CPU {
   private registers: DataView;
   private memory: MemoryMapper;
   private registerMap: Record<string, number>;
-  private interuptVectorAddress: number;
-  private isInInteruptHandler: boolean;
+  private interruptVectorAddress: number;
+  private isInInterruptHandler: boolean;
   private stackFrameSize: number;
   
   /**
    * 
    * @param memory Refers to the allocated memory available to our system
-   * @param interuptVectorAddress 
+   * @param interruptVectorAddress 
    */
-  constructor(memory: MemoryMapper, interuptVectorAddress = 0x1000) {
+  constructor(memory: MemoryMapper, interruptVectorAddress = 0x1000) {
     this.memory = memory;
 
     /**
@@ -48,8 +48,8 @@ export default class CPU {
       return map;
     }, {} as Record<string, number>);
 
-    this.interuptVectorAddress = interuptVectorAddress;
-    this.isInInteruptHandler = false;
+    this.interruptVectorAddress = interruptVectorAddress;
+    this.isInInterruptHandler = false;
     this.setRegister('im', 0xffff);
 
     this.setRegister('sp', 0xffff - 1);
@@ -189,12 +189,12 @@ export default class CPU {
     }
 
     // Calculate where in the interupt vector we'll look
-    const addressPointer = this.interuptVectorAddress + (interruptBit * 2);
+    const addressPointer = this.interruptVectorAddress + (interruptBit * 2);
     // Get the address from the interupt vector at that address
     const address = this.memory.getUint16(addressPointer);
 
     // We only save state when not already in an interupt
-    if (!this.isInInteruptHandler) {
+    if (!this.isInInterruptHandler) {
       // 0 = 0 args. This is just to maintain our calling convention
       // If this were a software defined interrupt, the caller is expected
       // to supply any required data in registers
@@ -203,7 +203,7 @@ export default class CPU {
       this.pushState();
     }
 
-    this.isInInteruptHandler = true;
+    this.isInInterruptHandler = true;
 
     // Jump to the interupt handler
     this.setRegister('ip', address);
@@ -213,7 +213,7 @@ export default class CPU {
     switch (instruction) {
       case Instructions.RET_INT: {
         console.log('Return from interupt');
-        this.isInInteruptHandler = false;
+        this.isInInterruptHandler = false;
         this.popState();
         return;
       }
