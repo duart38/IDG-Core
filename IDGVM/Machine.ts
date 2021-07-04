@@ -239,7 +239,7 @@ export default class IDGVM {
         return;
       }
 
-      // Move literal into register
+      // Move literal value into register
       case Instructions.MOV_LIT_REG: {
         const literal = this.fetchCurrentInstruction32();
         const register = this.fetchRegisterIndex();
@@ -247,7 +247,7 @@ export default class IDGVM {
         return;
       }
 
-      // Move register to register
+      // Move a registers value to another registers value
       case Instructions.MOV_REG_REG: {
         const registerFrom = this.fetchRegisterIndex();
         const registerTo = this.fetchRegisterIndex();
@@ -256,7 +256,7 @@ export default class IDGVM {
         return;
       }
 
-      // Move register to memory
+      // Move a registers value to a location in memory
       case Instructions.MOV_REG_MEM: {
         const registerFrom = this.fetchRegisterIndex();
         const address = this.fetchCurrentInstruction32();
@@ -265,7 +265,7 @@ export default class IDGVM {
         return;
       }
 
-      // Move memory to register
+      // Move the value of a memory location to a register
       case Instructions.MOV_MEM_REG: {
         const address = this.fetchCurrentInstruction16();
         const registerTo = this.fetchRegisterIndex();
@@ -274,7 +274,7 @@ export default class IDGVM {
         return;
       }
 
-      // Move literal to memory
+      // Move a literal value to a memory location
       case Instructions.MOV_LIT_MEM: {
         const value = this.fetchCurrentInstruction32();
         const address = this.fetchCurrentInstruction32();
@@ -306,20 +306,18 @@ export default class IDGVM {
         return;
       }
 
-      // Add register to register
+      // Add a registers value to another registers value and puts the results in the accumulator
       case Instructions.ADD_REG_REG: {
         // (this.fetchCurrentInstruction32() % REGISTERS.length) * 4;
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
         const registerValue1 = this.registers.getUint32(r1);
         const registerValue2 = this.registers.getUint32(r2);
-
-        console.log(r1,r2, "vals:", registerValue1, registerValue2)
         this.setRegister('acc', registerValue1 + registerValue2);
         return;
       }
 
-      // Add literal to register
+      // Adds a literal value to registers value and puts the results in the accumulator
       case Instructions.ADD_LIT_REG: {
         const literal = this.fetchCurrentInstruction32();
         const register = this.fetchRegisterIndex();
@@ -328,7 +326,7 @@ export default class IDGVM {
         return;
       }
 
-      // Subtract literal from register value
+      // Subtract a literal value from a registers value and puts the results in the accumulator
       case Instructions.SUB_LIT_REG: {
         const literal = this.fetchCurrentInstruction32();
         const register = this.fetchRegisterIndex();
@@ -337,7 +335,7 @@ export default class IDGVM {
         return;
       }
 
-      // Subtract register value from literal
+      // Subtract a registers value from a literal value and puts the results in the accumulator
       case Instructions.SUB_REG_LIT: {
         const register = this.fetchRegisterIndex();
         const literal = this.fetchCurrentInstruction32();
@@ -346,7 +344,7 @@ export default class IDGVM {
         return;
       }
 
-      // Subtract register value from register value
+      // Subtract a registers value from another registers value and puts the results in the accumulator
       case Instructions.SUB_REG_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
@@ -356,7 +354,7 @@ export default class IDGVM {
         return;
       }
 
-      // Multiply literal by register value
+      // Multiply a literal value by a registers value and puts the results in the accumulator
       case Instructions.MUL_LIT_REG: {
         const literal = this.fetchCurrentInstruction32();
         const r1 = this.fetchRegisterIndex();
@@ -365,7 +363,7 @@ export default class IDGVM {
         return;
       }
 
-      // Multiply register value by register value
+      // Multiply a registers value by another registers value and puts the results in the accumulator
       case Instructions.MUL_REG_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
@@ -375,7 +373,7 @@ export default class IDGVM {
         return;
       }
 
-      // Increment value in register (in place)
+      // Increment value in register (puts result back in the same register)
       case Instructions.INC_REG: {
         const r1 = this.fetchRegisterIndex();
         const r1v = this.registers.getUint32(r1);
@@ -383,17 +381,16 @@ export default class IDGVM {
         return;
       }
 
-      // Decrement value in register (in place)
+      // Decrement value in register (puts result back in the same register)
       case Instructions.DEC_REG: {
         const r1 = this.fetchRegisterIndex();
         const oldValue = this.registers.getUint32(r1);
-        const newValue = oldValue - 1;
-        this.registers.setUint32(r1, newValue);
+        this.registers.setUint32(r1, oldValue - 1);
         return;
       }
 
       /**
-       * Left shift register by literal (in place)
+       * Left shift register by literal and puts the value back in the register
        * NOTE: Pay the literal value is 8 bits..
        */
       case Instructions.LSF_REG_LIT: {
@@ -406,7 +403,7 @@ export default class IDGVM {
       }
 
       /**
-       * Left shift first register provided by second register provided (in place)
+       * Left shift first register provided by second register provided and puts the value back in the first provided register
        * NOTE: left shifting reg by reg allows you to shift by up to the max value of a 32-bit value.
        *        I.E: you're not constrained to the 8-bits from the literal to register shifts
        */
@@ -420,7 +417,7 @@ export default class IDGVM {
       }
 
       /**
-       * Right shift register by literal (in place)
+       * Right shift register by literal and puts the value back in the register
        * NOTE: again literals are 8-bit here. use reg>>reg for full 32-bit support
        */
       case Instructions.RSF_REG_LIT: {
@@ -432,7 +429,8 @@ export default class IDGVM {
       }
 
       /**
-       * Right shift register by register (in place) without the 8-bit constraints
+       * Right shift register by register without the 8-bit constraints.
+       * Puts value back in the first provided register
        */
       case Instructions.RSF_REG_REG: {
         const r1 = this.fetchRegisterIndex();
