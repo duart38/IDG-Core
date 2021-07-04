@@ -452,7 +452,7 @@ export default class IDGVM {
         return;
       }
 
-      // And a registers value with another registers value
+      // And a registers value with another registers value and puts the results in the accumulator
       case Instructions.AND_REG_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
@@ -462,14 +462,12 @@ export default class IDGVM {
         return;
       }
 
-      // Or register with literal
+      // Or a registers value with a literal value and puts the results in the accumulator
       case Instructions.OR_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetchCurrentInstruction16();
-        const registerValue = this.registers.getUint16(r1);
-
-        const res = registerValue | literal;
-        this.setRegister('acc', res);
+        const literal = this.fetchCurrentInstruction32();
+        const registerValue = this.registers.getUint32(r1);
+        this.setRegister('acc', registerValue | literal);
         return;
       }
 
