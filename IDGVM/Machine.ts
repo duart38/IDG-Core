@@ -282,13 +282,13 @@ export default class IDGVM {
         return;
       }
 
-      // Move register* to register
+      // Move register address to another register (is this even useful?)
       case Instructions.MOV_REG_PTR_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const ptr = this.registers.getUint16(r1);
-        const value = this.memory.getUint16(ptr);
-        this.registers.setUint16(r2, value);
+        const ptr = this.registers.getUint32(r1);
+        const value = this.memory.getUint32(ptr);
+        this.registers.setUint32(r2, value);
         return;
       }
 
