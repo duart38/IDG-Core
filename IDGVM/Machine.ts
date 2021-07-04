@@ -557,10 +557,10 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if literal less than
+      // Jump if supplied literal is less than the value in the accumulator
       case Instructions.JLT_LIT: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
+        const value = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
 
         if (value < this.getRegister('acc')) {
           this.setRegister('ip', address);
