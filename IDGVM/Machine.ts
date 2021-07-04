@@ -415,18 +415,19 @@ export default class IDGVM {
         const r2 = this.fetchRegisterIndex();
         const oldValue = this.registers.getUint32(r1);
         const shiftBy = this.registers.getUint32(r2);
-        const res = oldValue << shiftBy;
-        this.registers.setUint32(r1, res);
+        this.registers.setUint32(r1, oldValue << shiftBy);
         return;
       }
 
-      // Right shift register by literal (in place)
+      /**
+       * Right shift register by literal (in place)
+       * NOTE: again literals are 8-bit here. use reg>>reg for full 32-bit support
+       */
       case Instructions.RSF_REG_LIT: {
-        const r1 = this.fetchRegisterIndex();
+        const register = this.fetchRegisterIndex();
         const literal = this.fetchCurrentInstruction8();
-        const oldValue = this.registers.getUint16(r1);
-        const res = oldValue >> literal;
-        this.registers.setUint16(r1, res);
+        const oldValue = this.registers.getUint32(register);
+        this.registers.setUint32(register, oldValue >> literal);
         return;
       }
 
