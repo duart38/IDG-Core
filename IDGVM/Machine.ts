@@ -405,14 +405,18 @@ export default class IDGVM {
         return;
       }
 
-      // Left shift register by register (in place)
+      /**
+       * Left shift first register provided by second register provided (in place)
+       * NOTE: left shifting reg by reg allows you to shift by up to the max value of a 32-bit value.
+       *        I.E: you're not constrained to the 8-bits from the literal to register shifts
+       */
       case Instructions.LSF_REG_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const oldValue = this.registers.getUint16(r1);
-        const shiftBy = this.registers.getUint16(r2);
+        const oldValue = this.registers.getUint32(r1);
+        const shiftBy = this.registers.getUint32(r2);
         const res = oldValue << shiftBy;
-        this.registers.setUint16(r1, res);
+        this.registers.setUint32(r1, res);
         return;
       }
 
