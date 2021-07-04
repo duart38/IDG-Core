@@ -2,6 +2,7 @@ import {Instructions, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
 
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
+const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
 
 export default class IDGVM {
 
@@ -55,10 +56,10 @@ export default class IDGVM {
 
     this.interruptVectorAddress = interruptVectorAddress;
     this.isInInterruptHandler = false;
-    this.setRegister('im', 0xffff);
+    this.setRegister('im', PLANK);
 
-    this.setRegister('sp', 0xffff - 1);
-    this.setRegister('fp', 0xffff - 1);
+    this.setRegister('sp', PLANK - 1);
+    this.setRegister('fp', PLANK - 1);
 
     this.stackFrameSize = 0;
   }
@@ -133,7 +134,7 @@ export default class IDGVM {
   push(value: number) {
     const spAddress = this.getRegister('sp');
     this.memory.setUint32(spAddress, value);
-    this.setRegister('sp', spAddress - INSTRUCTION_LENGTH_IN_BYTES);
+    this.setRegister('sp', spAddress - INSTRUCTION_LENGTH_IN_BYTES); // moving stack pointer down
     this.stackFrameSize += INSTRUCTION_LENGTH_IN_BYTES;
   }
 
@@ -657,9 +658,9 @@ export default class IDGVM {
         return;
       }
 
-      // Push Literal
+      // Push Literal to the stack
       case Instructions.PSH_LIT: {
-        const value = this.fetchCurrentInstruction16();
+        const value = this.fetchCurrentInstruction32();
         this.push(value);
         return;
       }
@@ -667,7 +668,7 @@ export default class IDGVM {
       // Push Register
       case Instructions.PSH_REG: {
         const registerIndex = this.fetchRegisterIndex();
-        this.push(this.registers.getUint16(registerIndex));
+        this.push(this.registers.getUint32(registerIndex));
         return;
       }
 
@@ -675,13 +676,13 @@ export default class IDGVM {
       case Instructions.POP: {
         const registerIndex = this.fetchRegisterIndex();
         const value = this.pop();
-        this.registers.setUint16(registerIndex, value);
+        this.registers.setUint32(registerIndex, value);
         return;
       }
 
       // Call literal
       case Instructions.CAL_LIT: {
-        const address = this.fetchCurrentInstruction16();
+        const address = this.fetchCurrentInstruction32();
         this.pushState();
         this.setRegister('ip', address);
         return;
@@ -690,7 +691,7 @@ export default class IDGVM {
       // Call register
       case Instructions.CAL_REG: {
         const registerIndex = this.fetchRegisterIndex();
-        const address = this.registers.getUint16(registerIndex);
+        const address = this.registers.getUint32(registerIndex);
         this.pushState();
         this.setRegister('ip', address);
         return;
