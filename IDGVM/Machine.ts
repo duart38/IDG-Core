@@ -225,14 +225,14 @@ export default class IDGVM {
   execute(instruction: number) {
     console.log(`$ Got instruction ${instruction}`)
     switch (instruction) {
-      case Instructions.RET_INT: {
+      case Instructions.RET_INT: { // TODO: 32 bit check
         console.log('Return from interupt');
         this.isInInterruptHandler = false;
         this.popState();
         return;
       }
 
-      case Instructions.INT: {
+      case Instructions.INT: { // TODO: 32 bit check
         // We're only looking at the least significant nibble
         const interuptValue = this.fetchCurrentInstruction32() & 0xf;
         this.handleInterupt(interuptValue);
