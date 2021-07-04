@@ -18,25 +18,16 @@ const cpu = new IDGVM(MM);
 const PADDING = 0x00;
 cpu.debug();
 
-writableBytes[i++] = Instructions.MOV_LIT_REG
+writableBytes[i++] = Instructions.RAND
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 1
+writableBytes[i++] = 0
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 3
+writableBytes[i++] = 10
 
-writableBytes[i++] = Instructions.MOV_REG_MEM
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 3
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 0xC8
 
 // writableBytes[i++] = Instructions.HLT
 

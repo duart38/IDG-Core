@@ -697,6 +697,16 @@ export default class IDGVM {
         return;
       }
 
+      /**
+       * Gets a random value based on a start and end value (inclusive) and stores this in the accumulator
+       */
+      case Instructions.RAND: {
+        const min = Math.ceil(this.fetchCurrentInstruction32());
+        const max = Math.floor(this.fetchCurrentInstruction32());
+        this.setRegister("acc", Math.floor(Math.random() * (max - min + 1) + min));
+        return;
+      }
+
       // Return from subroutine
       case Instructions.RET: {
         this.popState();
