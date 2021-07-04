@@ -443,14 +443,14 @@ export default class IDGVM {
         return;
       }
 
-      // And register with literal
+      /**
+       * And register with literal and puts it in the accumulator
+       */
       case Instructions.AND_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetchCurrentInstruction16();
-        const registerValue = this.registers.getUint16(r1);
-
-        const res = registerValue & literal;
-        this.setRegister('acc', res);
+        const literal = this.fetchCurrentInstruction32();
+        const registerValue = this.registers.getUint32(r1);
+        this.setRegister('acc', registerValue & literal);
         return;
       }
 

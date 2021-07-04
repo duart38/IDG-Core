@@ -20,15 +20,26 @@ writableBytes[i++] = Instructions.MOV_LIT_REG
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 5
+writableBytes[i++] = 5 // literal
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 2
+writableBytes[i++] = 2 // register
 cpu.step()
 cpu.debug()
 
-writableBytes[i++] = Instructions.MOV_REG_PTR_REG
+writableBytes[i++] = Instructions.MOV_LIT_REG
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = 3 // literal
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = 3 // register
+cpu.step()
+
+writableBytes[i++] = Instructions.AND_REG_LIT
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
@@ -36,7 +47,7 @@ writableBytes[i++] = 2
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 4
+writableBytes[i++] = 3
 cpu.step()
 cpu.debug()
 
