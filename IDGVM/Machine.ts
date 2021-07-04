@@ -508,13 +508,12 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if literal not equal
+      // Jump to an address if literal value is not equal to the value in the accumulator
       case Instructions.JMP_NOT_EQ: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
-
+        const value = this.fetchCurrentInstruction32();
+        const addressToJumpTo = this.fetchCurrentInstruction32();
         if (value !== this.getRegister('acc')) {
-          this.setRegister('ip', address);
+          this.setRegister('ip', addressToJumpTo);
         }
 
         return;

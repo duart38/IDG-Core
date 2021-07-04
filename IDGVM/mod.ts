@@ -20,7 +20,7 @@ writableBytes[i++] = Instructions.MOV_LIT_REG
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 5 // literal
+writableBytes[i++] = 0 // literal
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
@@ -39,17 +39,37 @@ writableBytes[i++] = PADDING
 writableBytes[i++] = 3 // register
 cpu.step()
 
-writableBytes[i++] = Instructions.AND_REG_LIT
+writableBytes[i++] = Instructions.JMP_NOT_EQ
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = 5
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = 27
+cpu.step()
+cpu.debug()
+
+
+writableBytes[i++] = Instructions.ADD_LIT_REG // jump to here
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = 1
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = 2
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 3
+
+cpu.step()
+cpu.step()
+cpu.step()
+cpu.step()
 cpu.step()
 cpu.debug()
+
+
 
 // writableBytes[i++] = Instructions.ADD_REG_REG
 // writableBytes[i++] = PADDING
@@ -63,7 +83,7 @@ cpu.debug()
 // cpu.step()
 // cpu.debug()
 
-cpu.viewMemoryAt(268435456, 16);
+cpu.viewMemoryAt(27, 16);
 
 
 // cpu.run();
