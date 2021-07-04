@@ -386,9 +386,9 @@ export default class IDGVM {
       // Decrement value in register (in place)
       case Instructions.DEC_REG: {
         const r1 = this.fetchRegisterIndex();
-        const oldValue = this.registers.getUint16(r1);
+        const oldValue = this.registers.getUint32(r1);
         const newValue = oldValue - 1;
-        this.registers.setUint16(r1, newValue);
+        this.registers.setUint32(r1, newValue);
         return;
       }
 
