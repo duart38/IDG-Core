@@ -378,9 +378,8 @@ export default class IDGVM {
       // Increment value in register (in place)
       case Instructions.INC_REG: {
         const r1 = this.fetchRegisterIndex();
-        const oldValue = this.registers.getUint16(r1);
-        const newValue = oldValue + 1;
-        this.registers.setUint16(r1, newValue);
+        const r1v = this.registers.getUint32(r1);
+        this.registers.setUint32(r1, r1v + 1);
         return;
       }
 
