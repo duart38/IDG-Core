@@ -532,10 +532,10 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if literal equal
+      // Jump if literal value is equal to the value in the accumulator
       case Instructions.JEQ_LIT: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
+        const value = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
 
         if (value === this.getRegister('acc')) {
           this.setRegister('ip', address);
