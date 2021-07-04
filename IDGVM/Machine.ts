@@ -392,13 +392,16 @@ export default class IDGVM {
         return;
       }
 
-      // Left shift register by literal (in place)
+      /**
+       * Left shift register by literal (in place)
+       * NOTE: Pay the literal value is 8 bits..
+       */
       case Instructions.LSF_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
         const literal = this.fetchCurrentInstruction8();
-        const oldValue = this.registers.getUint16(r1);
-        const res = oldValue << literal;
-        this.registers.setUint16(r1, res);
+        const oldValue = this.registers.getUint32(r1);
+        const res = oldValue << literal; // do we need bigger shifting capabilities? (e.g. 16 bit lits)
+        this.registers.setUint32(r1, res);
         return;
       }
 
