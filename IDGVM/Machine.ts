@@ -431,14 +431,15 @@ export default class IDGVM {
         return;
       }
 
-      // Right shift register by register (in place)
+      /**
+       * Right shift register by register (in place) without the 8-bit constraints
+       */
       case Instructions.RSF_REG_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const oldValue = this.registers.getUint16(r1);
-        const shiftBy = this.registers.getUint16(r2);
-        const res = oldValue >> shiftBy;
-        this.registers.setUint16(r1, res);
+        const oldValue = this.registers.getUint32(r1);
+        const shiftBy = this.registers.getUint32(r2);
+        this.registers.setUint32(r1, oldValue >> shiftBy);
         return;
       }
 
