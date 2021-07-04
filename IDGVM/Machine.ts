@@ -321,9 +321,9 @@ export default class IDGVM {
 
       // Add literal to register
       case Instructions.ADD_LIT_REG: {
-        const literal = this.fetchCurrentInstruction16();
+        const literal = this.fetchCurrentInstruction32();
         const r1 = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(r1);
+        const registerValue = this.registers.getUint32(r1);
         this.setRegister('acc', literal + registerValue);
         return;
       }
