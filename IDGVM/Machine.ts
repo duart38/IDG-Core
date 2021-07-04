@@ -481,14 +481,12 @@ export default class IDGVM {
         return;
       }
 
-      // Xor register with literal
+      // XOR a registers value with literal value and puts the results in the accumulator
       case Instructions.XOR_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetchCurrentInstruction16();
-        const registerValue = this.registers.getUint16(r1);
-
-        const res = registerValue ^ literal;
-        this.setRegister('acc', res);
+        const literal = this.fetchCurrentInstruction32();
+        const registerValue = this.registers.getUint32(r1);
+        this.setRegister('acc', registerValue ^ literal);
         return;
       }
 
