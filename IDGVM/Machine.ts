@@ -500,13 +500,11 @@ export default class IDGVM {
         return;
       }
 
-      // Not (invert) register
-      case Instructions.NOT: {
+      // Bitwise-NOT a registers value and puts the result in the accumulator
+      case Instructions.NOT: { // TODO: test this properly
         const r1 = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(r1);
-
-        const res = (~registerValue) & 0xffff;
-        this.setRegister('acc', res);
+        const registerValue = this.registers.getUint32(r1);
+        this.setRegister('acc', (~registerValue) & 0x7FFFFFFF);
         return;
       }
 
