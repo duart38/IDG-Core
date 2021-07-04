@@ -73,5 +73,8 @@ export enum Instructions {
     HLT             = 0xFF,
     RET_INT         = 0xFC,
     INT             = 0xFD,
+
+    // QOF instructions
+    RAND
 }
 
