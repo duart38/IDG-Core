@@ -582,10 +582,10 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if literal greater than
+      // Jump if literal greater than the val in accumulator
       case Instructions.JGT_LIT: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
+        const value = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
 
         if (value > this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -594,11 +594,11 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if register greater than
+      // Jump if register greater than the value in accumulator
       case Instructions.JGT_REG: {
         const r1 = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(r1);
-        const address = this.fetchCurrentInstruction16();
+        const value = this.registers.getUint32(r1);
+        const address = this.fetchCurrentInstruction32();
 
         if (value > this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -607,10 +607,10 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if literal less than or equal to
+      // Jump if literal less than or equal to accumulator
       case Instructions.JLE_LIT: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
+        const value = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
 
         if (value <= this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -619,11 +619,11 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if register less than or equal to
+      // Jump if register less than or equal to accumulator
       case Instructions.JLE_REG: {
         const r1 = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(r1);
-        const address = this.fetchCurrentInstruction16();
+        const value = this.registers.getUint32(r1);
+        const address = this.fetchCurrentInstruction32();
 
         if (value <= this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -632,10 +632,10 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if literal greater than or equal to
+      // Jump if literal greater than or equal to the accumulator
       case Instructions.JGE_LIT: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
+        const value = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
 
         if (value >= this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -644,11 +644,11 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if register greater than or equal to
+      // Jump if register greater than or equal to the accumulator
       case Instructions.JGE_REG: {
         const r1 = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(r1);
-        const address = this.fetchCurrentInstruction16();
+        const value = this.registers.getUint32(r1);
+        const address = this.fetchCurrentInstruction32();
 
         if (value >= this.getRegister('acc')) {
           this.setRegister('ip', address);
