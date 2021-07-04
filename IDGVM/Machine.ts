@@ -519,11 +519,11 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if register not equal
+      // Jump if supplied registers value is not equal to the accumulators value
       case Instructions.JNE_REG: {
         const r1 = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(r1);
-        const address = this.fetchCurrentInstruction16();
+        const value = this.registers.getUint32(r1);
+        const address = this.fetchCurrentInstruction32();
 
         if (value !== this.getRegister('acc')) {
           this.setRegister('ip', address);
