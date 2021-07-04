@@ -330,11 +330,10 @@ export default class IDGVM {
 
       // Subtract literal from register value
       case Instructions.SUB_LIT_REG: {
-        const literal = this.fetchCurrentInstruction16();
-        const r1 = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(r1);
-        const res = registerValue - literal;
-        this.setRegister('acc', res);
+        const literal = this.fetchCurrentInstruction32();
+        const register = this.fetchRegisterIndex();
+        const registerValue = this.registers.getUint32(register);
+        this.setRegister('acc', registerValue - literal);
         return;
       }
 
