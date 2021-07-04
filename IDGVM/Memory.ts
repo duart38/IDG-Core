@@ -4,8 +4,10 @@ export const createMemory = (sizeInBytes: number) => {
     return dv;
 };
 
+interface Region { device: DataView; start: number; end: number; remap: boolean; }
+
 export class MemoryMapper {
-    private regions: any; // TODO: change me
+    private regions: Region[]; // TODO: change me
     constructor() {
       this.regions = [];
     }
@@ -20,7 +22,7 @@ export class MemoryMapper {
       this.regions.unshift(region);
   
       return () => {
-        this.regions = this.regions.filter((x: { device: DataView; start: number; end: number; remap: boolean; }) => x !== region);
+        this.regions = this.regions.filter((x) => x !== region);
       };
     }
   
@@ -47,8 +49,23 @@ export class MemoryMapper {
         : address;
       return region.device.getUint8(finalAddress);
     }
+
+    getUint32(address: number): number {
+      const region = this.findRegion(address);
+      const finalAddress = region.remap
+        ? address - region.start
+        : address;
+      return region.device.getUint32(finalAddress);
+    }
+    setUint32(address: number, value: number): void {
+      const region = this.findRegion(address);
+      const finalAddress = region.remap
+        ? address - region.start
+        : address;
+      return region.device.setUint32(finalAddress, value);
+    }
   
-    setUint16(address: number, value: number): number {
+    setUint16(address: number, value: number): void {
       const region = this.findRegion(address);
       const finalAddress = region.remap
         ? address - region.start
@@ -56,7 +73,7 @@ export class MemoryMapper {
       return region.device.setUint16(finalAddress, value);
     }
   
-    setUint8(address: number, value: number): number {
+    setUint8(address: number, value: number): void {
       const region = this.findRegion(address);
       const finalAddress = region.remap
         ? address - region.start
