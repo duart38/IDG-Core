@@ -358,11 +358,10 @@ export default class IDGVM {
 
       // Multiply literal by register value
       case Instructions.MUL_LIT_REG: {
-        const literal = this.fetchCurrentInstruction16();
+        const literal = this.fetchCurrentInstruction32();
         const r1 = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(r1);
-        const res = literal * registerValue;
-        this.setRegister('acc', res);
+        const registerValue = this.registers.getUint32(r1);
+        this.setRegister('acc', literal * registerValue);
         return;
       }
 
