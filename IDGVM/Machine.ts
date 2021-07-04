@@ -259,9 +259,9 @@ export default class IDGVM {
       // Move register to memory
       case Instructions.MOV_REG_MEM: {
         const registerFrom = this.fetchRegisterIndex();
-        const address = this.fetchCurrentInstruction16();
-        const value = this.registers.getUint16(registerFrom);
-        this.memory.setUint16(address, value);
+        const address = this.fetchCurrentInstruction32();
+        const value = this.registers.getUint32(registerFrom);
+        this.memory.setUint32(address, value);
         return;
       }
 
