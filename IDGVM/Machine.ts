@@ -1,6 +1,8 @@
 import {Instructions, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
 
+const INSTRUCTION_LENGTH_IN_BYTES = 4;
+
 export default class IDGVM {
 
 
@@ -36,15 +38,18 @@ export default class IDGVM {
     /**
      * Creating memory for actual values of register
      * System is currently 16-bits so that's 2 bytes for each register
+     * 
+     * I don't think i'll care about the size of this needing to be smaller as this
+     * will never get dumped to disk anyways..
      */
-    this.registers = createMemory(REGISTERS.length * 2);
+    this.registers = createMemory(REGISTERS.length * INSTRUCTION_LENGTH_IN_BYTES);
     /**
      * Defining where in the registers (defined above) the values
      * in the map will be pointing to.
      */
     this.registerMap = REGISTERS.reduce((map, name, i) => {
       // multiply by 2 to make sure that the offsets do not overlap one another
-      map[name] = i * 2;
+      map[name] = i * INSTRUCTION_LENGTH_IN_BYTES;
       return map;
     }, {} as Record<string, number>);
 
@@ -61,7 +66,8 @@ export default class IDGVM {
   debug() {
     for(const name in this.registerMap){
       try{
-        console.log(`${name}: 0x${this.getRegister(name).toString(16).padStart(4, '0')}`);
+        // console.log(`${name}: 0x${this.getRegister(name).toString(16).padStart(8, '0')} -> ${this.getRegister(name)}`);
+        console.log(`${name}: ${this.getRegister(name).toString().padStart(3, "0")}`);
       }catch(e){
         console.error("Potential empty stack (did you forget to add instructions?)", e);
       }
@@ -85,14 +91,14 @@ export default class IDGVM {
     if (!(name in this.registerMap)) {
       throw new Error(`getRegister: No such register '${name}'`);
     }
-    return this.registers.getUint16(this.registerMap[name]);
+    return this.registers.getUint32(this.registerMap[name]);
   }
 
   setRegister(name: string, value: number) {
     if (!(name in this.registerMap)) {
       throw new Error(`setRegister: No such register '${name}'`);
     }
-    return this.registers.setUint16(this.registerMap[name], value);
+    return this.registers.setUint32(this.registerMap[name], value);
   }
 
   /**
@@ -100,7 +106,7 @@ export default class IDGVM {
    * to the next address to be executed next
    * @returns an executable instruction
    */
-  fetchCurrentInstruction() {
+  fetchCurrentInstruction8() {
     // get the instruction pointer address that houses the next instruction
     const nextInstructionAddress = this.getRegister('ip');
     // gets the actual instruction value from that location in memory
@@ -117,18 +123,25 @@ export default class IDGVM {
     return instruction;
   }
 
+  fetchCurrentInstruction32() {
+    const nextInstructionAddress = this.getRegister('ip');
+    const instruction = this.memory.getUint32(nextInstructionAddress);
+    this.setRegister('ip', nextInstructionAddress + 4);
+    return instruction;
+  }
+
   push(value: number) {
     const spAddress = this.getRegister('sp');
-    this.memory.setUint16(spAddress, value);
-    this.setRegister('sp', spAddress - 2);
-    this.stackFrameSize += 2;
+    this.memory.setUint32(spAddress, value);
+    this.setRegister('sp', spAddress - INSTRUCTION_LENGTH_IN_BYTES);
+    this.stackFrameSize += INSTRUCTION_LENGTH_IN_BYTES;
   }
 
   pop() {
-    const nextSpAddress = this.getRegister('sp') + 2;
+    const nextSpAddress = this.getRegister('sp') + INSTRUCTION_LENGTH_IN_BYTES;
     this.setRegister('sp', nextSpAddress);
-    this.stackFrameSize -= 2;
-    return this.memory.getUint16(nextSpAddress);
+    this.stackFrameSize -= INSTRUCTION_LENGTH_IN_BYTES;
+    return this.memory.getUint32(nextSpAddress);
   }
 
   pushState() {
@@ -141,7 +154,7 @@ export default class IDGVM {
     this.push(this.getRegister('r7'));
     this.push(this.getRegister('r8'));
     this.push(this.getRegister('ip'));
-    this.push(this.stackFrameSize + 2);
+    this.push(this.stackFrameSize + INSTRUCTION_LENGTH_IN_BYTES);
 
     this.setRegister('fp', this.getRegister('sp'));
     this.stackFrameSize = 0;
@@ -174,7 +187,7 @@ export default class IDGVM {
 
   fetchRegisterIndex() {
     // clamped for bounds, *2 because we're pointing to a byte but each register takes up 2 bytes
-    return (this.fetchCurrentInstruction() % REGISTERS.length) * 2;
+    return (this.fetchCurrentInstruction32() % REGISTERS.length) * 4;
   }
 
   handleInterupt(value: number) {
@@ -189,7 +202,7 @@ export default class IDGVM {
     }
 
     // Calculate where in the interupt vector we'll look
-    const addressPointer = this.interruptVectorAddress + (interruptBit * 2);
+    const addressPointer = this.interruptVectorAddress + (interruptBit * INSTRUCTION_LENGTH_IN_BYTES);
     // Get the address from the interupt vector at that address
     const address = this.memory.getUint16(addressPointer);
 
@@ -210,6 +223,7 @@ export default class IDGVM {
   }
 
   execute(instruction: number) {
+    console.log(`$ Got instruction ${instruction}`)
     switch (instruction) {
       case Instructions.RET_INT: {
         console.log('Return from interupt');
@@ -220,16 +234,16 @@ export default class IDGVM {
 
       case Instructions.INT: {
         // We're only looking at the least significant nibble
-        const interuptValue = this.fetchCurrentInstruction16() & 0xf;
+        const interuptValue = this.fetchCurrentInstruction32() & 0xf;
         this.handleInterupt(interuptValue);
         return;
       }
 
       // Move literal into register
       case Instructions.MOV_LIT_REG: {
-        const literal = this.fetchCurrentInstruction16();
+        const literal = this.fetchCurrentInstruction32();
         const register = this.fetchRegisterIndex();
-        this.registers.setUint16(register, literal);
+        this.registers.setUint32(register, literal);
         return;
       }
 
@@ -292,10 +306,13 @@ export default class IDGVM {
 
       // Add register to register
       case Instructions.ADD_REG_REG: {
+        // (this.fetchCurrentInstruction32() % REGISTERS.length) * 4;
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const registerValue1 = this.registers.getUint16(r1);
-        const registerValue2 = this.registers.getUint16(r2);
+        const registerValue1 = this.registers.getUint32(r1);
+        const registerValue2 = this.registers.getUint32(r2);
+
+        console.log(r1,r2, "vals:", registerValue1, registerValue2)
         this.setRegister('acc', registerValue1 + registerValue2);
         return;
       }
@@ -382,7 +399,7 @@ export default class IDGVM {
       // Left shift register by literal (in place)
       case Instructions.LSF_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetchCurrentInstruction();
+        const literal = this.fetchCurrentInstruction8();
         const oldValue = this.registers.getUint16(r1);
         const res = oldValue << literal;
         this.registers.setUint16(r1, res);
@@ -403,7 +420,7 @@ export default class IDGVM {
       // Right shift register by literal (in place)
       case Instructions.RSF_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetchCurrentInstruction();
+        const literal = this.fetchCurrentInstruction8();
         const oldValue = this.registers.getUint16(r1);
         const res = oldValue >> literal;
         this.registers.setUint16(r1, res);
@@ -699,11 +716,12 @@ export default class IDGVM {
       case Instructions.HLT: {
         return true;
       }
+      default: console.error(`instruction ${0} is not an executable instruction, make sure your instructions are aligned properly by padding the values that are too small for a complete instruction.`)
     }
   }
 
   step() {
-    const instruction = this.fetchCurrentInstruction();
+    const instruction = this.fetchCurrentInstruction8();
     return this.execute(instruction);
   }
 
