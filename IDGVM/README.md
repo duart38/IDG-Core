@@ -34,4 +34,8 @@ Loads stuff in the machine.. will read the information header of the file and ba
 
 
 # Links
-https://deno.land/x/imagescript@1.2.7
+- [Image manipulation help](https://deno.land/x/imagescript@1.2.7)
+
+
+# Credits and inspiration
+- A special thanks to the YouTube channel [Low Level JavaScript](https://www.youtube.com/channel/UC56l7uZA209tlPTVOJiJ8Tw) for providing tutorials and code snippets that accelerated the process of building the  32-bit IDGVM.
