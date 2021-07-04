@@ -1,6 +1,9 @@
 import {Instructions, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
 
+const INSTRUCTION_LENGTH_IN_BYTES = 4;
+const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
+
 export default class IDGVM {
 
 
@@ -36,24 +39,27 @@ export default class IDGVM {
     /**
      * Creating memory for actual values of register
      * System is currently 16-bits so that's 2 bytes for each register
+     * 
+     * I don't think i'll care about the size of this needing to be smaller as this
+     * will never get dumped to disk anyways..
      */
-    this.registers = createMemory(REGISTERS.length * 2);
+    this.registers = createMemory(REGISTERS.length * INSTRUCTION_LENGTH_IN_BYTES);
     /**
      * Defining where in the registers (defined above) the values
      * in the map will be pointing to.
      */
     this.registerMap = REGISTERS.reduce((map, name, i) => {
       // multiply by 2 to make sure that the offsets do not overlap one another
-      map[name] = i * 2;
+      map[name] = i * INSTRUCTION_LENGTH_IN_BYTES;
       return map;
     }, {} as Record<string, number>);
 
     this.interruptVectorAddress = interruptVectorAddress;
     this.isInInterruptHandler = false;
-    this.setRegister('im', 0xffff);
+    this.setRegister('im', PLANK);
 
-    this.setRegister('sp', 0xffff - 1);
-    this.setRegister('fp', 0xffff - 1);
+    this.setRegister('sp', PLANK - 1);
+    this.setRegister('fp', PLANK - 1);
 
     this.stackFrameSize = 0;
   }
@@ -61,7 +67,8 @@ export default class IDGVM {
   debug() {
     for(const name in this.registerMap){
       try{
-        console.log(`${name}: 0x${this.getRegister(name).toString(16).padStart(4, '0')}`);
+        // console.log(`${name}: 0x${this.getRegister(name).toString(16).padStart(8, '0')} -> ${this.getRegister(name)}`);
+        console.log(`${name}: ${this.getRegister(name).toString().padStart(3, "0")}`);
       }catch(e){
         console.error("Potential empty stack (did you forget to add instructions?)", e);
       }
@@ -85,14 +92,14 @@ export default class IDGVM {
     if (!(name in this.registerMap)) {
       throw new Error(`getRegister: No such register '${name}'`);
     }
-    return this.registers.getUint16(this.registerMap[name]);
+    return this.registers.getUint32(this.registerMap[name]);
   }
 
   setRegister(name: string, value: number) {
     if (!(name in this.registerMap)) {
       throw new Error(`setRegister: No such register '${name}'`);
     }
-    return this.registers.setUint16(this.registerMap[name], value);
+    return this.registers.setUint32(this.registerMap[name], value);
   }
 
   /**
@@ -100,7 +107,7 @@ export default class IDGVM {
    * to the next address to be executed next
    * @returns an executable instruction
    */
-  fetchCurrentInstruction() {
+  fetchCurrentInstruction8() {
     // get the instruction pointer address that houses the next instruction
     const nextInstructionAddress = this.getRegister('ip');
     // gets the actual instruction value from that location in memory
@@ -117,18 +124,25 @@ export default class IDGVM {
     return instruction;
   }
 
+  fetchCurrentInstruction32() {
+    const nextInstructionAddress = this.getRegister('ip');
+    const instruction = this.memory.getUint32(nextInstructionAddress);
+    this.setRegister('ip', nextInstructionAddress + 4);
+    return instruction;
+  }
+
   push(value: number) {
     const spAddress = this.getRegister('sp');
-    this.memory.setUint16(spAddress, value);
-    this.setRegister('sp', spAddress - 2);
-    this.stackFrameSize += 2;
+    this.memory.setUint32(spAddress, value);
+    this.setRegister('sp', spAddress - INSTRUCTION_LENGTH_IN_BYTES); // moving stack pointer down
+    this.stackFrameSize += INSTRUCTION_LENGTH_IN_BYTES;
   }
 
   pop() {
-    const nextSpAddress = this.getRegister('sp') + 2;
+    const nextSpAddress = this.getRegister('sp') + INSTRUCTION_LENGTH_IN_BYTES;
     this.setRegister('sp', nextSpAddress);
-    this.stackFrameSize -= 2;
-    return this.memory.getUint16(nextSpAddress);
+    this.stackFrameSize -= INSTRUCTION_LENGTH_IN_BYTES;
+    return this.memory.getUint32(nextSpAddress);
   }
 
   pushState() {
@@ -141,7 +155,7 @@ export default class IDGVM {
     this.push(this.getRegister('r7'));
     this.push(this.getRegister('r8'));
     this.push(this.getRegister('ip'));
-    this.push(this.stackFrameSize + 2);
+    this.push(this.stackFrameSize + INSTRUCTION_LENGTH_IN_BYTES);
 
     this.setRegister('fp', this.getRegister('sp'));
     this.stackFrameSize = 0;
@@ -174,7 +188,7 @@ export default class IDGVM {
 
   fetchRegisterIndex() {
     // clamped for bounds, *2 because we're pointing to a byte but each register takes up 2 bytes
-    return (this.fetchCurrentInstruction() % REGISTERS.length) * 2;
+    return (this.fetchCurrentInstruction32() % REGISTERS.length) * 4;
   }
 
   handleInterupt(value: number) {
@@ -189,7 +203,7 @@ export default class IDGVM {
     }
 
     // Calculate where in the interupt vector we'll look
-    const addressPointer = this.interruptVectorAddress + (interruptBit * 2);
+    const addressPointer = this.interruptVectorAddress + (interruptBit * INSTRUCTION_LENGTH_IN_BYTES);
     // Get the address from the interupt vector at that address
     const address = this.memory.getUint16(addressPointer);
 
@@ -210,48 +224,49 @@ export default class IDGVM {
   }
 
   execute(instruction: number) {
+    console.log(`$ Got instruction ${instruction}`)
     switch (instruction) {
-      case Instructions.RET_INT: {
+      case Instructions.RET_INT: { // TODO: 32 bit check
         console.log('Return from interupt');
         this.isInInterruptHandler = false;
         this.popState();
         return;
       }
 
-      case Instructions.INT: {
+      case Instructions.INT: { // TODO: 32 bit check
         // We're only looking at the least significant nibble
-        const interuptValue = this.fetchCurrentInstruction16() & 0xf;
+        const interuptValue = this.fetchCurrentInstruction32() & 0xf;
         this.handleInterupt(interuptValue);
         return;
       }
 
-      // Move literal into register
+      // Move literal value into register
       case Instructions.MOV_LIT_REG: {
-        const literal = this.fetchCurrentInstruction16();
+        const literal = this.fetchCurrentInstruction32();
         const register = this.fetchRegisterIndex();
-        this.registers.setUint16(register, literal);
+        this.registers.setUint32(register, literal);
         return;
       }
 
-      // Move register to register
+      // Move a registers value to another registers value
       case Instructions.MOV_REG_REG: {
         const registerFrom = this.fetchRegisterIndex();
         const registerTo = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(registerFrom);
-        this.registers.setUint16(registerTo, value);
+        const value = this.registers.getUint32(registerFrom);
+        this.registers.setUint32(registerTo, value);
         return;
       }
 
-      // Move register to memory
+      // Move a registers value to a location in memory
       case Instructions.MOV_REG_MEM: {
         const registerFrom = this.fetchRegisterIndex();
-        const address = this.fetchCurrentInstruction16();
-        const value = this.registers.getUint16(registerFrom);
-        this.memory.setUint16(address, value);
+        const address = this.fetchCurrentInstruction32();
+        const value = this.registers.getUint32(registerFrom);
+        this.memory.setUint32(address, value);
         return;
       }
 
-      // Move memory to register
+      // Move the value of a memory location to a register
       case Instructions.MOV_MEM_REG: {
         const address = this.fetchCurrentInstruction16();
         const registerTo = this.fetchRegisterIndex();
@@ -260,263 +275,256 @@ export default class IDGVM {
         return;
       }
 
-      // Move literal to memory
+      // Move a literal value to a memory location
       case Instructions.MOV_LIT_MEM: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
-        this.memory.setUint16(address, value);
+        const value = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
+        this.memory.setUint32(address, value);
         return;
       }
 
-      // Move register* to register
+      // Move register address to another register (is this even useful?)
       case Instructions.MOV_REG_PTR_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const ptr = this.registers.getUint16(r1);
-        const value = this.memory.getUint16(ptr);
-        this.registers.setUint16(r2, value);
+        const ptr = this.registers.getUint32(r1);
+        const value = this.memory.getUint32(ptr);
+        this.registers.setUint32(r2, value);
         return;
       }
 
-      // Move value at [literal + register] to register
-      case Instructions.MOV_LIT_OFF_REG: {
-        const baseAddress = this.fetchCurrentInstruction16();
+      /**
+       * Move value at offset[literal + register] to register.
+       * */ 
+      case Instructions.MOV_LIT_OFF_REG: { // TODO: test this one.. did not
+        const baseAddress = this.fetchCurrentInstruction32();
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const offset = this.registers.getUint16(r1);
+        const offset = this.registers.getUint32(r1);
 
-        const value = this.memory.getUint16(baseAddress + offset);
-        this.registers.setUint16(r2, value);
+        const value = this.memory.getUint32(baseAddress + offset);
+        this.registers.setUint32(r2, value);
         return;
       }
 
-      // Add register to register
+      // Add a registers value to another registers value and puts the results in the accumulator
       case Instructions.ADD_REG_REG: {
+        // (this.fetchCurrentInstruction32() % REGISTERS.length) * 4;
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const registerValue1 = this.registers.getUint16(r1);
-        const registerValue2 = this.registers.getUint16(r2);
+        const registerValue1 = this.registers.getUint32(r1);
+        const registerValue2 = this.registers.getUint32(r2);
         this.setRegister('acc', registerValue1 + registerValue2);
         return;
       }
 
-      // Add literal to register
+      // Adds a literal value to registers value and puts the results in the accumulator
       case Instructions.ADD_LIT_REG: {
-        const literal = this.fetchCurrentInstruction16();
-        const r1 = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(r1);
+        const literal = this.fetchCurrentInstruction32();
+        const register = this.fetchRegisterIndex();
+        const registerValue = this.registers.getUint32(register);
         this.setRegister('acc', literal + registerValue);
         return;
       }
 
-      // Subtract literal from register value
+      // Subtract a literal value from a registers value and puts the results in the accumulator
       case Instructions.SUB_LIT_REG: {
-        const literal = this.fetchCurrentInstruction16();
-        const r1 = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(r1);
-        const res = registerValue - literal;
-        this.setRegister('acc', res);
+        const literal = this.fetchCurrentInstruction32();
+        const register = this.fetchRegisterIndex();
+        const registerValue = this.registers.getUint32(register);
+        this.setRegister('acc', registerValue - literal);
         return;
       }
 
-      // Subtract register value from literal
+      // Subtract a registers value from a literal value and puts the results in the accumulator
       case Instructions.SUB_REG_LIT: {
-        const r1 = this.fetchRegisterIndex();
-        const literal = this.fetchCurrentInstruction16();
-        const registerValue = this.registers.getUint16(r1);
-        const res = literal - registerValue;
-        this.setRegister('acc', res);
+        const register = this.fetchRegisterIndex();
+        const literal = this.fetchCurrentInstruction32();
+        const registerValue = this.registers.getUint32(register);
+        this.setRegister('acc', literal - registerValue);
         return;
       }
 
-      // Subtract register value from register value
+      // Subtract a registers value from another registers value and puts the results in the accumulator
       case Instructions.SUB_REG_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const registerValue1 = this.registers.getUint16(r1);
-        const registerValue2 = this.registers.getUint16(r2);
-        const res = registerValue1 - registerValue2;
-        this.setRegister('acc', res);
+        const lhs = this.registers.getUint32(r1);
+        const rhs = this.registers.getUint32(r2);
+        this.setRegister('acc', lhs - rhs);
         return;
       }
 
-      // Multiply literal by register value
+      // Multiply a literal value by a registers value and puts the results in the accumulator
       case Instructions.MUL_LIT_REG: {
-        const literal = this.fetchCurrentInstruction16();
+        const literal = this.fetchCurrentInstruction32();
         const r1 = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(r1);
-        const res = literal * registerValue;
-        this.setRegister('acc', res);
+        const registerValue = this.registers.getUint32(r1);
+        this.setRegister('acc', literal * registerValue);
         return;
       }
 
-      // Multiply register value by register value
+      // Multiply a registers value by another registers value and puts the results in the accumulator
       case Instructions.MUL_REG_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const registerValue1 = this.registers.getUint16(r1);
-        const registerValue2 = this.registers.getUint16(r2);
-        const res = registerValue1 * registerValue2;
-        this.setRegister('acc', res);
+        const v1 = this.registers.getUint32(r1);
+        const v2 = this.registers.getUint32(r2);
+        this.setRegister('acc', v1 * v2);
         return;
       }
 
-      // Increment value in register (in place)
+      // Increment value in register (puts result back in the same register)
       case Instructions.INC_REG: {
         const r1 = this.fetchRegisterIndex();
-        const oldValue = this.registers.getUint16(r1);
-        const newValue = oldValue + 1;
-        this.registers.setUint16(r1, newValue);
+        const r1v = this.registers.getUint32(r1);
+        this.registers.setUint32(r1, r1v + 1);
         return;
       }
 
-      // Decrement value in register (in place)
+      // Decrement value in register (puts result back in the same register)
       case Instructions.DEC_REG: {
         const r1 = this.fetchRegisterIndex();
-        const oldValue = this.registers.getUint16(r1);
-        const newValue = oldValue - 1;
-        this.registers.setUint16(r1, newValue);
+        const oldValue = this.registers.getUint32(r1);
+        this.registers.setUint32(r1, oldValue - 1);
         return;
       }
 
-      // Left shift register by literal (in place)
+      /**
+       * Left shift register by literal and puts the value back in the register
+       * NOTE: Pay the literal value is 8 bits..
+       */
       case Instructions.LSF_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetchCurrentInstruction();
-        const oldValue = this.registers.getUint16(r1);
-        const res = oldValue << literal;
-        this.registers.setUint16(r1, res);
+        const literal = this.fetchCurrentInstruction8();
+        const oldValue = this.registers.getUint32(r1);
+        const res = oldValue << literal; // do we need bigger shifting capabilities? (e.g. 16 bit lits)
+        this.registers.setUint32(r1, res);
         return;
       }
 
-      // Left shift register by register (in place)
+      /**
+       * Left shift first register provided by second register provided and puts the value back in the first provided register
+       * NOTE: left shifting reg by reg allows you to shift by up to the max value of a 32-bit value.
+       *        I.E: you're not constrained to the 8-bits from the literal to register shifts
+       */
       case Instructions.LSF_REG_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const oldValue = this.registers.getUint16(r1);
-        const shiftBy = this.registers.getUint16(r2);
-        const res = oldValue << shiftBy;
-        this.registers.setUint16(r1, res);
+        const oldValue = this.registers.getUint32(r1);
+        const shiftBy = this.registers.getUint32(r2);
+        this.registers.setUint32(r1, oldValue << shiftBy);
         return;
       }
 
-      // Right shift register by literal (in place)
+      /**
+       * Right shift register by literal and puts the value back in the register
+       * NOTE: again literals are 8-bit here. use reg>>reg for full 32-bit support
+       */
       case Instructions.RSF_REG_LIT: {
-        const r1 = this.fetchRegisterIndex();
-        const literal = this.fetchCurrentInstruction();
-        const oldValue = this.registers.getUint16(r1);
-        const res = oldValue >> literal;
-        this.registers.setUint16(r1, res);
+        const register = this.fetchRegisterIndex();
+        const literal = this.fetchCurrentInstruction8();
+        const oldValue = this.registers.getUint32(register);
+        this.registers.setUint32(register, oldValue >> literal);
         return;
       }
 
-      // Right shift register by register (in place)
+      /**
+       * Right shift register by register without the 8-bit constraints.
+       * Puts value back in the first provided register
+       */
       case Instructions.RSF_REG_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const oldValue = this.registers.getUint16(r1);
-        const shiftBy = this.registers.getUint16(r2);
-        const res = oldValue >> shiftBy;
-        this.registers.setUint16(r1, res);
+        const oldValue = this.registers.getUint32(r1);
+        const shiftBy = this.registers.getUint32(r2);
+        this.registers.setUint32(r1, oldValue >> shiftBy);
         return;
       }
 
-      // And register with literal
+      /**
+       * And register with literal and puts it in the accumulator
+       */
       case Instructions.AND_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetchCurrentInstruction16();
-        const registerValue = this.registers.getUint16(r1);
-
-        const res = registerValue & literal;
-        this.setRegister('acc', res);
+        const literal = this.fetchCurrentInstruction32();
+        const registerValue = this.registers.getUint32(r1);
+        this.setRegister('acc', registerValue & literal);
         return;
       }
 
-      // And register with register
+      // And a registers value with another registers value and puts the results in the accumulator
       case Instructions.AND_REG_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const registerValue1 = this.registers.getUint16(r1);
-        const registerValue2 = this.registers.getUint16(r2);
-
-        const res = registerValue1 & registerValue2;
-        this.setRegister('acc', res);
+        const registerValue1 = this.registers.getUint32(r1);
+        const registerValue2 = this.registers.getUint32(r2);
+        this.setRegister('acc', registerValue1 & registerValue2);
         return;
       }
 
-      // Or register with literal
+      // Or a registers value with a literal value and puts the results in the accumulator
       case Instructions.OR_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetchCurrentInstruction16();
-        const registerValue = this.registers.getUint16(r1);
-
-        const res = registerValue | literal;
-        this.setRegister('acc', res);
+        const literal = this.fetchCurrentInstruction32();
+        const registerValue = this.registers.getUint32(r1);
+        this.setRegister('acc', registerValue | literal);
         return;
       }
 
-      // Or register with register
+      // Or a registers value with another registers value and puts the results in the accumulator
       case Instructions.OR_REG_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const registerValue1 = this.registers.getUint16(r1);
-        const registerValue2 = this.registers.getUint16(r2);
-
-        const res = registerValue1 | registerValue2;
-        this.setRegister('acc', res);
+        const registerValue1 = this.registers.getUint32(r1);
+        const registerValue2 = this.registers.getUint32(r2);
+        this.setRegister('acc', registerValue1 | registerValue2);
         return;
       }
 
-      // Xor register with literal
+      // XOR a registers value with literal value and puts the results in the accumulator
       case Instructions.XOR_REG_LIT: {
         const r1 = this.fetchRegisterIndex();
-        const literal = this.fetchCurrentInstruction16();
-        const registerValue = this.registers.getUint16(r1);
-
-        const res = registerValue ^ literal;
-        this.setRegister('acc', res);
+        const literal = this.fetchCurrentInstruction32();
+        const registerValue = this.registers.getUint32(r1);
+        this.setRegister('acc', registerValue ^ literal);
         return;
       }
 
-      // Xor register with register
+      // Xor a registers value with another registers value and puts the results in the accumulator
       case Instructions.XOR_REG_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const registerValue1 = this.registers.getUint16(r1);
-        const registerValue2 = this.registers.getUint16(r2);
-
-        const res = registerValue1 ^ registerValue2;
-        this.setRegister('acc', res);
+        const registerValue1 = this.registers.getUint32(r1);
+        const registerValue2 = this.registers.getUint32(r2);
+        this.setRegister('acc', registerValue1 ^ registerValue2);
         return;
       }
 
-      // Not (invert) register
-      case Instructions.NOT: {
+      // Bitwise-NOT a registers value and puts the result in the accumulator
+      case Instructions.NOT: { // TODO: test this properly
         const r1 = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(r1);
-
-        const res = (~registerValue) & 0xffff;
-        this.setRegister('acc', res);
+        const registerValue = this.registers.getUint32(r1);
+        this.setRegister('acc', (~registerValue) & 0x7FFFFFFF);
         return;
       }
 
-      // Jump if literal not equal
+      // Jump to an address if literal value is not equal to the value in the accumulator
       case Instructions.JMP_NOT_EQ: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
-
+        const value = this.fetchCurrentInstruction32();
+        const addressToJumpTo = this.fetchCurrentInstruction32();
         if (value !== this.getRegister('acc')) {
-          this.setRegister('ip', address);
+          this.setRegister('ip', addressToJumpTo);
         }
 
         return;
       }
 
-      // Jump if register not equal
+      // Jump if supplied registers value is not equal to the accumulators value
       case Instructions.JNE_REG: {
         const r1 = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(r1);
-        const address = this.fetchCurrentInstruction16();
+        const value = this.registers.getUint32(r1);
+        const address = this.fetchCurrentInstruction32();
 
         if (value !== this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -525,10 +533,10 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if literal equal
+      // Jump if literal value is equal to the value in the accumulator
       case Instructions.JEQ_LIT: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
+        const value = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
 
         if (value === this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -537,11 +545,11 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if register equal
+      // Jump if the supplied registers value is equal to the value in the accumulator.
       case Instructions.JEQ_REG: {
         const r1 = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(r1);
-        const address = this.fetchCurrentInstruction16();
+        const value = this.registers.getUint32(r1);
+        const address = this.fetchCurrentInstruction32();
 
         if (value === this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -550,10 +558,10 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if literal less than
+      // Jump if supplied literal is less than the value in the accumulator
       case Instructions.JLT_LIT: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
+        const value = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
 
         if (value < this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -562,11 +570,11 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if register less than
+      //  Jump if supplied registers value is less than the value in the accumulator
       case Instructions.JLT_REG: {
         const r1 = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(r1);
-        const address = this.fetchCurrentInstruction16();
+        const value = this.registers.getUint32(r1);
+        const address = this.fetchCurrentInstruction32();
 
         if (value < this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -575,10 +583,10 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if literal greater than
+      // Jump if literal greater than the val in accumulator
       case Instructions.JGT_LIT: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
+        const value = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
 
         if (value > this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -587,11 +595,11 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if register greater than
+      // Jump if register greater than the value in accumulator
       case Instructions.JGT_REG: {
         const r1 = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(r1);
-        const address = this.fetchCurrentInstruction16();
+        const value = this.registers.getUint32(r1);
+        const address = this.fetchCurrentInstruction32();
 
         if (value > this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -600,10 +608,10 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if literal less than or equal to
+      // Jump if literal less than or equal to accumulator
       case Instructions.JLE_LIT: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
+        const value = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
 
         if (value <= this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -612,11 +620,11 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if register less than or equal to
+      // Jump if register less than or equal to accumulator
       case Instructions.JLE_REG: {
         const r1 = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(r1);
-        const address = this.fetchCurrentInstruction16();
+        const value = this.registers.getUint32(r1);
+        const address = this.fetchCurrentInstruction32();
 
         if (value <= this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -625,10 +633,10 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if literal greater than or equal to
+      // Jump if literal greater than or equal to the accumulator
       case Instructions.JGE_LIT: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
+        const value = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
 
         if (value >= this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -637,11 +645,11 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if register greater than or equal to
+      // Jump if register greater than or equal to the accumulator
       case Instructions.JGE_REG: {
         const r1 = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(r1);
-        const address = this.fetchCurrentInstruction16();
+        const value = this.registers.getUint32(r1);
+        const address = this.fetchCurrentInstruction32();
 
         if (value >= this.getRegister('acc')) {
           this.setRegister('ip', address);
@@ -650,9 +658,9 @@ export default class IDGVM {
         return;
       }
 
-      // Push Literal
+      // Push Literal to the stack
       case Instructions.PSH_LIT: {
-        const value = this.fetchCurrentInstruction16();
+        const value = this.fetchCurrentInstruction32();
         this.push(value);
         return;
       }
@@ -660,7 +668,7 @@ export default class IDGVM {
       // Push Register
       case Instructions.PSH_REG: {
         const registerIndex = this.fetchRegisterIndex();
-        this.push(this.registers.getUint16(registerIndex));
+        this.push(this.registers.getUint32(registerIndex));
         return;
       }
 
@@ -668,13 +676,13 @@ export default class IDGVM {
       case Instructions.POP: {
         const registerIndex = this.fetchRegisterIndex();
         const value = this.pop();
-        this.registers.setUint16(registerIndex, value);
+        this.registers.setUint32(registerIndex, value);
         return;
       }
 
       // Call literal
       case Instructions.CAL_LIT: {
-        const address = this.fetchCurrentInstruction16();
+        const address = this.fetchCurrentInstruction32();
         this.pushState();
         this.setRegister('ip', address);
         return;
@@ -683,7 +691,7 @@ export default class IDGVM {
       // Call register
       case Instructions.CAL_REG: {
         const registerIndex = this.fetchRegisterIndex();
-        const address = this.registers.getUint16(registerIndex);
+        const address = this.registers.getUint32(registerIndex);
         this.pushState();
         this.setRegister('ip', address);
         return;
@@ -699,11 +707,12 @@ export default class IDGVM {
       case Instructions.HLT: {
         return true;
       }
+      default: console.error(`instruction ${0} is not an executable instruction, make sure your instructions are aligned properly by padding the values that are too small for a complete instruction.`)
     }
   }
 
   step() {
-    const instruction = this.fetchCurrentInstruction();
+    const instruction = this.fetchCurrentInstruction8();
     return this.execute(instruction);
   }
 
