@@ -28,20 +28,31 @@ writableBytes[i++] = 2
 cpu.step()
 cpu.debug()
 
-// TODO: not reading the next instruction
-writableBytes[i++] = Instructions.ADD_REG_REG
+writableBytes[i++] = Instructions.MOV_REG_PTR_REG
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 0x02
+writableBytes[i++] = 2
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 0x02
+writableBytes[i++] = 4
 cpu.step()
 cpu.debug()
 
-cpu.viewMemoryAt(0, 16);
+// writableBytes[i++] = Instructions.ADD_REG_REG
+// writableBytes[i++] = PADDING
+// writableBytes[i++] = PADDING
+// writableBytes[i++] = PADDING
+// writableBytes[i++] = 0x02
+// writableBytes[i++] = PADDING
+// writableBytes[i++] = PADDING
+// writableBytes[i++] = PADDING
+// writableBytes[i++] = 0x02
+// cpu.step()
+// cpu.debug()
+
+cpu.viewMemoryAt(268435456, 16);
 
 
 // cpu.run();

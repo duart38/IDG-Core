@@ -292,15 +292,17 @@ export default class IDGVM {
         return;
       }
 
-      // Move value at [literal + register] to register
-      case Instructions.MOV_LIT_OFF_REG: {
-        const baseAddress = this.fetchCurrentInstruction16();
+      /**
+       * Move value at offset[literal + register] to register.
+       * */ 
+      case Instructions.MOV_LIT_OFF_REG: { // TODO: test this one.. did not
+        const baseAddress = this.fetchCurrentInstruction32();
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const offset = this.registers.getUint16(r1);
+        const offset = this.registers.getUint32(r1);
 
-        const value = this.memory.getUint16(baseAddress + offset);
-        this.registers.setUint16(r2, value);
+        const value = this.memory.getUint32(baseAddress + offset);
+        this.registers.setUint32(r2, value);
         return;
       }
 
