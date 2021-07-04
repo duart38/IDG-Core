@@ -1,13 +1,15 @@
 /**
  * ip = instruction pointer (pc), indicates where we are
  * acc = place where results of math operations will land (accumulator)
- * r1..n = registers<n> , small temp storage on the CPU
- * 
+ * r1..n = registers<n> , small temp storage on the CPU, could be used to get all the neighboring pixel colors
+ * R,G,B = registers are for instructions that store Red, Green, Blue values.
+ * COL = storage for combined RGB value also called the color value which represents the RGB as a single number
  */
 export const REGISTERS = [
     'ip', 'acc',
     'r1', 'r2', 'r3', 'r4',
     'r5', 'r6', 'r7', 'r8',
+    'r9', 'R', 'G', 'B', 'COL',
     'sp', 'fp', 'mb', 'im'
 ];
 
