@@ -350,10 +350,9 @@ export default class IDGVM {
       case Instructions.SUB_REG_REG: {
         const r1 = this.fetchRegisterIndex();
         const r2 = this.fetchRegisterIndex();
-        const registerValue1 = this.registers.getUint16(r1);
-        const registerValue2 = this.registers.getUint16(r2);
-        const res = registerValue1 - registerValue2;
-        this.setRegister('acc', res);
+        const lhs = this.registers.getUint32(r1);
+        const rhs = this.registers.getUint32(r2);
+        this.setRegister('acc', lhs - rhs);
         return;
       }
 
