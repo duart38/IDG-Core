@@ -544,11 +544,11 @@ export default class IDGVM {
         return;
       }
 
-      // Jump if register equal
+      // Jump if the supplied registers value is equal to the value in the accumulator.
       case Instructions.JEQ_REG: {
         const r1 = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(r1);
-        const address = this.fetchCurrentInstruction16();
+        const value = this.registers.getUint32(r1);
+        const address = this.fetchCurrentInstruction32();
 
         if (value === this.getRegister('acc')) {
           this.setRegister('ip', address);
