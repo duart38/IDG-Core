@@ -251,8 +251,8 @@ export default class IDGVM {
       case Instructions.MOV_REG_REG: {
         const registerFrom = this.fetchRegisterIndex();
         const registerTo = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(registerFrom);
-        this.registers.setUint16(registerTo, value);
+        const value = this.registers.getUint32(registerFrom);
+        this.registers.setUint32(registerTo, value);
         return;
       }
 
