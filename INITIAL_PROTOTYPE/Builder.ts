@@ -1,11 +1,12 @@
-import { ActionID, allTrue, arithmetic, bool, calculateAndStore, comparison, coordinatesToIndex, DEBUG, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifInBounds, ifLessThan, ifNotNil, instruction, interval, memoryPointer, modifyPixel, randomNumber, render, storePixelOpacity, storeValue, clearInterval } from "../interfaces/Actions.ts";
+import { ActionID, allTrue, arithmetic, bool, calculateAndStore, comparison, coordinatesToIndex, DEBUG, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifInBounds, ifLessThan, ifNotNil, instruction, interval, memoryPointer, modifyPixel, randomNumber, render, storeValue, clearInterval, storePixelColor } from "../interfaces/Actions.ts";
 import { FileShape } from "../interfaces/FileShape.ts";
-import { RGBA } from "../interfaces/RGBA.ts";
+import { RGB } from "../interfaces/RGBA.ts";
+import { combineRGB } from "../utils/color.ts";
 
 export default class Builder {
     public IDG: FileShape;
     constructor(w: number, h: number){
-        this.IDG = {width: w, height: h, imageMap: new Array((w*h) * 4).fill(0), instructions: [], memory: {}};
+        this.IDG = {width: w, height: h, imageMap: new Array(w*h).fill(combineRGB([255,255,255])), instructions: [], memory: {}};
     }
 
     /**
@@ -28,7 +29,7 @@ export default class Builder {
      * @param fromVar indicates wether the value of "n" is a pointer to a variable or just static
      * @param values the values to replace the range with
      */
-    modifyPixel(indexFromVar: bool, index: number, values: RGBA): modifyPixel {
+    modifyPixel(indexFromVar: bool, index: number, values: RGB): modifyPixel {
         return [ActionID.modifyPixel, indexFromVar, index, values];
     }
     allTrue(checks: comparison[], actionsIfSuccess: instruction[]): allTrue {
@@ -58,8 +59,8 @@ export default class Builder {
         // [ActionID.getNeighboringPixel, bool, direction, number, number]
         return [ActionID.getNeighboringPixel, indexFromMemory, where, index, locationToStore];
     }
-    storePixelOpacity(indexFromMemory: bool, pixelIndex: number, memoryKey: memoryPointer): storePixelOpacity {
-        return [ActionID.storePixelOpacity, indexFromMemory, pixelIndex, memoryKey];
+    storePixelColor(indexFromMemory: bool, pixelIndex: number, memoryKey: memoryPointer): storePixelColor {
+        return [ActionID.storePixelColor, indexFromMemory, pixelIndex, memoryKey];
     }
     ifEquals(lhsIsVar: bool, rhsIsVar: bool, lhs: number, rhs: number, actions: instruction[], elseActions: instruction[] = []): ifEquals{
         return [ActionID.ifEquals, lhsIsVar, rhsIsVar, lhs, rhs, actions, elseActions];

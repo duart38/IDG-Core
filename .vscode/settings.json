@@ -4,5 +4,8 @@
     "deno.unstable": false,
     "cSpell.words": [
         "IDGVM"
-    ]
+    ],
+    "deno.suggest.imports.hosts": {
+        "https://deno.land": false
+    }
 }

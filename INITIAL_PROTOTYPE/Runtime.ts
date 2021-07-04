@@ -1,8 +1,9 @@
-import { ActionID,clearInterval, allTrue, arithmetic, calculateAndStore, coordinatesToIndex, DEBUG, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifInBounds, ifLessThan, ifNotNil, instruction, interval, modifyPixel, randomNumber, storePixelOpacity, storeValue } from "../interfaces/Actions.ts";
+import { ActionID,clearInterval, allTrue, arithmetic, calculateAndStore, coordinatesToIndex, DEBUG, direction, forEachPixel, getNeighboringPixel, ifEquals, ifGreaterThan, ifInBounds, ifLessThan, ifNotNil, instruction, interval, modifyPixel, randomNumber, storeValue, storePixelColor } from "../interfaces/Actions.ts";
 import { FileShape } from "../interfaces/FileShape.ts";
 import { encode } from "https://deno.land/x/pngs/mod.ts";
 import { clamp, coordinatesByIndex, indexByCoordinates } from "../utils/coordinates.ts";
-
+import { combineRGB, spreadImage } from "../utils/color.ts";
+import { printImage } from "https://x.nest.land/terminal_images@3.0.0/mod.ts";
 /**
  * For the sake of demoing this thing i'll just write the changes to disk.. deno lacks a DOM.
  */
@@ -32,18 +33,17 @@ export default class IDGRuntime {
         //ActionID.modifyPixel, fromVar, index, values
         // return [ActionID.modifyPixel, fromVar, index, values];
         const idx = x[1] == 1 ? this.IDG.memory[x[2]] : x[2];
-        this.imageCopy[idx]     = x[3][0]; // r
-        this.imageCopy[idx + 1] = x[3][1]; // g
-        this.imageCopy[idx + 2] = x[3][2]; // b
-        this.imageCopy[idx + 3] = x[3][3]; // a
+        this.imageCopy[idx] = combineRGB([x[3][0], x[3][1], x[3][2]]);
+        //this.imageCopy[idx + 3] = x[3][3]; // a
     }
     storeValue(x: storeValue){
         this.IDG.memory[x[1] == 1 ? this.IDG.memory[x[2]] : x[2]] = x[3];
     }
     DEBUG(_: DEBUG){
         const [x,y] = coordinatesByIndex(this.IDG.memory[0], 20);
-        console.log(`DEBUG#:${_[1]} `,this.IDG.memory[80],this.IDG.memory[81]);
+        console.log(`DEBUG#:${_[1]}`);
     }
+
 
     /**
      * Renders an example to file
@@ -51,12 +51,27 @@ export default class IDGRuntime {
      */
     render(){
         this.IDG.imageMap = [...this.imageCopy];
-        const data = new Uint8Array(this.IDG.imageMap);
+        console.log("\n\n\n#########");
+        console.log(this.IDG.imageMap.toString());
+        const data = new Uint8Array(spreadImage(this.IDG.imageMap, true));
         const png = encode(data, this.IDG.width, this.IDG.height);
-        
         Deno.writeFile("image.png", png).catch((x)=>{
             console.log(x);
         })
+
+
+        // const data = new Uint8Array(spreadImage(this.IDG.imageMap));
+        // console.clear();
+        // printImage({
+        //     rawPixels: {
+        //         data,
+        //         width: this.IDG.width, height: this.IDG.height
+        //     },
+           
+        //     // by default the size of the image is set to fit in the terminal,
+        //     // but you can override it with the width property
+        //     width: this.IDG.width
+        // })
     }
 
     forEachPixel(x: forEachPixel) {
@@ -129,9 +144,9 @@ export default class IDGRuntime {
         this.IDG.memory[x[4]] = res;
     }
 
-    storePixelOpacity(x: storePixelOpacity){
+    storePixelColor(x: storePixelColor){
         const index = x[1] == 1 ? this.IDG.memory[x[2]] : x[2];
-        this.IDG.memory[x[3]] = this.IDG.imageMap[index + 3]; // r,g,b,a  -> we are at r(6) --> r(6), b(7), g(8), a(9)
+        this.IDG.memory[x[3]] = this.IDG.imageMap[index];
     }
     ifEquals(x: ifEquals): boolean {
         //[this#, lhsIsVar, rhsIsVar, lhs, rhs, actions[], elseActions[]]
@@ -234,7 +249,7 @@ export default class IDGRuntime {
             case ActionID.forEachPixel: this.forEachPixel(x); break;
             case ActionID.ifNotNil: return this.ifNotNil(x);
             case ActionID.getNeighboringPixel: this.getNeighboringPixel(x); break;
-            case ActionID.storePixelOpacity: this.storePixelOpacity(x); break;
+            case ActionID.storePixelColor: this.storePixelColor(x); break;
             case ActionID.ifEquals: return this.ifEquals(x);
             case ActionID.calculateAndStore: this.calculateAndStore(x); break;
             case ActionID.ifGreaterThan: return this.ifGreaterThan(x);

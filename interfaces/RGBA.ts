@@ -1,7 +1,8 @@
 /**
  * R,G,B,A
  */
-export type RGBA = [U255, U255, U255, U255];
+// export type RGBA = [U255, U255, U255, U255];
+export type RGB = [U255, U255, U255];
 
 
 
