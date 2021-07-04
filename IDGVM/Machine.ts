@@ -276,9 +276,9 @@ export default class IDGVM {
 
       // Move literal to memory
       case Instructions.MOV_LIT_MEM: {
-        const value = this.fetchCurrentInstruction16();
-        const address = this.fetchCurrentInstruction16();
-        this.memory.setUint16(address, value);
+        const value = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
+        this.memory.setUint32(address, value);
         return;
       }
 
