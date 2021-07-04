@@ -12,6 +12,14 @@ export class MemoryMapper {
       this.regions = [];
     }
   
+    /**
+     * Maps an address space for something like I/O. this method returns a method that can be used for unmapping the region.
+     * @param device 
+     * @param start 
+     * @param end 
+     * @param remap 
+     * @returns a method to un-map the mapped
+     */
     map(device: DataView, start: number, end: number, remap = true) {
       const region = {
         device,
