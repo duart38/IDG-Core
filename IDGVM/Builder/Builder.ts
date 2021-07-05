@@ -11,4 +11,5 @@ export default class IDGBuilder {
     constructor(imageData: ImageData){
         this.imageData = imageData;
     }
+    //TODO: all instructions here... along with some other ones that group some instructions
 }
