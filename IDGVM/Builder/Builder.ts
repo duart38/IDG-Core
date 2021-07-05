@@ -122,6 +122,13 @@ export default class IDGBuilder {
     }
 
     compile(){
-        // use : https://deno.land/x/compress@v0.3.8    (deflate)
+        /*
+        1. make header
+        2. make and populate initial image allocation
+        3. make memory space and populate it with instructions
+        4. (OPTIONAL) transform into a 32bit representation
+        5. compress use ->  https://deno.land/x/compress@v0.3.8    (deflate)
+        6. save to file (preferably as binary not as text, use Deno.WriteFile();)
+        */
     }
 }
