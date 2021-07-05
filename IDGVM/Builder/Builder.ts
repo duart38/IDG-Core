@@ -6,7 +6,13 @@ import { ImageData } from "../../interfaces/Image.ts";
  */
 export default class IDGBuilder {
     public instructionIndex = 0;
-    private memoryRequirement = 0;
+    /**
+     * Initial value here is allocated for the stack.
+     * 4 * 100 -> stack size of 100 32-bit values.
+     * 
+     * NOTE: Decreasing this manually might cause some serious issues..
+     */
+    public memoryRequirementInBytes = 4 * 100;
     private imageData: ImageData;
     private flags: Record<string, number>;
     constructor(imageData: ImageData){
@@ -21,5 +27,9 @@ export default class IDGBuilder {
      */
     setFlag(name: string){
         this.flags[name] = this.instructionIndex
+    }
+
+    compile(){
+
     }
 }
