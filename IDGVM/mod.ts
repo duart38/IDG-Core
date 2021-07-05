@@ -1,3 +1,4 @@
+import { chunkUp32 } from "../utils/bits.ts";
 import IDGVM from "./Machine.ts";
 import { createMemory, MemoryMapper } from "./Memory.ts";
 import { Instructions, RegisterKey } from "./Registers.ts";
@@ -34,24 +35,12 @@ writableBytes[i++] = PADDING
 writableBytes[i++] = 15
 
 writableBytes[i++] = Instructions.MOV_LIT_REG // y
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 0
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 16
+writableBytes.set(chunkUp32(0), i); i += 4;
+writableBytes.set(chunkUp32(16), i); i += 4;
 
 writableBytes[i++] = Instructions.MOV_LIT_REG // COL -> 0x[FF][00][00]
-writableBytes[i++] = PADDING
-writableBytes[i++] = 0xFF
-writableBytes[i++] = 0x00
-writableBytes[i++] = 0x00
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 14
+writableBytes.set(chunkUp32(16711680), i); i += 4;
+writableBytes.set(chunkUp32(14), i); i += 4;
 
 
 writableBytes[i++] = Instructions.MODIFY_PIXEL
