@@ -255,7 +255,7 @@ export default class IDGVM {
   }
 
   execute(instruction: number) {
-    console.log(`$ Got instruction ${instruction}`)
+    // console.log(`$ Got instruction ${instruction}`)
     switch (instruction) {
       /**
        * Return from an interupt
@@ -837,7 +837,9 @@ export default class IDGVM {
       case Instructions.INTERVAL: {
         let time = this.fetchCurrentInstruction32();
         let addressToCall = this.fetchCurrentInstruction32();
+        console.log("Interval created");
         let intervalHandler = setInterval(()=>{
+          console.log("Interval called");
           this.pushState();
           this.setRegister('ip', addressToCall);
         }, time);
@@ -845,6 +847,7 @@ export default class IDGVM {
 
         return;
       }
+
 
       case Instructions.RENDER: {
         this.render();
@@ -858,10 +861,17 @@ export default class IDGVM {
         return;
       }
 
+      case Instructions.RET_TO_NEXT: {
+        this.popState();
+        this.setRegister("ip", this.getRegister("ip") + 1);
+        return;
+      }
+
       // Halt all computation
       case Instructions.HLT: {
         return true;
       }
+      case 0: {return;}
       default: console.error(`instruction ${0} is not an executable instruction, make sure your instructions are aligned properly by padding the values that are too small for a complete instruction.`)
     }
   }
