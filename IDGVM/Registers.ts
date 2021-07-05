@@ -137,16 +137,8 @@ export enum Instructions {
    * Draws a box at the x,y offset that is stored in the register.
    * This instruction takes the color of the values stored in the COL register (NOT THE RGB ONE!!).
    * Supplied are width and height
-   * @todo implement me
    */
-  DRAW_BOX,
-  /**
-   * Draws a box at the offset of a pixel index stored in the supplied register.
-   * This instruction takes the color of the values stored in the RGB registers
-   * @todo implement me
-   */
-  DRAW_BOX_AT_REG_OFFSET
-  
+  DRAW_BOX
 
   //TODO: RGB (8bit vals) to combined color value (32 bit) -> store in COL
 }
@@ -214,5 +206,4 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.RGB_LIT_TO_COLOR]: {size: 0},
     [Instructions.COLOR_FROMREG_TO_RGB]: {size: 0},
     [Instructions.DRAW_BOX]: {size: 0},
-    [Instructions.DRAW_BOX_AT_REG_OFFSET]: {size: 0},
 }
