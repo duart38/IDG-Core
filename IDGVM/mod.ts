@@ -12,10 +12,15 @@ MM.map(memory, 0, 0x7FFFFFFF);
 
 const writableBytes = new Uint8Array(memory.buffer);
 let i = 0;
-const cpu = new IDGVM(MM, {imageData: [1,9,5,3], width: 2, height: 2});
+
+const fakeWidth = 20;
+const fakeHeight = 20;
+const fakeImage = new Array(fakeWidth * fakeHeight).fill(0);
+
+const cpu = new IDGVM(MM, {imageData: fakeImage, width: fakeWidth, height: fakeHeight});
 
 cpu.onImageRenderRequest((dat)=>{
-    console.log("\n\n\n Render request!", dat);
+    console.log("\n\n\n Render request!", dat.toString());
 })
 // cpu.debug()
 const PADDING = 0x00;
@@ -26,12 +31,15 @@ cpu.debug();
 // "y", // 16
 
 writableBytes[i++] = Instructions.RGB_LIT_TO_COLOR
-writableBytes.set(chunkUp32(255), i); i += 4;
-writableBytes.set(chunkUp32(255), i); i += 4;
-writableBytes.set(chunkUp32(255), i); i += 4;
+writableBytes[i++] = 255
+writableBytes[i++] = 255
+writableBytes[i++] = 255
 
-writableBytes[i++] = Instructions.COLOR_FROMREG_TO_RGB
+writableBytes[i++] = Instructions.DRAW_BOX;
+writableBytes.set(chunkUp32(5), i); i += 4;
+writableBytes.set(chunkUp32(5), i); i += 4;
 
+writableBytes[i++] = Instructions.RENDER;
 // writableBytes[i++] = Instructions.HLT
 
 

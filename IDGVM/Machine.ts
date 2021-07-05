@@ -798,9 +798,9 @@ export default class IDGVM {
       }
 
       case Instructions.RGB_LIT_TO_COLOR: {
-        const r = this.fetchCurrentInstruction32() as U255;
-        const g = this.fetchCurrentInstruction32() as U255;
-        const b = this.fetchCurrentInstruction32() as U255;
+        const r = this.fetchCurrentInstruction8() as U255;
+        const g = this.fetchCurrentInstruction8() as U255;
+        const b = this.fetchCurrentInstruction8() as U255;
         this.setRegister("COL", combineRGB([r,g,b]));
         return;
       }
@@ -811,6 +811,28 @@ export default class IDGVM {
         this.setRegister("R", r);
         this.setRegister("G", g);
         this.setRegister("B", b);
+        return;
+      }
+
+
+      case Instructions.DRAW_BOX: {
+        const color = this.getRegister("COL");
+
+        let x = this.getRegister("x");
+        let y = this.getRegister("y");
+
+        let width = this.fetchCurrentInstruction32(); // supplied
+        let height = this.fetchCurrentInstruction32(); // supplied
+
+
+          for (let tY = 0; tY <= height; tY++) {
+            for (let tX = 0; tX <= width; tX++) {
+              const nX = tX + x;
+              const nY = tY + y;
+              if (Math.min(nX, nY) < 1 || nX > this.image.width || nY > this.image.height) continue;
+              this.imageCopy[indexByCoordinates(nX, nY, this.image.width)] = color;
+            }
+        }
         return;
       }
 
