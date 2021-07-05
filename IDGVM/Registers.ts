@@ -96,6 +96,7 @@ export enum Instructions {
   // QOF instructions
   RAND,
   SKIP,
+  // TODO: dump to disk (.idg or internal) instruction. this ins is problematic as in some cases (browser) you would not be able to persist data
 
   // image specific instructions
   /**

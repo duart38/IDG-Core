@@ -30,6 +30,6 @@ export default class IDGBuilder {
     }
 
     compile(){
-
+        // use : https://deno.land/x/compress@v0.3.8    (deflate)
     }
 }
