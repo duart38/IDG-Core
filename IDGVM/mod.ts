@@ -30,7 +30,7 @@ writableBytes.set(chunkUp32(255), i); i += 4;
 writableBytes.set(chunkUp32(255), i); i += 4;
 writableBytes.set(chunkUp32(255), i); i += 4;
 
-
+writableBytes[i++] = Instructions.COLOR_FROMREG_TO_RGB
 
 // writableBytes[i++] = Instructions.HLT
 
