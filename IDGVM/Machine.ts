@@ -1,5 +1,9 @@
-import {Instructions, REGISTERS} from "./Registers.ts"
+import {Instructions, RegisterKey, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
+import { getNeighboringPixelIndex, indexByCoordinates } from "../utils/coordinates.ts";
+import { ImageData } from "../interfaces/Image.ts";
+import { combineRGB, spreadRGB } from "../utils/color.ts";
+import { U255 } from "../interfaces/RGBA.ts";
 
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
 const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
@@ -23,18 +27,33 @@ export default class IDGVM {
 
   private registers: DataView;
   private memory: MemoryMapper;
-  private registerMap: Record<string, number>;
+  private registerMap: Record<RegisterKey, number>;
   private interruptVectorAddress: number;
   private isInInterruptHandler: boolean;
   private stackFrameSize: number;
+
+  // Image specific stuff
+  /**
+   * Copy of the image to modify.
+   */
+  private imageCopy: number[];
+  /** The image itself */
+  private image: ImageData;
+  /**
+   * Callback that is executed when a render request has been made
+   */
+  private imageRenderCB: (newImage: number[])=>void;
   
   /**
    * 
    * @param memory Refers to the allocated memory available to our system
    * @param interruptVectorAddress 
    */
-  constructor(memory: MemoryMapper, interruptVectorAddress = 0x249F0) {
+  constructor(memory: MemoryMapper, image: ImageData, interruptVectorAddress = 0x249F0) {
     this.memory = memory;
+    this.image = image;
+    this.imageCopy = [...image.imageData];
+    this.imageRenderCB = ()=>{};
 
     /**
      * Creating memory for actual values of register
@@ -68,12 +87,24 @@ export default class IDGVM {
     for(const name in this.registerMap){
       try{
         // console.log(`${name}: 0x${this.getRegister(name).toString(16).padStart(8, '0')} -> ${this.getRegister(name)}`);
-        console.log(`${name}: ${this.getRegister(name).toString().padStart(3, "0")}`);
+        console.log(`${name}: ${this.getRegister(name as RegisterKey).toString().padStart(3, "0")}`);
       }catch(e){
         console.error("Potential empty stack (did you forget to add instructions?)", e);
       }
     }
     console.log();
+  }
+
+  onImageRenderRequest(cb: (newImageData: number[])=>void){
+    this.imageRenderCB = cb;
+  }
+
+  /**
+   * Replace the active image with the image copy and then execute the callback method
+   */
+  private render(){
+    this.image.imageData = [...this.imageCopy];
+    this.imageRenderCB(this.image.imageData);
   }
 
   viewMemoryAt(address: number, n = 8) {
@@ -86,16 +117,16 @@ export default class IDGVM {
   }
 
   /**
-   * @returns the pointer to an address that houses the value of the register
+   * @returns the data of a register.. 
    */
-  getRegister(name: string) {
+  getRegister(name: RegisterKey) {
     if (!(name in this.registerMap)) {
       throw new Error(`getRegister: No such register '${name}'`);
     }
     return this.registers.getUint32(this.registerMap[name]);
   }
 
-  setRegister(name: string, value: number) {
+  setRegister(name: RegisterKey, value: number) {
     if (!(name in this.registerMap)) {
       throw new Error(`setRegister: No such register '${name}'`);
     }
@@ -721,6 +752,70 @@ export default class IDGVM {
       case Instructions.SKIP: {
         const size = this.fetchCurrentInstruction32();
         this.setRegister("ip", this.getRegister("ip") + size);
+        return;
+      }
+
+      case Instructions.MODIFY_PIXEL: {
+        // const x = this.fetchCurrentInstruction32();
+        // const y = this.fetchCurrentInstruction32();
+        // const color = this.fetchCurrentInstruction32();
+        const x = this.getRegister("x");
+        const y = this.getRegister("y");
+        const color = this.getRegister("COL");
+        const index = indexByCoordinates(x,y, this.image.width);
+        console.log("modify pixel ins", x,y,color, index)
+        this.imageCopy[index] = color;
+        return;
+      }
+      case Instructions.NEIGHBORING_PIXEL_INDEX_TO_REG: {
+        const direction = this.fetchCurrentInstruction8();
+        const currentPixel = this.fetchCurrentInstruction32(); // where to check from
+        const reg = this.fetchRegisterIndex(); // where to put it
+        const idx = getNeighboringPixelIndex(direction, currentPixel, this.image.width);
+        this.registers.setUint32(reg, idx);
+        return;
+      }
+
+      case Instructions.FETCH_PIXEL_COLOR_BY_INDEX: {
+        const pixelIndex = this.fetchCurrentInstruction32(); // where to check from
+        this.setRegister("COL", this.image.imageData[pixelIndex])
+        return;
+      }
+      case Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES: {
+        const x = this.getRegister("x");
+        const y = this.getRegister("y");
+        const reg = this.fetchCurrentInstruction32(); // where to store
+        this.registers.setUint32(reg, indexByCoordinates(x,y,this.image.width));
+        return;
+      }
+
+      case Instructions.RGB_FROMREG_TO_COLOR: {
+        const r = this.getRegister("R") as U255;
+        const g = this.getRegister("G") as U255;
+        const b = this.getRegister("B") as U255;
+        this.setRegister("COL", combineRGB([r,g,b]));
+        return;
+      }
+
+      case Instructions.RGB_LIT_TO_COLOR: {
+        const r = this.fetchCurrentInstruction32() as U255;
+        const g = this.fetchCurrentInstruction32() as U255;
+        const b = this.fetchCurrentInstruction32() as U255;
+        this.setRegister("COL", combineRGB([r,g,b]));
+        return;
+      }
+
+      case Instructions.COLOR_FROMREG_TO_RGB: {
+        const color = this.getRegister("COL");
+        const [r,g,b] = spreadRGB(color)
+        this.setRegister("R", r);
+        this.setRegister("G", g);
+        this.setRegister("B", b);
+        return;
+      }
+
+      case Instructions.RENDER: {
+        this.render();
         return;
       }
 

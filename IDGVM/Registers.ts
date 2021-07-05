@@ -7,33 +7,36 @@
  * fp = points to the beginning of a stack frame (frame pointer)
  * sp = stack pointer
  */
-export const REGISTERS = [
-  "ip",
-  "acc",
-  "r1",
-  "r2",
-  "r3",
-  "r4",
-  "r5",
-  "r6",
-  "r7",
-  "r8",
-  "r9",
-  "R",
-  "G",
-  "B",
-  "COL",
-  "x",
-  "y",
+export const REGISTERS = <const> [
+  "ip", // 0
+  "acc", // 1
+  "r1", // 2
+  "r2", // 3
+  "r3", // 4
+  "r4", // 5
+  "r5", // 6
+  "r6", // 7
+  "r7", // 8
+  "r8", // 9
+  "r9", // 10
+  "R", // 11
+  "G", // 12
+  "B", // 13
+  "COL", // 14
+  "x", // 15
+  "y", // 16
   "sp",
   "fp",
   "mb",
   "im",
 ];
+export type RegisterKey = typeof REGISTERS[number];
+
+
 
 export enum Instructions {
   // movement instructions
-  MOV_LIT_REG,
+  MOV_LIT_REG = 1, // shift to make all instructions values go after 1.. 0 is for un-initialized
   MOV_REG_REG,
   MOV_REG_MEM,
   MOV_MEM_REG,
@@ -93,6 +96,46 @@ export enum Instructions {
   // QOF instructions
   RAND,
   SKIP,
+  // TODO: dump to disk (.idg or internal) instruction. this ins is problematic as in some cases (browser) you would not be able to persist data
+
+  // image specific instructions
+  /**
+   * Modifies the pixel data by taking values from the registers (x,y,COL)
+   */
+  MODIFY_PIXEL,
+  /**
+   * Instructs VM to render the image (basically dumping the image copy into the image itself).
+   * Also calls a callback that is always called when the original image is updated.
+   */
+  RENDER,
+  /**
+   * Gets the neighboring pixel in a given direction and puts its index in the supplied register.
+   */
+  NEIGHBORING_PIXEL_INDEX_TO_REG,
+  /**
+   * Fetches the pixel color from the supplied index and dumps it into the COL register
+   */
+  FETCH_PIXEL_COLOR_BY_INDEX,
+  /**
+   * Fetches a pixel index by the x and y values currently stored in the register.. stores it in the supplied register
+   */
+  FETCH_PIXEL_INDEX_BY_REG_COORDINATES,
+  /**
+   * Converts the RGB value stored in the register to a combined RGB color and stores it in the COL register
+   */
+  RGB_FROMREG_TO_COLOR,
+  /**
+   * Converts the RGB literal (supplied) to a combined RGB color and stored it in the COL register.
+   * NOTE: consider using this instruction instead of manually pushing things to the register. this method takes less space.
+   */
+  RGB_LIT_TO_COLOR,
+  /**
+   * Converts the color value stored in the register COL to an RGB vector and spreads this in the r,g,b registers
+   */
+  COLOR_FROMREG_TO_RGB
+  
+
+  //TODO: RGB (8bit vals) to combined color value (32 bit) -> store in COL
 }
 
 /**
@@ -149,4 +192,12 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.INT]: {size: 0},
     [Instructions.RAND]: {size: 0},
     [Instructions.SKIP]: {size: 0},
+    [Instructions.MODIFY_PIXEL]: {size: 0},
+    [Instructions.RENDER]: {size: 0},
+    [Instructions.NEIGHBORING_PIXEL_INDEX_TO_REG]: {size: 0},
+    [Instructions.FETCH_PIXEL_COLOR_BY_INDEX]: {size: 0},
+    [Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES]: {size: 0},
+    [Instructions.RGB_FROMREG_TO_COLOR]: {size: 0},
+    [Instructions.RGB_LIT_TO_COLOR]: {size: 0},
+    [Instructions.COLOR_FROMREG_TO_RGB]: {size: 0},
 }

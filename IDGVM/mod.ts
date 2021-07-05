@@ -1,6 +1,8 @@
+import { Direction } from "../interfaces/Actions.ts";
+import { chunkUp32 } from "../utils/bits.ts";
 import IDGVM from "./Machine.ts";
 import { createMemory, MemoryMapper } from "./Memory.ts";
-import { Instructions } from "./Registers.ts";
+import { Instructions, RegisterKey } from "./Registers.ts";
 
 const MM = new MemoryMapper();
 
@@ -10,37 +12,25 @@ MM.map(memory, 0, 0x7FFFFFFF);
 
 const writableBytes = new Uint8Array(memory.buffer);
 let i = 0;
-const cpu = new IDGVM(MM);
+const cpu = new IDGVM(MM, {imageData: [1,9,5,3], width: 2, height: 2});
 
+cpu.onImageRenderRequest((dat)=>{
+    console.log("\n\n\n Render request!", dat);
+})
 // cpu.debug()
 const PADDING = 0x00;
 cpu.debug();
 
-writableBytes[i++] = Instructions.SKIP
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 9
+// "COL", // 14
+// "x", // 15
+// "y", // 16
 
-writableBytes[i++] = Instructions.MOV_LIT_REG
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 2
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 4
+writableBytes[i++] = Instructions.RGB_LIT_TO_COLOR
+writableBytes.set(chunkUp32(255), i); i += 4;
+writableBytes.set(chunkUp32(255), i); i += 4;
+writableBytes.set(chunkUp32(255), i); i += 4;
 
-writableBytes[i++] = Instructions.MOV_LIT_REG
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 5
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 3
+writableBytes[i++] = Instructions.COLOR_FROMREG_TO_RGB
 
 // writableBytes[i++] = Instructions.HLT
 
