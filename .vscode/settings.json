@@ -3,6 +3,7 @@
     "deno.lint": true,
     "deno.unstable": false,
     "cSpell.words": [
+        "FROMREG",
         "IDGVM"
     ],
     "deno.suggest.imports.hosts": {
