@@ -779,6 +779,13 @@ export default class IDGVM {
         this.setRegister("COL", this.image.imageData[pixelIndex])
         return;
       }
+      case Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES: {
+        const x = this.getRegister("x");
+        const y = this.getRegister("y");
+        const reg = this.fetchCurrentInstruction32(); // where to store
+        this.registers.setUint32(reg, indexByCoordinates(x,y,this.image.width));
+        return;
+      }
 
       case Instructions.RENDER: {
         this.render();
