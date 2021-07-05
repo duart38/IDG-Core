@@ -16,23 +16,31 @@ const cpu = new IDGVM(MM);
 const PADDING = 0x00;
 cpu.debug();
 
-writableBytes[i++] = Instructions.INC_REG
+writableBytes[i++] = Instructions.SKIP
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 1 // reg 1 -> acc
+writableBytes[i++] = 9
 
-writableBytes[i++] = Instructions.JEQ_LIT
+writableBytes[i++] = Instructions.MOV_LIT_REG
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 1
+writableBytes[i++] = 2
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 3 // reg
+writableBytes[i++] = 4
 
-
+writableBytes[i++] = Instructions.MOV_LIT_REG
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = 5
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = 3
 
 // writableBytes[i++] = Instructions.HLT
 
