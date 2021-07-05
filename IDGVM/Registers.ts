@@ -7,33 +7,36 @@
  * fp = points to the beginning of a stack frame (frame pointer)
  * sp = stack pointer
  */
-export const REGISTERS = [
-  "ip",
-  "acc",
-  "r1",
-  "r2",
-  "r3",
-  "r4",
-  "r5",
-  "r6",
-  "r7",
-  "r8",
-  "r9",
-  "R",
-  "G",
-  "B",
-  "COL",
-  "x",
-  "y",
+export const REGISTERS = <const> [
+  "ip", // 0
+  "acc", // 1
+  "r1", // 2
+  "r2", // 3
+  "r3", // 4
+  "r4", // 5
+  "r5", // 6
+  "r6", // 7
+  "r7", // 8
+  "r8", // 9
+  "r9", // 10
+  "R", // 11
+  "G", // 12
+  "B", // 13
+  "COL", // 14
+  "x", // 15
+  "y", // 16
   "sp",
   "fp",
   "mb",
   "im",
 ];
+export type RegisterKey = typeof REGISTERS[number];
+
+
 
 export enum Instructions {
   // movement instructions
-  MOV_LIT_REG,
+  MOV_LIT_REG = 1, // shift to make all instructions values go after 1.. 0 is for un-initialized
   MOV_REG_REG,
   MOV_REG_MEM,
   MOV_MEM_REG,
@@ -93,6 +96,19 @@ export enum Instructions {
   // QOF instructions
   RAND,
   SKIP,
+
+  // image specific instructions
+  /**
+   * Modifies the pixel data by taking values from the registers (x,y,COL)
+   */
+  MODIFY_PIXEL,
+  /**
+   * Instructs VM to render the image (basically dumping the image copy into the image itself).
+   * Also calls a callback that is always called when the original image is updated.
+   */
+  RENDER
+
+  //TODO: RGB (8bit vals) to combined color value (32 bit) -> store in COL
 }
 
 /**
@@ -149,4 +165,6 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.INT]: {size: 0},
     [Instructions.RAND]: {size: 0},
     [Instructions.SKIP]: {size: 0},
+    [Instructions.MODIFY_PIXEL]: {size: 0},
+    [Instructions.RENDER]: {size: 0},
 }
