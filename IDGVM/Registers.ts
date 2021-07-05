@@ -125,7 +125,8 @@ export enum Instructions {
    */
   RGB_FROMREG_TO_COLOR,
   /**
-   * Converts the RGB literal (supplied) to a combined RGB color and stored it in the COL register
+   * Converts the RGB literal (supplied) to a combined RGB color and stored it in the COL register.
+   * NOTE: consider using this instruction instead of manually pushing things to the register. this method takes less space.
    */
   RGB_LIT_TO_COLOR,
   /**

@@ -25,8 +25,11 @@ cpu.debug();
 // "x", // 15
 // "y", // 16
 
-writableBytes[i++] = Instructions.FETCH_PIXEL_COLOR_BY_INDEX // x
-writableBytes.set(chunkUp32(1), i); i += 4;
+writableBytes[i++] = Instructions.RGB_LIT_TO_COLOR
+writableBytes.set(chunkUp32(255), i); i += 4;
+writableBytes.set(chunkUp32(255), i); i += 4;
+writableBytes.set(chunkUp32(255), i); i += 4;
+
 
 
 // writableBytes[i++] = Instructions.HLT

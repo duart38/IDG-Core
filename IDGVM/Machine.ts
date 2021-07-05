@@ -793,7 +793,15 @@ export default class IDGVM {
         const r = this.getRegister("R") as U255;
         const g = this.getRegister("G") as U255;
         const b = this.getRegister("B") as U255;
-        this.setRegister("COL", combineRGB([r,g,b]))
+        this.setRegister("COL", combineRGB([r,g,b]));
+        return;
+      }
+
+      case Instructions.RGB_LIT_TO_COLOR: {
+        const r = this.fetchCurrentInstruction32() as U255;
+        const g = this.fetchCurrentInstruction32() as U255;
+        const b = this.fetchCurrentInstruction32() as U255;
+        this.setRegister("COL", combineRGB([r,g,b]));
         return;
       }
 
