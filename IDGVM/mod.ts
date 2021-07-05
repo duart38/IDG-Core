@@ -1,8 +1,9 @@
 import { Direction } from "../interfaces/Actions.ts";
 import { chunkUp32 } from "../utils/bits.ts";
+import IDGBuilder from "./Builder/Builder.ts";
 import IDGVM from "./Machine.ts";
 import { createMemory, MemoryMapper } from "./Memory.ts";
-import { Instructions, RegisterKey } from "./Registers.ts";
+import { Instructions, RegisterIndexOf, RegisterKey } from "./Registers.ts";
 
 const MM = new MemoryMapper();
 
@@ -17,42 +18,44 @@ const fakeWidth = 20;
 const fakeHeight = 20;
 const fakeImage = new Array(fakeWidth * fakeHeight).fill(0);
 
+
+
+const builder = new IDGBuilder({imageData: fakeImage, width: fakeWidth, height: fakeHeight});
+builder.insertFunction("inrecement", [Instructions.INC_REG]); // TODO: return not being called
+builder.incrementRegister(RegisterIndexOf.r1);
+builder.atInterval(2000, "inrecement");
+// some random stuff
+builder.StoreNumberToRegister(99, RegisterIndexOf.r4);
+builder.StoreNumberToRegister(99, RegisterIndexOf.r3);
+builder.StoreNumberToRegister(99, RegisterIndexOf.r2);
+
+writableBytes.set(builder.instructions);
+
+
+
+
+
+
+
 const cpu = new IDGVM(MM, {imageData: fakeImage, width: fakeWidth, height: fakeHeight});
 
 cpu.onImageRenderRequest((dat)=>{
     console.log("\n\n\n Render request!", dat.toString());
 })
-// cpu.debug()
-const PADDING = 0x00;
-cpu.debug();
-
-// "COL", // 14
-// "x", // 15
-// "y", // 16
-
-writableBytes[i++] = Instructions.RGB_LIT_TO_COLOR
-writableBytes[i++] = 255
-writableBytes[i++] = 255
-writableBytes[i++] = 255
-
-writableBytes[i++] = Instructions.DRAW_BOX;
-writableBytes.set(chunkUp32(5), i); i += 4;
-writableBytes.set(chunkUp32(5), i); i += 4;
-
-writableBytes[i++] = Instructions.RENDER;
-// writableBytes[i++] = Instructions.HLT
 
 
-cpu.viewMemoryAt(0x2BC, 16)
+cpu.run();
 
+// cpu.debug();
+// cpu.viewMemoryAt(0x2BC, 16)
 
-let stepCount = 0;
-while(1){
-    alert(`####### STEP ####### ${stepCount}`);
-    cpu.step();
-    cpu.debug();
-    stepCount++;
-}
+// let stepCount = 0;
+// while(1){
+//     alert(`####### STEP ####### ${stepCount}`);
+//     cpu.step();
+//     cpu.debug();
+//     stepCount++;
+// }
 
 
 // writableBytes[i++] = Instructions.ADD_REG_REG

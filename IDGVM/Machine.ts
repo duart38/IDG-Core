@@ -32,6 +32,11 @@ export default class IDGVM {
   private isInInterruptHandler: boolean;
   private stackFrameSize: number;
 
+  /**
+   * Indicates how many empty instructions we saw after each other..
+   */
+  private emptyInstructionAtStep = 0;
+
   // Image specific stuff
   /**
    * Copy of the image to modify.
@@ -878,6 +883,8 @@ export default class IDGVM {
 
   step() {
     const instruction = this.fetchCurrentInstruction8();
+    if(instruction === 0) this.emptyInstructionAtStep++;
+    if(this.emptyInstructionAtStep > 50) return true;
     return this.execute(instruction);
   }
 
