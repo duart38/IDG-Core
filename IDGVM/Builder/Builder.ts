@@ -21,7 +21,7 @@ export default class IDGBuilder {
     constructor(imageData: ImageData){
         this.imageData = imageData;
         this.flags = {};
-        this.instructions = new Uint8Array()
+        this.instructions = new Uint8Array((256 * 256 * 256 * 256))
     }
     //TODO: all instructions here... along with some other ones that group some instructions\
 
@@ -35,7 +35,7 @@ export default class IDGBuilder {
     }
     getFlag(name: string){
         const r = this.flags[name];
-        if(!r) throw new Error(`flag ${name} does not exist.`);
+        if(r === undefined || r === null) throw new Error(`flag ${name} does not exist. flags dump -> ${JSON.stringify(this.flags)}`);
         return r;
     }
 
@@ -92,9 +92,11 @@ export default class IDGBuilder {
 
     /**
      * Return from a sub-routine (function)
+     * @param toAddressBelow indicated wether we should return and re-call the last instruction or skip to the next instruction
      */
-    return(){
-        this.insert8(Instructions.RET);
+    return(toAddressBelow = true){
+        if(toAddressBelow){this.insert8(Instructions.RET_TO_NEXT)}
+        else{this.insert8(Instructions.RET)}
     }
 
     /**
@@ -105,7 +107,7 @@ export default class IDGBuilder {
     insertFunction(name: string, instructionsToSkip: Instructions[]){
         instructionsToSkip.push(Instructions.RET); // now also including a return that we add..
         this.skipInstructions(name, instructionsToSkip);
-        this.return();
+        this.return(true);
     }
 
     /**
@@ -119,6 +121,11 @@ export default class IDGBuilder {
         this.insert8(Instructions.INTERVAL);
         this.insert32(timeInMs);
         this.insert32(callFunction);
+    }
+
+    incrementRegister(register: RegisterIndexOf){
+        this.insert8(Instructions.INC_REG);
+        this.insert32(register);
     }
 
     compile(){
