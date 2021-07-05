@@ -115,7 +115,11 @@ export enum Instructions {
   /**
    * Fetches the pixel color from the supplied index and dumps it into the COL register
    */
-   FETCH_PIXEL_COLOR_BY_INDEX
+  FETCH_PIXEL_COLOR_BY_INDEX,
+  /**
+   * Fetches a pixel index by the x and y values currently stored in the register.. stores it in the supplied register
+   */
+  FETCH_PIXEL_INDEX_BY_REG_COORDINATES
 
   //TODO: RGB (8bit vals) to combined color value (32 bit) -> store in COL
 }
@@ -178,4 +182,5 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.RENDER]: {size: 0},
     [Instructions.NEIGHBORING_PIXEL_INDEX_TO_REG]: {size: 0},
     [Instructions.FETCH_PIXEL_COLOR_BY_INDEX]: {size: 0},
+    [Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES]: {size: 0}
 }
