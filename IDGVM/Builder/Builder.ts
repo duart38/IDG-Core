@@ -108,6 +108,19 @@ export default class IDGBuilder {
         this.return();
     }
 
+    /**
+     * calls some function repeatedly on the given interval.
+     * NOTE: the called function should probably have a RET (return) instruction or else it will never pop the stack.. use the helper method here to build a function with a return statement
+     * @param timeInMs 
+     * @param callFunction the flag name (function name) or a number representing an address to call
+     */
+    atInterval(timeInMs: number, callFunction: string | number){
+        if(typeof callFunction === "string") callFunction = this.getFlag(callFunction);
+        this.insert8(Instructions.INTERVAL);
+        this.insert32(timeInMs);
+        this.insert32(callFunction);
+    }
+
     compile(){
         // use : https://deno.land/x/compress@v0.3.8    (deflate)
     }

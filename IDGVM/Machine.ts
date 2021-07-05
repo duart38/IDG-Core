@@ -834,6 +834,17 @@ export default class IDGVM {
         }
         return;
       }
+      case Instructions.INTERVAL: {
+        let time = this.fetchCurrentInstruction32();
+        let addressToCall = this.fetchCurrentInstruction32();
+        let intervalHandler = setInterval(()=>{
+          this.pushState();
+          this.setRegister('ip', addressToCall);
+        }, time);
+        this.setRegister("r9", intervalHandler); // TODO: make a dedicated place for this
+
+        return;
+      }
 
       case Instructions.RENDER: {
         this.render();

@@ -101,6 +101,12 @@ export enum Instructions {
   // QOF instructions
   RAND,
   SKIP,
+  /**
+   * Starts an interval that when its time, executes the address provided
+   */
+  INTERVAL,
+
+
   // TODO: dump to disk (.idg or internal) instruction. this ins is problematic as in some cases (browser) you would not be able to persist data
 
   // image specific instructions
@@ -212,4 +218,5 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.RGB_LIT_TO_COLOR]: {size: 4},
     [Instructions.COLOR_FROMREG_TO_RGB]: {size: 1},
     [Instructions.DRAW_BOX]: {size: 9},
+    [Instructions.INTERVAL]: {size: 9}
 }
