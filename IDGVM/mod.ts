@@ -1,6 +1,6 @@
 import IDGVM from "./Machine.ts";
 import { createMemory, MemoryMapper } from "./Memory.ts";
-import { Instructions } from "./Registers.ts";
+import { Instructions, RegisterKey } from "./Registers.ts";
 
 const MM = new MemoryMapper();
 
@@ -10,37 +10,52 @@ MM.map(memory, 0, 0x7FFFFFFF);
 
 const writableBytes = new Uint8Array(memory.buffer);
 let i = 0;
-const cpu = new IDGVM(MM);
+const cpu = new IDGVM(MM, {imageData: [0,0,0,0], width: 2, height: 2});
 
+cpu.onImageRenderRequest((dat)=>{
+    console.log("\n\n\n Render request!", dat);
+})
 // cpu.debug()
 const PADDING = 0x00;
 cpu.debug();
 
-writableBytes[i++] = Instructions.SKIP
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 9
+// "COL", // 14
+// "x", // 15
+// "y", // 16
 
-writableBytes[i++] = Instructions.MOV_LIT_REG
+writableBytes[i++] = Instructions.MOV_LIT_REG // x
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 2
+writableBytes[i++] = 0
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 4
+writableBytes[i++] = 15
 
-writableBytes[i++] = Instructions.MOV_LIT_REG
+writableBytes[i++] = Instructions.MOV_LIT_REG // y
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 5
+writableBytes[i++] = 0
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
 writableBytes[i++] = PADDING
-writableBytes[i++] = 3
+writableBytes[i++] = 16
+
+writableBytes[i++] = Instructions.MOV_LIT_REG // COL -> 0x[FF][00][00]
+writableBytes[i++] = PADDING
+writableBytes[i++] = 0xFF
+writableBytes[i++] = 0x00
+writableBytes[i++] = 0x00
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = PADDING
+writableBytes[i++] = 14
+
+
+writableBytes[i++] = Instructions.MODIFY_PIXEL
+writableBytes[i++] = Instructions.RENDER
 
 // writableBytes[i++] = Instructions.HLT
 
