@@ -33,7 +33,7 @@ export default class IDGVM {
    * @param memory Refers to the allocated memory available to our system
    * @param interruptVectorAddress 
    */
-  constructor(memory: MemoryMapper, interruptVectorAddress = 0x1000) {
+  constructor(memory: MemoryMapper, interruptVectorAddress = 0x249F0) {
     this.memory = memory;
 
     /**
@@ -198,14 +198,14 @@ export default class IDGVM {
     // If the interrupt is masked by the interrupt mask register
     // then do not enter the interrupt handler
     const isUnmasked = Boolean((1 << interruptBit) & this.getRegister('im'));
-    if (!isUnmasked) {
+    if (!isUnmasked) { // not enabled
       return;
     }
 
     // Calculate where in the interupt vector we'll look
     const addressPointer = this.interruptVectorAddress + (interruptBit * INSTRUCTION_LENGTH_IN_BYTES);
     // Get the address from the interupt vector at that address
-    const address = this.memory.getUint16(addressPointer);
+    const address = this.memory.getUint32(addressPointer);
 
     // We only save state when not already in an interupt
     if (!this.isInInterruptHandler) {
@@ -226,6 +226,9 @@ export default class IDGVM {
   execute(instruction: number) {
     console.log(`$ Got instruction ${instruction}`)
     switch (instruction) {
+      /**
+       * Return from an interupt
+       */
       case Instructions.RET_INT: { // TODO: 32 bit check
         console.log('Return from interupt');
         this.isInInterruptHandler = false;
