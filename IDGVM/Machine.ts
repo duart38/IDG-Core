@@ -683,7 +683,11 @@ export default class IDGVM {
         return;
       }
 
-      // Call literal
+      /**
+       * Pushes the registry state to the stack and then calls the literal provided.
+       * Using the return instruction you can return to the initial state
+       * @see Instructions.RET for returning from this so-called sub-routine
+       *  */ 
       case Instructions.CAL_LIT: {
         const address = this.fetchCurrentInstruction32();
         this.pushState();
@@ -709,6 +713,17 @@ export default class IDGVM {
         this.setRegister("acc", Math.floor(Math.random() * (max - min + 1) + min));
         return;
       }
+
+      /**
+       * Tells the VM not to execute a set of instructions. similar to jumping but here you can pass how
+       * much to increment the Instruction Pointer by instead of having to provide a location on memory
+       */
+      case Instructions.SKIP: {
+        const size = this.fetchCurrentInstruction32();
+        this.setRegister("ip", this.getRegister("ip") + size);
+        return;
+      }
+
 
       // Return from subroutine
       case Instructions.RET: {
