@@ -9,9 +9,9 @@ export enum arithmetic {
  BITSHIFT_LEFT, BITSIGNEDSHIFT_RIGHT, BITSHIFT_RIGHT, BIT_AND, BIT_OR, BIT_XOR, BIT_NOT
 }
 /**
- * Direction from the current position
- */
-export enum direction {
+* Direction from the current position
+*/
+export enum Direction {
     topLeft, top, topRight,
     left, /** idx */ right,
     bottomLeft, bottom, bottomRight
@@ -211,7 +211,7 @@ export type ifNotNil = [ActionID.ifNotNil, number, instruction[]];
  * [this#, memoryKey, instructions[]]
  */
 export type ifInBounds = [ActionID.ifInBounds, number, instruction[]];
-export type getNeighboringPixel = [ActionID.getNeighboringPixel, bool, direction, number | memoryPointer, memoryPointer]
+export type getNeighboringPixel = [ActionID.getNeighboringPixel, bool, Direction, number | memoryPointer, memoryPointer]
 /**
  * [this#, indexFromMemory(0|1), pixelIndex, memoryKey]
  * */
