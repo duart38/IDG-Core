@@ -1,3 +1,4 @@
+import { Direction } from "../interfaces/Actions.ts";
 import { chunkUp32 } from "../utils/bits.ts";
 import IDGVM from "./Machine.ts";
 import { createMemory, MemoryMapper } from "./Memory.ts";
@@ -11,7 +12,7 @@ MM.map(memory, 0, 0x7FFFFFFF);
 
 const writableBytes = new Uint8Array(memory.buffer);
 let i = 0;
-const cpu = new IDGVM(MM, {imageData: [0,0,0,0], width: 2, height: 2});
+const cpu = new IDGVM(MM, {imageData: [1,9,5,3], width: 2, height: 2});
 
 cpu.onImageRenderRequest((dat)=>{
     console.log("\n\n\n Render request!", dat);
@@ -24,27 +25,9 @@ cpu.debug();
 // "x", // 15
 // "y", // 16
 
-writableBytes[i++] = Instructions.MOV_LIT_REG // x
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 0
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = PADDING
-writableBytes[i++] = 15
+writableBytes[i++] = Instructions.FETCH_PIXEL_COLOR_BY_INDEX // x
+writableBytes.set(chunkUp32(1), i); i += 4;
 
-writableBytes[i++] = Instructions.MOV_LIT_REG // y
-writableBytes.set(chunkUp32(0), i); i += 4;
-writableBytes.set(chunkUp32(16), i); i += 4;
-
-writableBytes[i++] = Instructions.MOV_LIT_REG // COL -> 0x[FF][00][00]
-writableBytes.set(chunkUp32(16711680), i); i += 4;
-writableBytes.set(chunkUp32(14), i); i += 4;
-
-
-writableBytes[i++] = Instructions.MODIFY_PIXEL
-writableBytes[i++] = Instructions.RENDER
 
 // writableBytes[i++] = Instructions.HLT
 
