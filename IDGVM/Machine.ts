@@ -2,6 +2,8 @@ import {Instructions, RegisterKey, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
 import { getNeighboringPixelIndex, indexByCoordinates } from "../utils/coordinates.ts";
 import { ImageData } from "../interfaces/Image.ts";
+import { combineRGB } from "../utils/color.ts";
+import { U255 } from "../interfaces/RGBA.ts";
 
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
 const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
@@ -784,6 +786,14 @@ export default class IDGVM {
         const y = this.getRegister("y");
         const reg = this.fetchCurrentInstruction32(); // where to store
         this.registers.setUint32(reg, indexByCoordinates(x,y,this.image.width));
+        return;
+      }
+
+      case Instructions.RGB_FROMREG_TO_COLOR: {
+        const r = this.getRegister("R") as U255;
+        const g = this.getRegister("G") as U255;
+        const b = this.getRegister("B") as U255;
+        this.setRegister("COL", combineRGB([r,g,b]))
         return;
       }
 
