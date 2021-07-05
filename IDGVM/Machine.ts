@@ -302,10 +302,10 @@ export default class IDGVM {
 
       // Move the value of a memory location to a register
       case Instructions.MOV_MEM_REG: {
-        const address = this.fetchCurrentInstruction16();
+        const address = this.fetchCurrentInstruction32();
         const registerTo = this.fetchRegisterIndex();
-        const value = this.memory.getUint16(address);
-        this.registers.setUint16(registerTo, value);
+        const value = this.memory.getUint32(address);
+        this.registers.setUint32(registerTo, value);
         return;
       }
 
