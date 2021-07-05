@@ -763,7 +763,6 @@ export default class IDGVM {
         const y = this.getRegister("y");
         const color = this.getRegister("COL");
         const index = indexByCoordinates(x,y, this.image.width);
-        console.log("modify pixel ins", x,y,color, index)
         this.imageCopy[index] = color;
         return;
       }
