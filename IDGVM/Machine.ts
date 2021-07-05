@@ -1,6 +1,6 @@
 import {Instructions, RegisterKey, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
-import { indexByCoordinates } from "../utils/coordinates.ts";
+import { getNeighboringPixelIndex, indexByCoordinates } from "../utils/coordinates.ts";
 import { ImageData } from "../interfaces/Image.ts";
 
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
@@ -765,6 +765,21 @@ export default class IDGVM {
         this.imageCopy[index] = color;
         return;
       }
+      case Instructions.NEIGHBORING_PIXEL_INDEX_TO_REG: {
+        const direction = this.fetchCurrentInstruction8();
+        const currentPixel = this.fetchCurrentInstruction32(); // where to check from
+        const reg = this.fetchRegisterIndex(); // where to put it
+        const idx = getNeighboringPixelIndex(direction, currentPixel, this.image.width);
+        this.registers.setUint32(reg, idx);
+        return;
+      }
+
+      case Instructions.FETCH_PIXEL_COLOR_BY_INDEX: {
+        const pixelIndex = this.fetchCurrentInstruction32(); // where to check from
+        this.setRegister("COL", this.image.imageData[pixelIndex])
+        return;
+      }
+
       case Instructions.RENDER: {
         this.render();
         return;
