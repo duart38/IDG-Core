@@ -18,10 +18,15 @@ export default class IDGBuilder {
     private imageData: ImageData;
     private flags: Record<string, number>;
     public instructions: Uint8Array;
-    constructor(imageData: ImageData){
+    /**
+     * 
+     * @param imageData 
+     * @param preAllocation how much memory to pre-allocate to construct stuff
+     */
+    constructor(imageData: ImageData, preAllocation = 524288000 /* 500MB */){
         this.imageData = imageData;
         this.flags = {};
-        this.instructions = new Uint8Array((256 * 256 * 256 * 256))
+        this.instructions = new Uint8Array(preAllocation)
     }
     //TODO: all instructions here... along with some other ones that group some instructions\
 
@@ -128,7 +133,16 @@ export default class IDGBuilder {
         this.insert32(register);
     }
 
+    currentHeapSize(){
+        return this.memoryRequirementInBytes + this.instructionIndex;
+    }
     compile(){
+        console.log("COMPILING:")
+        console.log(`
+        TOTAL MEM: ${this.currentHeapSize()} bytes
+        INSTR MEM: ${this.instructionIndex} bytes
+        IMAGE MEM (allocated separately): ${(this.imageData.width * this.imageData.height) * 4} bytes
+        `)
         /*
         1. make header
         2. make and populate initial image allocation
