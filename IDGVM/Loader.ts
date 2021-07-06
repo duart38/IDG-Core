@@ -22,7 +22,7 @@ export default class IDGLoader {
         const imageWidth = x.getUint32(0);
         const imageHeight = x.getUint32(4);
         const memorySizeRequest = x.getUint32(8);
-        let image: number[] = [];
+        const image: number[] = [];
         for(let i = 12; i < ((imageWidth * imageHeight) * 4) + 9; i += 4){
             image.push(x.getUint32(i));
         }
@@ -46,5 +46,3 @@ export default class IDGLoader {
         this.vm.execute(Instructions.HLT);
     }
 }
-
- //const decompressed = gunzip(compressed);
