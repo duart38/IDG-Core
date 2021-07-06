@@ -518,6 +518,14 @@ export default class IDGBuilder {
     }
 
     /**
+     * Stops the VM from executing.
+     */
+    HALT(){
+        this.insert8(Instructions.HLT);
+        return this;
+    }
+
+    /**
      * Same as skip instruction but includes a return at the end to better emulate the behavior of a function
      * @param name name of the function. used for calling later
      * @param instructionsToSkip the instructions that are in this function (NOTE: you need to manually construct them after this call)
