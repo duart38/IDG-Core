@@ -614,6 +614,14 @@ export default class IDGBuilder {
         return this;
     }
 
+    /**
+     * Renders the image.
+     */
+    RENDER(){
+        this.insert8(Instructions.RENDER);
+        return this;
+    }
+
     currentHeapSize(){
         return this.memoryRequirementInBytes + this.instructionIndex;
     }
