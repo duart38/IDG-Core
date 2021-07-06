@@ -7,6 +7,7 @@
  */
 
 import { gunzip } from "https://deno.land/x/compress@v0.3.8/mod.ts";
+import { spreadImage } from "../utils/color.ts";
 import IDGVM from "./Machine.ts";
 import { createMemory, MemoryMapper } from "./Memory.ts";
 import { Instructions } from "./Registers.ts";
@@ -15,29 +16,41 @@ import { Instructions } from "./Registers.ts";
 export default class IDGLoader {
     private vm: IDGVM;
     private memoryMapper: MemoryMapper;
-    private memory: DataView;
     constructor(rawFileData: Uint8Array, autoStart = false){
         const decompressed = gunzip(rawFileData);
         const x = new DataView(decompressed.buffer);
         const imageWidth = x.getUint32(0);
         const imageHeight = x.getUint32(4);
         const memorySizeRequest = x.getUint32(8);
+        console.log(memorySizeRequest)
         const image: number[] = [];
-        for(let i = 12; i < ((imageWidth * imageHeight) * 4) + 9; i += 4){
+        let i = 12;
+        for(;i < ((imageWidth * imageHeight) * 4) + 9; i += 4){
             image.push(x.getUint32(i));
         }
 
         this.memoryMapper = new MemoryMapper();
-        this.memory = createMemory(memorySizeRequest);
-        this.memoryMapper.map(this.memory, 0, memorySizeRequest);
 
+        const memory = createMemory(memorySizeRequest);
+        this.memoryMapper.map(memory, 0, memory.byteLength);
+        const memorySection = decompressed.slice(i,  i + memorySizeRequest);
+        const writableBytes = new Uint8Array(memory.buffer);
+        writableBytes.set(memorySection);
 
-        this.vm = new IDGVM(this.memoryMapper, {imageData: image, width: imageWidth, height: imageHeight});
+        this.vm = new IDGVM(this.memoryMapper, memory.byteLength, {imageData: image, width: imageWidth, height: imageHeight});
         if(autoStart) this.startVM();
     }
 
-    onImageUpdate(cb: (dat: number[])=>void){
-        this.vm.onImageRenderRequest(cb);
+    /**
+     * Executes callback when the VM makes a request to render a new frame
+     * @param cb 
+     * @param alpha indicates wether we should inject fake alpha in the constructed image to facilitate rendering (note: if shouldSpreadImage is false alpha channel is always ignored)
+     * @param shouldSpreadImage indicates if we should supply the image back with the combined RGB color (faster) or split each color into individual R,G,B sections
+     */
+    onImageUpdate(cb: (dat: number[])=>void, alpha = false, shouldSpreadImage = false){
+        this.vm.onImageRenderRequest((x)=>{
+            cb(shouldSpreadImage ? spreadImage(x, alpha) : x);
+        });
     }
 
     startVM(){
