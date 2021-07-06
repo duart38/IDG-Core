@@ -144,23 +144,29 @@ export default class IDGBuilder {
         this.insert32(skipTo);
     }
 
-    /**
-     * Adds the result of the 2 supplied register values together and stores the result in the accumulator.
-     */
-    addRegisterToRegister(reg1: RegisterIndexOf, reg2: RegisterIndexOf){
-        this.insert8(Instructions.ADD_REG_REG);
-        this.insert32(reg1);
-        this.insert32(reg2);
-        return this;
+
+    private _regKeyToIndex(x: RegisterKey){
+        return RegisterIndexOf[x];
     }
 
     /**
-     * Adds (+) the values of the supplied value to a registers together and stores the results in the accumulator (acc) register
+     * Adds values together from various places, depending on if you give this method a register name or a number.
+     * NOTE: the result of this calculation is stored in the accumulator register ("acc").
+     * @param lhs the register name (that contains the value you want to add), or a literal number value to add to the rhs register
+     * @param rhs the register name to
      */
-    addNumberToRegister(reg1: RegisterIndexOf, valueToAdd: number){
-        this.insert8(Instructions.ADD_LIT_REG);
-        this.insert32(valueToAdd)
-        this.insert32(reg1);
+    addValues(lhs: RegisterKey | number, rhs: RegisterKey){
+        if(typeof lhs === "string" && typeof rhs === "string"){ // ADD_REG_REG
+            this.insert8(Instructions.ADD_REG_REG);
+            this.insert32(this._regKeyToIndex(lhs));
+            this.insert32(this._regKeyToIndex(rhs));
+        }else if(typeof lhs === "number" && typeof rhs === "string"){ // ADD_LIT_REG
+            this.insert8(Instructions.ADD_LIT_REG);
+            this.insert32(lhs)
+            this.insert32(this._regKeyToIndex(rhs));
+        }
+
+        return this;
     }
 
     /**
