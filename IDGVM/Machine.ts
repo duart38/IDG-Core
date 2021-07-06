@@ -48,17 +48,20 @@ export default class IDGVM {
    * Callback that is executed when a render request has been made
    */
   private imageRenderCB: (newImage: number[])=>void;
+
+  private allocatedAmount: number;
   
   /**
    * 
    * @param memory Refers to the allocated memory available to our system
    * @param interruptVectorAddress 
    */
-  constructor(memory: MemoryMapper, image: ImageData, interruptVectorAddress = 0x249F0) {
+  constructor(memory: MemoryMapper, allocatedAmount: number, image: ImageData, interruptVectorAddress = 0x249F0) {
     this.memory = memory;
     this.image = image;
     this.imageCopy = [...image.imageData];
     this.imageRenderCB = ()=>{};
+    this.allocatedAmount = allocatedAmount;
 
     /**
      * Creating memory for actual values of register
@@ -80,10 +83,10 @@ export default class IDGVM {
 
     this.interruptVectorAddress = interruptVectorAddress;
     this.isInInterruptHandler = false;
-    this.setRegister('im', PLANK);
+    this.setRegister('im', this.allocatedAmount);
 
-    this.setRegister('sp', PLANK - 1);
-    this.setRegister('fp', PLANK - 1);
+    this.setRegister('sp', this.allocatedAmount - 1);
+    this.setRegister('fp', this.allocatedAmount - 1);
 
     this.stackFrameSize = 0;
   }
@@ -147,6 +150,10 @@ export default class IDGVM {
     // get the instruction pointer address that houses the next instruction
     const nextInstructionAddress = this.getRegister('ip');
     // gets the actual instruction value from that location in memory
+    if(nextInstructionAddress + 1 > this.allocatedAmount){
+      this.emptyInstructionAtStep = 9999;
+      return -1;
+    }
     const instruction = this.memory.getUint8(nextInstructionAddress);
     // increment the program counter (instruction pointer) to the next instruction.
     this.setRegister('ip', nextInstructionAddress + 1);
@@ -898,15 +905,16 @@ export default class IDGVM {
 
   step() {
     const instruction = this.fetchCurrentInstruction8();
+    console.log("STEP", instruction)
     if(instruction === 0) this.emptyInstructionAtStep++;
-    if(this.emptyInstructionAtStep > 50) return true;
+    if(instruction === -1 || this.emptyInstructionAtStep > 50) return true;
     return this.execute(instruction);
   }
 
   run() {
     const halt = this.step();
     if (!halt) {
-      setInterval(() => this.run());
+      setTimeout(() => this.run());
     }
   }
 }
