@@ -846,9 +846,7 @@ export default class IDGVM {
       case Instructions.INTERVAL: {
         let time = this.fetchCurrentInstruction32();
         let addressToCall = this.fetchCurrentInstruction32();
-        console.log("Interval created");
         let intervalHandler = setInterval(()=>{
-          console.log("Interval called");
           this.pushState();
           this.setRegister('ip', addressToCall);
         }, time);
