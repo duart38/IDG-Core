@@ -255,7 +255,7 @@ export default class IDGBuilder {
      * @param lhs the left hand side of the AND operator
      * @param rhs value to AND by could be a register (will retrieve the value) or a literal number
      */
-    andValues(lhs: RegisterKey, rhs: RegisterKey | number){
+    bitwiseAND(lhs: RegisterKey, rhs: RegisterKey | number){
         if(typeof lhs === "string" && typeof rhs === "string"){ // AND_REG_REG
             this.insert8(Instructions.AND_REG_REG);
             this.insert32(this._regKeyToIndex(lhs));
