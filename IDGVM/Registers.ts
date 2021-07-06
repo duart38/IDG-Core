@@ -101,7 +101,7 @@ export enum Instructions {
   INT,
 
   // QOF instructions
-  RAND,
+  RAND, // TODO: RAND_REG_REG
   SKIP,
   /**
    * Starts an interval that when its time, executes the address provided
