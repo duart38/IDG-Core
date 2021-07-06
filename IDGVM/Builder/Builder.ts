@@ -192,6 +192,25 @@ export default class IDGBuilder {
         return this;
     }
 
+    /**
+     * Multiply values. takes the values in the appropriate location based on what type of parameter you supply.
+     * NOTE: all results are stored in the accumulator register ("acc")
+     * @param lhs the register to take the value from or a literal number
+     * @param rhs the register to take the value from
+     */
+    multiplyValues(lhs: RegisterKey | number, rhs: RegisterKey){
+       if(typeof lhs === "string" && typeof rhs === "string"){ // MUL_REG_REG
+            this.insert8(Instructions.MUL_REG_REG);
+            this.insert32(this._regKeyToIndex(lhs));
+            this.insert32(this._regKeyToIndex(rhs));
+       }else if(typeof lhs === "number" && typeof rhs === "string"){ // MUL_LIT_REG
+            this.insert8(Instructions.MUL_LIT_REG);
+            this.insert32(lhs);
+            this.insert32(this._regKeyToIndex(rhs));
+       }
+       return this;
+    }
+
 
     /**
      * Skips the following instructions (size is calculated).
