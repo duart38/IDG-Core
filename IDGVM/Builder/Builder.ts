@@ -1,5 +1,4 @@
 import { Direction } from "../../interfaces/Actions.ts";
-import { IDGHeader } from "../../interfaces/FileShape.ts";
 import { ImageData } from "../../interfaces/Image.ts";
 import { RGB } from "../../interfaces/RGBA.ts";
 import { chunkUp32 } from "../../utils/bits.ts";
