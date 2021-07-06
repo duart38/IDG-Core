@@ -31,5 +31,5 @@ loader.onImageUpdate((data)=>{
     Deno.writeFile("image.png", png).catch((x)=>{
         console.log(x);
     })
-})
+}, true, true);
 loader.startVM();
