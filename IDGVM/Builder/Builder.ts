@@ -287,6 +287,26 @@ export default class IDGBuilder {
         return this;
     }
 
+    /**
+     * Performs a bitwise XOR. takes the values in the appropriate location based on what type of parameter you supply.
+     * NOTE: Always stores the value in the accumulator register ("acc").
+     * @param lhs the left hand side of the XOR operator
+     * @param rhs value to XOR by, could be a register (will retrieve the value) or a literal number
+     */
+     bitwiseXOR(lhs: RegisterKey, rhs: RegisterKey | number){
+        if(typeof lhs === "string" && typeof rhs === "string"){ // XOR_REG_REG
+            this.insert8(Instructions.XOR_REG_REG);
+            this.insert32(this._regKeyToIndex(lhs));
+            this.insert32(this._regKeyToIndex(rhs));
+        }else if(typeof lhs === "string" && typeof rhs === "number"){ // XOR_REG_LIT
+            this.insert8(Instructions.XOR_REG_LIT);
+            this.insert32(this._regKeyToIndex(lhs));
+            this.insert32(rhs);
+        }
+        return this;
+    }
+
+
 
     /**
      * Skips the following instructions (size is calculated).
