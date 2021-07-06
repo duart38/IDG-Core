@@ -577,6 +577,24 @@ export default class IDGBuilder {
         return this;
     }
 
+
+    /**
+     * Converts RGB from a register (if no value provided) or a literal (if you provide it directly) and stores it in the color register ("COL")
+     * @param val RGB value. if none is provided it gets the values from the register instead.
+     */
+    RGBToColor(val?: RGB){
+        if(val){
+            this.insert8(Instructions.RGB_LIT_TO_COLOR);
+            this.insert8(val[0]);
+            this.insert8(val[1]);
+            this.insert8(val[2]);
+        }else{
+            this.insert8(Instructions.RGB_FROMREG_TO_COLOR);
+        }
+        return this;
+    }
+    
+
     /**
      * Same as skip instruction but includes a return at the end to better emulate the behavior of a function
      * @param name name of the function. used for calling later
