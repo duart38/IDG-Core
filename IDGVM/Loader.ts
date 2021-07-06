@@ -16,7 +16,7 @@ export default class IDGLoader {
     private vm: IDGVM;
     private memoryMapper: MemoryMapper;
     private memory: DataView;
-    constructor(rawFileData: Uint8Array){
+    constructor(rawFileData: Uint8Array, autoStart = false){
         const decompressed = gunzip(rawFileData);
         const x = new DataView(decompressed.buffer);
         const imageWidth = x.getUint32(0);
@@ -33,6 +33,7 @@ export default class IDGLoader {
 
 
         this.vm = new IDGVM(this.memoryMapper, {imageData: image, width: imageWidth, height: imageHeight});
+        if(autoStart) this.startVM();
     }
 
     onImageUpdate(cb: (dat: number[])=>void){
