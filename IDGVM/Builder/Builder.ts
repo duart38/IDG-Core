@@ -170,6 +170,29 @@ export default class IDGBuilder {
     }
 
     /**
+     * Subtract 2 values from each other. takes the values in the appropriate location based on what type of parameter you supply.
+     * NOTE: all results are stored in the accumulator register ("acc")
+     * @param lhs the register to take the value from or a literal number
+     * @param rhs the register to take the value from or a literal number
+     */
+    subtractValues(lhs: RegisterKey | number, rhs: RegisterKey | number){
+        if(typeof lhs === "string" && typeof rhs === "string"){ //SUB_REG_REG
+            this.insert8(Instructions.SUB_REG_REG);
+            this.insert32(this._regKeyToIndex(lhs));
+            this.insert32(this._regKeyToIndex(rhs));
+        }else if(typeof lhs === "number" && typeof rhs === "string"){ //SUB_LIT_REG
+            this.insert8(Instructions.SUB_LIT_REG);
+            this.insert32(lhs);
+            this.insert32(this._regKeyToIndex(rhs));
+        }else if(typeof lhs === "string" && typeof rhs === "number"){ //SUB_REG_LIT
+            this.insert8(Instructions.SUB_LIT_REG);
+            this.insert32(this._regKeyToIndex(lhs));
+            this.insert32(rhs);
+        }
+        return this;
+    }
+
+    /**
      * Skips the following instructions (size is calculated).
      * NOTE: this does not define the instructions themselves. the array is only used for calculating where to skip to.
      * @param name used to store a "flag" in a temporary helper table that can be used to call this skipped instruction later. @see {callFunction}
