@@ -34,9 +34,10 @@ export default class IDGBuilder {
      * Sets a flag at the current instruction index so that you can refer back to it in code later.
      * Very useful for jumping around as you don't need to remember the locations in memory.
      */
-    setFlag(name: string){
+    setFlag(name: string): IDGBuilder{
         if(this.flags[name]) console.warn(`Warning: renamed flag ${name}. you may ignore if intentional`);
-        this.flags[name] = this.instructionIndex
+        this.flags[name] = this.instructionIndex;
+        return this;
     }
     getFlag(name: string){
         const r = this.flags[name];
@@ -49,18 +50,20 @@ export default class IDGBuilder {
      * Skipped instructions are also known as functions as they are not evaluated unless called upon.
      * if the called instruction does not have an end (i.e. RET) then it will continue from there
      */
-    callSkippedOrFunction(name: string){
+    callSkippedOrFunction(name: string): IDGBuilder {
         const r = this.flags[name];
         if(!r) throw new Error(`skipped instruction flag ${name} does not exist.`);
         this.callLocation(r);
+        return this;
     }
 
     /**
      * Calls the location provided. use labels to help yourself keep track of where to go.
      */
-    callLocation(address: number){
+    callLocation(address: number): IDGBuilder{
         this.insert8(Instructions.CAL_LIT);
         this.insert32(address);
+        return this;
     }
     /**
      * Insert a 32-bit instruction at the current index and then increment to point to an empty spot for the next insert
@@ -77,10 +80,11 @@ export default class IDGBuilder {
         this.instructions[this.instructionIndex++] = n;
     }
 
-    StoreNumberToRegister(n: number, registerIndex: RegisterIndexOf){
+    StoreNumberToRegister(n: number, registerIndex: RegisterIndexOf): IDGBuilder{
         this.insert8(Instructions.MOV_LIT_REG);
         this.insert32(n);
         this.insert32(registerIndex);
+        return this;
     }
 
     /**
@@ -88,20 +92,22 @@ export default class IDGBuilder {
      * NOTE: this does not define the instructions themselves. the array is only used for calculating where to skip to.
      * @param name used to store a "flag" in a temporary helper table that can be used to call this skipped instruction later. @see {callFunction}
      */
-    skipInstructions(name: string, instructionsToSkip: Instructions[]){
+    skipInstructions(name: string, instructionsToSkip: Instructions[]): IDGBuilder {
         this.setFlag(name);
         const skipTo = instructionsToSkip.reduce((prev, curr)=> prev + InstructionInformation[curr].size, 0);
         this.insert8(Instructions.SKIP)
         this.insert32(skipTo);
+        return this;
     }
 
     /**
      * Return from a sub-routine (function)
      * @param toAddressBelow indicated wether we should return and re-call the last instruction or skip to the next instruction
      */
-    return(toAddressBelow = true){
+    return(toAddressBelow = true): IDGBuilder{
         if(toAddressBelow){this.insert8(Instructions.RET_TO_NEXT)}
         else{this.insert8(Instructions.RET)}
+        return this;
     }
 
     /**
@@ -109,10 +115,11 @@ export default class IDGBuilder {
      * @param name name of the function. used for calling later
      * @param instructionsToSkip the instructions that are in this function (NOTE: you need to manually construct them after this call)
      */
-    insertFunction(name: string, instructionsToSkip: Instructions[]){
+    insertFunction(name: string, instructionsToSkip: Instructions[]): IDGBuilder{
         instructionsToSkip.push(Instructions.RET); // now also including a return that we add..
         this.skipInstructions(name, instructionsToSkip);
         this.return(true);
+        return this;
     }
 
     /**
@@ -121,16 +128,18 @@ export default class IDGBuilder {
      * @param timeInMs 
      * @param callFunction the flag name (function name) or a number representing an address to call
      */
-    atInterval(timeInMs: number, callFunction: string | number){
+    atInterval(timeInMs: number, callFunction: string | number):IDGBuilder{
         if(typeof callFunction === "string") callFunction = this.getFlag(callFunction);
         this.insert8(Instructions.INTERVAL);
         this.insert32(timeInMs);
         this.insert32(callFunction);
+        return this;
     }
 
-    incrementRegister(register: RegisterIndexOf){
+    incrementRegister(register: RegisterIndexOf): IDGBuilder{
         this.insert8(Instructions.INC_REG);
         this.insert32(register);
+        return this;
     }
 
     currentHeapSize(){
@@ -148,7 +157,7 @@ export default class IDGBuilder {
         2. make and populate initial image allocation
         3. make memory space and populate it with instructions
         4. (OPTIONAL) transform into a 32bit representation
-        5. compress use ->  https://deno.land/x/compress@v0.3.8    (deflate)
+        5. compress use ->  https://deno.land/x/compress@v0.3.8    (gzip)
         6. save to file (preferably as binary not as text, use Deno.WriteFile();)
         */
     }
