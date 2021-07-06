@@ -1,4 +1,5 @@
 import { ImageData } from "../../interfaces/Image.ts";
+import { RGB } from "../../interfaces/RGBA.ts";
 import { chunkUp32 } from "../../utils/bits.ts";
 import { InstructionInformation, Instructions, RegisterIndexOf, RegisterKey } from "../Registers.ts";
 
@@ -104,10 +105,10 @@ export default class IDGBuilder {
         this.instructions[this.instructionIndex++] = n;
     }
 
-    StoreNumberToRegister(n: number, registerIndex: RegisterIndexOf): IDGBuilder{
+    StoreNumberToRegister(n: number, registerKey: RegisterKey): IDGBuilder{
         this.insert8(Instructions.MOV_LIT_REG);
         this.insert32(n);
-        this.insert32(registerIndex);
+        this.insert32(this._regKeyToIndex(registerKey));
         return this;
     }
     /**
@@ -532,6 +533,45 @@ export default class IDGBuilder {
         this.insert8(Instructions.RAND);
         this.insert32(min);
         this.insert32(max);
+        return this;
+    }
+
+    /**
+     * Gets the values stored in the register: "x", "y", "COL". if color paramter is supplied the value is overridden instead
+     * x and y are the coordinates
+     * COL is the color value
+     */
+    modifyPixel(color?: number | RGB){
+        if(color && typeof color === "number"){
+            this.StoreNumberToRegister(color, "COL");
+            this.insert8(Instructions.MODIFY_PIXEL);
+        }else if(color && Array.isArray(color)){ // array [r,g,b]
+            this.insert8(Instructions.RGB_LIT_TO_COLOR);
+            this.insert8(color[0]);
+            this.insert8(color[1]);
+            this.insert8(color[2]);
+            this.insert8(Instructions.MODIFY_PIXEL);
+        }else{
+            this.insert8(Instructions.MODIFY_PIXEL);
+        }
+        return this;
+    }
+
+    modifyPixelAt(x: number, y: number, color?: number | RGB){
+        this.StoreNumberToRegister(x, "x");
+        this.StoreNumberToRegister(y, "y");
+        if(color && typeof color === "number"){
+            this.StoreNumberToRegister(color, "COL");
+            this.insert8(Instructions.MODIFY_PIXEL);
+        }else if(color && Array.isArray(color)){ // array [r,g,b]
+            this.insert8(Instructions.RGB_LIT_TO_COLOR);
+            this.insert8(color[0]);
+            this.insert8(color[1]);
+            this.insert8(color[2]);
+            this.insert8(Instructions.MODIFY_PIXEL);
+        }else{
+            this.insert8(Instructions.MODIFY_PIXEL);
+        }
         return this;
     }
 
