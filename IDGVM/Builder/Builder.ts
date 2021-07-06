@@ -230,6 +230,25 @@ export default class IDGBuilder {
         return this;
     }
 
+    /**
+     * right shifts (>>) 2 values. takes the values in the appropriate location based on what type of parameter you supply.
+     * NOTE: Always stores the value in the lhs paramter
+     * @param lhs the left hand side of the shift operator and also where the resulting value is stored.
+     * @param rhs value to shift by could be a register (will retrieve the value) or a literal number
+     */
+    rightShiftValues(lhs: RegisterKey, rhs: RegisterKey | number){
+        if(typeof lhs === "string" && typeof rhs === "string"){ // RSF_REG_REG
+            this.insert8(Instructions.RSF_REG_REG);
+            this.insert32(this._regKeyToIndex(lhs));
+            this.insert32(this._regKeyToIndex(rhs));
+        }else if(typeof lhs === "string" && typeof rhs === "number"){ // RSF_REG_LIT
+            this.insert8(Instructions.RSF_REG_LIT);
+            this.insert32(this._regKeyToIndex(lhs));
+            this.insert32(rhs);
+        }
+        return this;
+    }
+
 
     /**
      * Skips the following instructions (size is calculated).
