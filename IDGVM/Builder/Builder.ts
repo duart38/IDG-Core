@@ -1,10 +1,12 @@
 import { Direction } from "../../interfaces/Actions.ts";
+import { IDGHeader } from "../../interfaces/FileShape.ts";
 import { ImageData } from "../../interfaces/Image.ts";
 import { RGB } from "../../interfaces/RGBA.ts";
 import { chunkUp32 } from "../../utils/bits.ts";
 import { combineRGB } from "../../utils/color.ts";
 import { indexByCoordinates } from "../../utils/coordinates.ts";
 import { InstructionInformation, Instructions, RegisterIndexOf, RegisterKey } from "../Registers.ts";
+import { gzip, gunzip } from "https://deno.land/x/compress@v0.3.8/mod.ts";
 
 /**
  * The Builder here takes care of easily constructing certain instructions.
@@ -706,6 +708,10 @@ export default class IDGBuilder {
         return this;
     }
 
+    /**
+     * Returns the amount of memory that the code will consume at the point in time of when you execute this method.
+     * @returns 
+     */
     currentHeapSize(){
         return this.memoryRequirementInBytes + this.instructionIndex;
     }
@@ -716,13 +722,23 @@ export default class IDGBuilder {
         INSTR MEM: ${this.instructionIndex} bytes
         IMAGE MEM (allocated separately): ${(this.imageData.width * this.imageData.height) * 4} bytes
         `)
-        /*
-        1. make header
-        2. make and populate initial image allocation
-        3. make memory space and populate it with instructions
-        4. (OPTIONAL) transform into a 32bit representation
-        5. compress use ->  https://deno.land/x/compress@v0.3.8    (gzip)
-        6. save to file (preferably as binary not as text, use Deno.WriteFile();)
-        */
+
+        if(this.imageData.width > 0x7FFFFFFF || this.imageData.height > 0x7FFFFFFF){
+            throw new Error(`Memory limit reached. maximum: ${0x7FFFFFFF}`);
+        }
+        if(this.currentHeapSize() > 0x7FFFFFFF){
+            console.warn(`WARNING: Current head size is longer than ${0x7FFFFFFF}, memory locations after this value cannot be referenced by instructions. instructions will still run`);
+        }
+
+        const header: IDGHeader = [this.imageData.width, this.imageData.height, this.currentHeapSize()];
+
+        const header8Bit = Uint8Array.from(header);//new Uint8Array(header);
+
+        const file = new Uint8Array(header8Bit.length + this.imageData.imageData.length + this.instructions.length);
+        file.set(header8Bit);
+        file.set(this.imageData.imageData, header8Bit.length);
+        file.set(this.instructions, (header8Bit.length + this.imageData.imageData.length));
+
+        return gzip(file, {level: 6});
     }
 }
