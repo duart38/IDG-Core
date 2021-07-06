@@ -155,6 +155,15 @@ export default class IDGBuilder {
     }
 
     /**
+     * Adds (+) the values of the supplied value to a registers together and stores the results in the accumulator (acc) register
+     */
+    addNumberToRegister(reg1: RegisterIndexOf, valueToAdd: number){
+        this.insert8(Instructions.ADD_LIT_REG);
+        this.insert32(valueToAdd)
+        this.insert32(reg1);
+    }
+
+    /**
      * Skips the following instructions (size is calculated).
      * NOTE: this does not define the instructions themselves. the array is only used for calculating where to skip to.
      * @param name used to store a "flag" in a temporary helper table that can be used to call this skipped instruction later. @see {callFunction}
