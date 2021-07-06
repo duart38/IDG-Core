@@ -192,6 +192,7 @@ export default class IDGBuilder {
         return this;
     }
 
+
     /**
      * Skips the following instructions (size is calculated).
      * NOTE: this does not define the instructions themselves. the array is only used for calculating where to skip to.
@@ -241,9 +242,14 @@ export default class IDGBuilder {
         return this;
     }
 
-    incrementRegister(register: RegisterIndexOf): IDGBuilder{
+    incrementRegister(reg: RegisterKey): IDGBuilder{
         this.insert8(Instructions.INC_REG);
-        this.insert32(register);
+        this.insert32(this._regKeyToIndex(reg));
+        return this;
+    }
+    decrementRegister(reg: RegisterKey){
+        this.insert8(Instructions.DEC_REG);
+        this.insert32(this._regKeyToIndex(reg));
         return this;
     }
 
