@@ -451,6 +451,22 @@ export default class IDGBuilder {
         return this;
     }
 
+    /**
+     * Pushes a register value or a literal number to the stack
+     * @param val 
+     */
+    pushToStack(val: RegisterKey | number){
+        if(typeof val === "string"){ // PSH_REG
+            val = this._regKeyToIndex(val);
+            this.insert8(Instructions.PSH_REG);
+            this.insert32(val);
+        }else{ // PSH_LIT
+            this.insert8(Instructions.PSH_LIT);
+            this.insert32(val);
+        }
+        return this;
+    }
+
 
     /**
      * Skips the following instructions (size is calculated).
