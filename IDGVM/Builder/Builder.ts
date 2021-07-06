@@ -97,6 +97,27 @@ export default class IDGBuilder {
         this.insert32(to);
         return this;
     }
+    /**
+     * Copies the value in the supplied register to memory.
+     * @param from the register to copy from
+     * @param memoryLocation the memory location to put the value in (use flags to help keep track)
+     * @param safeCopy defines wether to ensure that the VM always skips this value. If no skipping is applied it is possible to corrupt (or change) the memory of instructions that are in the supplied memory location. (skipping takes up more memory, ~5bytes)
+     */
+    MoveRegisterToMemory(from: RegisterIndexOf, memoryLocation: number, safeCopy = true){
+        if(safeCopy === true){
+            this._skip([Instructions.MOV_REG_MEM])
+        }
+        this.insert8(Instructions.MOV_REG_MEM);
+        this.insert32(from);
+        this.insert32(memoryLocation);
+        return this;
+    }
+
+    private _skip(instructionsToSkip: Instructions[]){
+        const skipTo = instructionsToSkip.reduce((prev, curr)=> prev + InstructionInformation[curr].size, 0);
+        this.insert8(Instructions.SKIP)
+        this.insert32(skipTo);
+    }
 
     /**
      * Skips the following instructions (size is calculated).
