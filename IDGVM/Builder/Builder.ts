@@ -2,6 +2,7 @@ import { Direction } from "../../interfaces/Actions.ts";
 import { ImageData } from "../../interfaces/Image.ts";
 import { RGB } from "../../interfaces/RGBA.ts";
 import { chunkUp32 } from "../../utils/bits.ts";
+import { combineRGB } from "../../utils/color.ts";
 import { indexByCoordinates } from "../../utils/coordinates.ts";
 import { InstructionInformation, Instructions, RegisterIndexOf, RegisterKey } from "../Registers.ts";
 
@@ -591,6 +592,29 @@ export default class IDGBuilder {
         }else{
             this.insert8(Instructions.RGB_FROMREG_TO_COLOR);
         }
+        return this;
+    }
+
+    /**
+     * Draws a rectangle.
+     * If x,y or color is not defined these values are fetched from the register. if defined they are first added to the register (replacing the value currently there) and then this method is executed
+     * @param width 
+     * @param height 
+     * @param x 
+     * @param y 
+     * @param color 
+     */
+    drawRectangle(width: number, height: number, x?: number, y?:number, color?: number | RGB){
+        if(x) this.StoreNumberToRegister(x, "x");
+        if(y) this.StoreNumberToRegister(y, "y");
+        if(color){
+            if(Array.isArray(color)) color = combineRGB(color);
+            this.StoreNumberToRegister(color, "COL");
+        }
+        // DRAW_BOX
+        this.insert8(Instructions.DRAW_BOX);
+        this.insert32(width);
+        this.insert32(height);
         return this;
     }
     
