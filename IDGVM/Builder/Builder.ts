@@ -81,6 +81,15 @@ export default class IDGBuilder {
         return this;
     }
     /**
+     * Calls the location of the registers value.
+     * NOTE!: uses the internal stack to push the current state. sub-routines called must have a return instruction to pop the state and return back to this location!.
+     */
+    callLocationStoredInRegister(reg: RegisterKey){
+        this.insert8(Instructions.CAL_REG);
+        this.insert32(this._regKeyToIndex(reg));
+        return this;
+    }
+    /**
      * Insert a 32-bit instruction at the current index and then increment to point to an empty spot for the next insert
      */
     private insert32(n: number){
@@ -464,6 +473,23 @@ export default class IDGBuilder {
             this.insert8(Instructions.PSH_LIT);
             this.insert32(val);
         }
+        return this;
+    }
+
+    /**
+     * Saves the machines state (register values) in the stack. this can be popped later to return to the machine at the time that it was saved.
+     */
+    saveMachineState(){
+        this.insert8(Instructions.PSH_STATE);
+        return this;
+    }
+
+    /**
+     * Pops the last value added to the stack and stores it in the given register.
+     */
+    popStack(storeIn: RegisterKey){
+        this.insert8(Instructions.POP);
+        this.insert32(this._regKeyToIndex(storeIn));
         return this;
     }
 
