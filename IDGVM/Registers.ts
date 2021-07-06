@@ -130,6 +130,7 @@ export enum Instructions {
    * Fetches the pixel color from the supplied index and dumps it into the COL register
    */
   FETCH_PIXEL_COLOR_BY_INDEX,
+  FETCH_PIXEL_COLOR_BY_REGISTER_INDEX,
   /**
    * Fetches a pixel index by the x and y values currently stored in the register.. stores it in the supplied register
    */
@@ -219,6 +220,7 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.NEIGHBORING_PIXEL_INDEX_TO_REG]: {size: 10},
     [Instructions.NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG]: {size: 10},
     [Instructions.FETCH_PIXEL_COLOR_BY_INDEX]: {size: 5},
+    [Instructions.FETCH_PIXEL_COLOR_BY_REGISTER_INDEX]: {size: 5},
     [Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES]: {size: 5},
     [Instructions.RGB_FROMREG_TO_COLOR]: {size: 1},
     [Instructions.RGB_LIT_TO_COLOR]: {size: 4},

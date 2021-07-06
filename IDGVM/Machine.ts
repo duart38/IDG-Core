@@ -797,6 +797,11 @@ export default class IDGVM {
         this.setRegister("COL", this.image.imageData[pixelIndex])
         return;
       }
+      case Instructions.FETCH_PIXEL_COLOR_BY_REGISTER_INDEX: {
+        const pixelIndex = this.registers.getUint32(this.fetchRegisterIndex());
+        this.setRegister("COL", this.image.imageData[pixelIndex])
+        return;
+      }
       case Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES: {
         const x = this.getRegister("x");
         const y = this.getRegister("y");
