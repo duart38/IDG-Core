@@ -306,6 +306,17 @@ export default class IDGBuilder {
         return this;
     }
 
+    /**
+     * Performs a bitwise NOT and stores the value in the accumulator ("acc")
+     * NOTE: stores the value in the accumulator register ("acc").
+     * @param reg the register to apply the operator on
+     */
+    bitwiseNOT(reg: RegisterKey){
+        this.insert8(Instructions.NOT);
+        this.insert32(this._regKeyToIndex(reg));
+        return this;
+    }
+
 
 
     /**
