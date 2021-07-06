@@ -90,6 +90,7 @@ export enum Instructions {
   // stack instructions
   PSH_LIT,
   PSH_REG,
+  PSH_STATE,
   POP,
   CAL_LIT,
   CAL_REG,
@@ -201,6 +202,7 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.JGE_LIT]: {size: 9},
     [Instructions.PSH_LIT]: {size: 5},
     [Instructions.PSH_REG]: {size: 5},
+    [Instructions.PSH_STATE]: {size: 1},
     [Instructions.POP]: {size: 5},
     [Instructions.CAL_LIT]: {size: 5},
     [Instructions.CAL_REG]: {size: 5},

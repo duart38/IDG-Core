@@ -710,6 +710,10 @@ export default class IDGVM {
         this.push(this.registers.getUint32(registerIndex));
         return;
       }
+      case Instructions.PSH_STATE: {
+        this.pushState()
+        return;
+      }
 
       // Pop
       case Instructions.POP: {
