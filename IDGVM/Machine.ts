@@ -783,6 +783,14 @@ export default class IDGVM {
         this.registers.setUint32(reg, idx);
         return;
       }
+      case Instructions.NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG: {
+        const direction = this.fetchCurrentInstruction8();
+        const currentPixel = this.registers.getUint32(this.fetchRegisterIndex()); // which register holds the current pixel
+        const reg = this.fetchRegisterIndex(); // where to put it
+        const idx = getNeighboringPixelIndex(direction, currentPixel, this.image.width);
+        this.registers.setUint32(reg, idx);
+        return;
+      }
 
       case Instructions.FETCH_PIXEL_COLOR_BY_INDEX: {
         const pixelIndex = this.fetchCurrentInstruction32(); // where to check from

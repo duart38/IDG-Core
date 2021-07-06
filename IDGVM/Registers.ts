@@ -125,6 +125,7 @@ export enum Instructions {
    * Gets the neighboring pixel in a given direction and puts its index in the supplied register.
    */
   NEIGHBORING_PIXEL_INDEX_TO_REG,
+  NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG,
   /**
    * Fetches the pixel color from the supplied index and dumps it into the COL register
    */
@@ -216,6 +217,7 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.MODIFY_PIXEL]: {size: 1},
     [Instructions.RENDER]: {size: 1},
     [Instructions.NEIGHBORING_PIXEL_INDEX_TO_REG]: {size: 10},
+    [Instructions.NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG]: {size: 10},
     [Instructions.FETCH_PIXEL_COLOR_BY_INDEX]: {size: 5},
     [Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES]: {size: 5},
     [Instructions.RGB_FROMREG_TO_COLOR]: {size: 1},
