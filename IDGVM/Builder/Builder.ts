@@ -98,6 +98,15 @@ export default class IDGBuilder {
         return this;
     }
     /**
+     * Move a value from memory into a register
+     */
+    MoveMemoryToRegister(from: number, toRegister: RegisterIndexOf){
+        this.insert8(Instructions.MOV_MEM_REG);
+        this.insert32(from);
+        this.insert32(toRegister);
+        return this;
+    }
+    /**
      * Copies the value in the supplied register to memory.
      * @param from the register to copy from
      * @param memoryLocation the memory location to put the value in (use flags to help keep track)
