@@ -646,6 +646,24 @@ export default class IDGBuilder {
         return this;
     }
 
+    /**
+     * Fetches the pixel color and stores it in the color register ("COL")
+     * @param atLocation 
+     */
+    fetchPixelColor(atLocation: number |  [number, number] | RegisterKey){
+        
+        if(Array.isArray(atLocation)) atLocation = indexByCoordinates(atLocation[0], atLocation[1], this.imageData.width)
+        else if(typeof atLocation === "string"){
+            this.insert8(Instructions.FETCH_PIXEL_COLOR_BY_REGISTER_INDEX);
+            atLocation = this._regKeyToIndex(atLocation);
+            
+        }else{
+            this.insert8(Instructions.FETCH_PIXEL_COLOR_BY_INDEX);
+        }
+        this.insert32(atLocation);
+        return this;
+    }
+
     currentHeapSize(){
         return this.memoryRequirementInBytes + this.instructionIndex;
     }
