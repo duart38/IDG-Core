@@ -349,12 +349,13 @@ export default class IDGBuilder {
             this.insert32(val);
             this.insert32(jumpTo);
         }
+        return this;
     }
 
     /**
      * Jumps to a specified location if the value provided is equal to the one currently stored in the accumulator register ("acc").
      * NOTE: this method does not push the state so calling a method with a return instruction (function) could be problematic
-     * @param jumpTo address to jump to. use flags to help keep track of where to jump to
+     * @param jumpTo address to jump to. pass in a string to automatically get a saved flag
      * @param val the value to check against the register
      */
     JumpIfEquals(jumpTo: number | string, val: RegisterKey | number){
@@ -368,6 +369,27 @@ export default class IDGBuilder {
             this.insert32(val);
             this.insert32(jumpTo);
         }
+        return this;
+    }
+
+    /**
+     * Jumps to a specified location if the value provided is less than the one currently stored in the accumulator register ("acc").
+     * NOTE: this method does not push the state so calling a method with a return instruction (function) could be problematic
+     * @param jumpTo address to jump to. pass in a string to automatically get a saved flag
+     * @param val the value to check against the register
+     */
+    JumpIfLessThan(jumpTo: number | string, val: RegisterKey | number){
+        if(typeof jumpTo === "string") jumpTo = this.getFlag(jumpTo);
+        if(typeof val === "string"){ // JLT_REG
+            this.insert8(Instructions.JLT_REG)
+            this.insert32(this._regKeyToIndex(val));
+            this.insert32(jumpTo);
+        }else{ // JLT_LIT
+            this.insert8(Instructions.JLT_LIT)
+            this.insert32(val);
+            this.insert32(jumpTo);
+        }
+        return this;
     }
 
 
