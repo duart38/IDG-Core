@@ -338,13 +338,33 @@ export default class IDGBuilder {
      * @param jumpTo address to jump to. use flags to help keep track of where to jump to
      * @param val the value to check against the register
      */
-    JumpIfNotEquals(jumpTo: number, val: RegisterKey | number){
+    JumpIfNotEquals(jumpTo: number | string, val: RegisterKey | number){
+        if(typeof jumpTo === "string") jumpTo = this.getFlag(jumpTo);
         if(typeof val === "string"){ // JNE_REG
             this.insert8(Instructions.JNE_REG)
             this.insert32(this._regKeyToIndex(val));
             this.insert32(jumpTo);
         }else{ //JMP_NOT_EQ
             this.insert8(Instructions.JMP_NOT_EQ)
+            this.insert32(val);
+            this.insert32(jumpTo);
+        }
+    }
+
+    /**
+     * Jumps to a specified location if the value provided is equal to the one currently stored in the accumulator register ("acc").
+     * NOTE: this method does not push the state so calling a method with a return instruction (function) could be problematic
+     * @param jumpTo address to jump to. use flags to help keep track of where to jump to
+     * @param val the value to check against the register
+     */
+    JumpIfEquals(jumpTo: number | string, val: RegisterKey | number){
+        if(typeof jumpTo === "string") jumpTo = this.getFlag(jumpTo);
+        if(typeof val === "string"){ // JEQ_REG
+            this.insert8(Instructions.JEQ_REG)
+            this.insert32(this._regKeyToIndex(val));
+            this.insert32(jumpTo);
+        }else{ // JEQ_LIT
+            this.insert8(Instructions.JEQ_LIT)
             this.insert32(val);
             this.insert32(jumpTo);
         }
