@@ -6,7 +6,7 @@ import { chunkUp32 } from "../../utils/bits.ts";
 import { combineRGB } from "../../utils/color.ts";
 import { indexByCoordinates } from "../../utils/coordinates.ts";
 import { InstructionInformation, Instructions, RegisterIndexOf, RegisterKey } from "../Registers.ts";
-import { gzip, gunzip } from "https://deno.land/x/compress@v0.3.8/mod.ts";
+import { gzip } from "https://deno.land/x/compress@v0.3.8/mod.ts";
 
 /**
  * The Builder here takes care of easily constructing certain instructions.
@@ -730,15 +730,21 @@ export default class IDGBuilder {
             console.warn(`WARNING: Current head size is longer than ${0x7FFFFFFF}, memory locations after this value cannot be referenced by instructions. instructions will still run`);
         }
 
-        const header: IDGHeader = [this.imageData.width, this.imageData.height, this.currentHeapSize()];
+        const header8Bit = new Uint8Array([...chunkUp32(this.imageData.width), ...chunkUp32(this.imageData.height), ...chunkUp32(this.currentHeapSize())]);
+        const image8Bit = new Uint8Array(this.imageData.imageData.length * 4);
+        for(let i = 0, k =0; i < image8Bit.length; i += 4, k++){
+            const [first, second, third, fourth] = chunkUp32(this.imageData.imageData[k]);
+            image8Bit[i] = first;
+            image8Bit[i + 1] = second;
+            image8Bit[i + 2] = third;
+            image8Bit[i + 3] = fourth;
+        }
 
-        const header8Bit = Uint8Array.from(header);//new Uint8Array(header);
-
-        const file = new Uint8Array(header8Bit.length + this.imageData.imageData.length + this.instructions.length);
+        const file = new Uint8Array(header8Bit.length + image8Bit.length + this.currentHeapSize());
         file.set(header8Bit);
-        file.set(this.imageData.imageData, header8Bit.length);
-        file.set(this.instructions, (header8Bit.length + this.imageData.imageData.length));
-
-        return gzip(file, {level: 6});
+        file.set(image8Bit, header8Bit.length);
+        file.set(this.instructions.slice(0, this.instructionIndex + 1), (header8Bit.length + image8Bit.length));
+        console.log(`\t\t Final file size: ${file.byteLength} bytes`);
+        return gzip(file);
     }
 }

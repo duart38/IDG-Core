@@ -6,6 +6,7 @@
  * from for example a memory stick (exhibition mode) or from a network signal (event mode)
  */
 
+import { gunzip } from "https://deno.land/x/compress@v0.3.8/mod.ts";
 import IDGVM from "./Machine.ts";
 import { createMemory, MemoryMapper } from "./Memory.ts";
 import { Instructions } from "./Registers.ts";
@@ -16,19 +17,22 @@ export default class IDGLoader {
     private memoryMapper: MemoryMapper;
     private memory: DataView;
     constructor(rawFileData: Uint8Array){
-        const x = new DataView(rawFileData);
+        const decompressed = gunzip(rawFileData);
+        const x = new DataView(decompressed.buffer);
         const imageWidth = x.getUint32(0);
-        const imageHeight = x.getUint32(1);
-        const memorySizeRequest = x.getUint32(2);
-        const image = new Uint32Array(x.buffer.slice(3, (imageWidth * imageHeight) * 4)); // end of header till end of image
-
+        const imageHeight = x.getUint32(4);
+        const memorySizeRequest = x.getUint32(8);
+        let image: number[] = [];
+        for(let i = 12; i < ((imageWidth * imageHeight) * 4) + 9; i += 4){
+            image.push(x.getUint32(i));
+        }
 
         this.memoryMapper = new MemoryMapper();
         this.memory = createMemory(memorySizeRequest);
         this.memoryMapper.map(this.memory, 0, memorySizeRequest);
 
 
-        this.vm = new IDGVM(this.memoryMapper, {imageData: Array.from(image), width: imageWidth, height: imageHeight});
+        this.vm = new IDGVM(this.memoryMapper, {imageData: image, width: imageWidth, height: imageHeight});
     }
 
     onImageUpdate(cb: (dat: number[])=>void){
