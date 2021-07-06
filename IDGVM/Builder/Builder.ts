@@ -1,6 +1,8 @@
+import { Direction } from "../../interfaces/Actions.ts";
 import { ImageData } from "../../interfaces/Image.ts";
 import { RGB } from "../../interfaces/RGBA.ts";
 import { chunkUp32 } from "../../utils/bits.ts";
+import { indexByCoordinates } from "../../utils/coordinates.ts";
 import { InstructionInformation, Instructions, RegisterIndexOf, RegisterKey } from "../Registers.ts";
 
 /**
@@ -619,6 +621,28 @@ export default class IDGBuilder {
      */
     RENDER(){
         this.insert8(Instructions.RENDER);
+        return this;
+    }
+
+    /**
+     * Gets the pixel index in a given direction from the perspective of the supplied pixel or register containing the pixel and either stores it in the register supplied as the storage location.
+     * @param direction the direction from the current pixel to get the value of
+     * @param fromPixel the current pixel (directions are applied from the perspective of this pixel)
+     * @param RegisterToStoreIn the register to store the result in
+     */
+    getNeighboringPixelIndex(direction: Direction, fromPixel: number | [number, number] | RegisterKey, RegisterToStoreIn: RegisterKey){
+        if(Array.isArray(fromPixel)) fromPixel = indexByCoordinates(fromPixel[0], fromPixel[1], this.imageData.width);
+        if(typeof fromPixel === "string"){
+            this.insert8(Instructions.NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG);
+            this.insert8(direction);
+            this.insert32(this._regKeyToIndex(fromPixel));
+            this.insert32(this._regKeyToIndex(RegisterToStoreIn));
+        }else{
+            this.insert8(Instructions.NEIGHBORING_PIXEL_INDEX_TO_REG);
+            this.insert8(direction);
+            this.insert32(fromPixel);
+            this.insert32(this._regKeyToIndex(RegisterToStoreIn));
+        }
         return this;
     }
 
