@@ -526,6 +526,16 @@ export default class IDGBuilder {
     }
 
     /**
+     * Gets a random value in between and including the start and the end provided. stores the results in the accumulator register ("acc")
+     */
+    getRandomValue(min: number, max: number){
+        this.insert8(Instructions.RAND);
+        this.insert32(min);
+        this.insert32(max);
+        return this;
+    }
+
+    /**
      * Same as skip instruction but includes a return at the end to better emulate the behavior of a function
      * @param name name of the function. used for calling later
      * @param instructionsToSkip the instructions that are in this function (NOTE: you need to manually construct them after this call)
