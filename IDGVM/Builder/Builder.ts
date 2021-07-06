@@ -31,12 +31,12 @@ export default class IDGBuilder {
     //TODO: all instructions here... along with some other ones that group some instructions\
 
     /**
-     * Sets a flag at the current instruction index so that you can refer back to it in code later.
+     * Sets a flag at the current instruction index (unless specifically defined) so that you can refer back to it in code later.
      * Very useful for jumping around as you don't need to remember the locations in memory.
      */
-    setFlag(name: string): IDGBuilder{
+    setFlag(name: string, atIndex = this.instructionIndex): IDGBuilder{
         if(this.flags[name]) console.warn(`Warning: renamed flag ${name}. you may ignore if intentional`);
-        this.flags[name] = this.instructionIndex;
+        this.flags[name] = atIndex;
         return this;
     }
     getFlag(name: string){
