@@ -253,7 +253,7 @@ export default class IDGBuilder {
      * Performs a bitwise AND (&)takes the values in the appropriate location based on what type of parameter you supply.
      * NOTE: Always stores the value in the accumulator register ("acc").
      * @param lhs the left hand side of the AND operator
-     * @param rhs value to AND by could be a register (will retrieve the value) or a literal number
+     * @param rhs value to AND by, could be a register (will retrieve the value) or a literal number
      */
     bitwiseAND(lhs: RegisterKey, rhs: RegisterKey | number){
         if(typeof lhs === "string" && typeof rhs === "string"){ // AND_REG_REG
@@ -262,6 +262,25 @@ export default class IDGBuilder {
             this.insert32(this._regKeyToIndex(rhs));
         }else if(typeof lhs === "string" && typeof rhs === "number"){ // AND_REG_LIT
             this.insert8(Instructions.AND_REG_LIT);
+            this.insert32(this._regKeyToIndex(lhs));
+            this.insert32(rhs);
+        }
+        return this;
+    }
+
+    /**
+     * Performs a bitwise OR. takes the values in the appropriate location based on what type of parameter you supply.
+     * NOTE: Always stores the value in the accumulator register ("acc").
+     * @param lhs the left hand side of the OR operator
+     * @param rhs value to OR by, could be a register (will retrieve the value) or a literal number
+     */
+    bitwiseOR(lhs: RegisterKey, rhs: RegisterKey | number){
+        if(typeof lhs === "string" && typeof rhs === "string"){ // OR_REG_REG
+            this.insert8(Instructions.OR_REG_REG);
+            this.insert32(this._regKeyToIndex(lhs));
+            this.insert32(this._regKeyToIndex(rhs));
+        }else if(typeof lhs === "string" && typeof rhs === "number"){ // OR_REG_LIT
+            this.insert8(Instructions.OR_REG_LIT);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(rhs);
         }
