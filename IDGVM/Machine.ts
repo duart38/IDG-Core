@@ -32,6 +32,11 @@ export default class IDGVM {
   private isInInterruptHandler: boolean;
   private stackFrameSize: number;
 
+  /**
+   * Indicates how many empty instructions we saw after each other..
+   */
+  private emptyInstructionAtStep = 0;
+
   // Image specific stuff
   /**
    * Copy of the image to modify.
@@ -255,7 +260,7 @@ export default class IDGVM {
   }
 
   execute(instruction: number) {
-    console.log(`$ Got instruction ${instruction}`)
+    // console.log(`$ Got instruction ${instruction}`)
     switch (instruction) {
       /**
        * Return from an interupt
@@ -302,10 +307,10 @@ export default class IDGVM {
 
       // Move the value of a memory location to a register
       case Instructions.MOV_MEM_REG: {
-        const address = this.fetchCurrentInstruction16();
+        const address = this.fetchCurrentInstruction32();
         const registerTo = this.fetchRegisterIndex();
-        const value = this.memory.getUint16(address);
-        this.registers.setUint16(registerTo, value);
+        const value = this.memory.getUint32(address);
+        this.registers.setUint32(registerTo, value);
         return;
       }
 
@@ -705,6 +710,10 @@ export default class IDGVM {
         this.push(this.registers.getUint32(registerIndex));
         return;
       }
+      case Instructions.PSH_STATE: {
+        this.pushState()
+        return;
+      }
 
       // Pop
       case Instructions.POP: {
@@ -763,7 +772,6 @@ export default class IDGVM {
         const y = this.getRegister("y");
         const color = this.getRegister("COL");
         const index = indexByCoordinates(x,y, this.image.width);
-        console.log("modify pixel ins", x,y,color, index)
         this.imageCopy[index] = color;
         return;
       }
@@ -775,9 +783,22 @@ export default class IDGVM {
         this.registers.setUint32(reg, idx);
         return;
       }
+      case Instructions.NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG: {
+        const direction = this.fetchCurrentInstruction8();
+        const currentPixel = this.registers.getUint32(this.fetchRegisterIndex()); // which register holds the current pixel
+        const reg = this.fetchRegisterIndex(); // where to put it
+        const idx = getNeighboringPixelIndex(direction, currentPixel, this.image.width);
+        this.registers.setUint32(reg, idx);
+        return;
+      }
 
       case Instructions.FETCH_PIXEL_COLOR_BY_INDEX: {
         const pixelIndex = this.fetchCurrentInstruction32(); // where to check from
+        this.setRegister("COL", this.image.imageData[pixelIndex])
+        return;
+      }
+      case Instructions.FETCH_PIXEL_COLOR_BY_REGISTER_INDEX: {
+        const pixelIndex = this.registers.getUint32(this.fetchRegisterIndex());
         this.setRegister("COL", this.image.imageData[pixelIndex])
         return;
       }
@@ -798,9 +819,9 @@ export default class IDGVM {
       }
 
       case Instructions.RGB_LIT_TO_COLOR: {
-        const r = this.fetchCurrentInstruction32() as U255;
-        const g = this.fetchCurrentInstruction32() as U255;
-        const b = this.fetchCurrentInstruction32() as U255;
+        const r = this.fetchCurrentInstruction8() as U255;
+        const g = this.fetchCurrentInstruction8() as U255;
+        const b = this.fetchCurrentInstruction8() as U255;
         this.setRegister("COL", combineRGB([r,g,b]));
         return;
       }
@@ -814,6 +835,40 @@ export default class IDGVM {
         return;
       }
 
+
+      case Instructions.DRAW_BOX: {
+        const color = this.getRegister("COL");
+
+        let x = this.getRegister("x");
+        let y = this.getRegister("y");
+
+        let width = this.fetchCurrentInstruction32(); // supplied
+        let height = this.fetchCurrentInstruction32(); // supplied
+
+
+          for (let tY = 0; tY <= height; tY++) {
+            for (let tX = 0; tX <= width; tX++) {
+              const nX = tX + x;
+              const nY = tY + y;
+              if (Math.min(nX, nY) < 1 || nX > this.image.width || nY > this.image.height) continue;
+              this.imageCopy[indexByCoordinates(nX, nY, this.image.width)] = color;
+            }
+        }
+        return;
+      }
+      case Instructions.INTERVAL: {
+        const time = this.fetchCurrentInstruction32();
+        const addressToCall = this.fetchCurrentInstruction32();
+        const intervalHandler = setInterval(()=>{
+          this.pushState();
+          this.setRegister('ip', addressToCall);
+        }, time);
+        this.setRegister("r9", intervalHandler); // TODO: make a dedicated place for this
+
+        return;
+      }
+
+
       case Instructions.RENDER: {
         this.render();
         return;
@@ -826,16 +881,25 @@ export default class IDGVM {
         return;
       }
 
+      case Instructions.RET_TO_NEXT: {
+        this.popState();
+        this.setRegister("ip", this.getRegister("ip") + 1);
+        return;
+      }
+
       // Halt all computation
       case Instructions.HLT: {
         return true;
       }
+      case 0: {return;}
       default: console.error(`instruction ${0} is not an executable instruction, make sure your instructions are aligned properly by padding the values that are too small for a complete instruction.`)
     }
   }
 
   step() {
     const instruction = this.fetchCurrentInstruction8();
+    if(instruction === 0) this.emptyInstructionAtStep++;
+    if(this.emptyInstructionAtStep > 50) return true;
     return this.execute(instruction);
   }
 

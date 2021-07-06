@@ -31,7 +31,12 @@ export const REGISTERS = <const> [
   "im",
 ];
 export type RegisterKey = typeof REGISTERS[number];
-
+export enum RegisterIndexOf {
+  ip, acc,
+  r1, r2, r3, r4, r5, r6, r7, r8, r9,
+  R, G, B, COL, x, y,
+  sp, fp, mb, im,
+}
 
 
 export enum Instructions {
@@ -85,17 +90,25 @@ export enum Instructions {
   // stack instructions
   PSH_LIT,
   PSH_REG,
+  PSH_STATE,
   POP,
   CAL_LIT,
   CAL_REG,
   RET,
+  RET_TO_NEXT,
   HLT,
   RET_INT,
   INT,
 
   // QOF instructions
-  RAND,
+  RAND, // TODO: RAND_REG_REG
   SKIP,
+  /**
+   * Starts an interval that when its time, executes the address provided
+   */
+  INTERVAL,
+
+
   // TODO: dump to disk (.idg or internal) instruction. this ins is problematic as in some cases (browser) you would not be able to persist data
 
   // image specific instructions
@@ -112,10 +125,12 @@ export enum Instructions {
    * Gets the neighboring pixel in a given direction and puts its index in the supplied register.
    */
   NEIGHBORING_PIXEL_INDEX_TO_REG,
+  NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG,
   /**
    * Fetches the pixel color from the supplied index and dumps it into the COL register
    */
   FETCH_PIXEL_COLOR_BY_INDEX,
+  FETCH_PIXEL_COLOR_BY_REGISTER_INDEX,
   /**
    * Fetches a pixel index by the x and y values currently stored in the register.. stores it in the supplied register
    */
@@ -132,72 +147,84 @@ export enum Instructions {
   /**
    * Converts the color value stored in the register COL to an RGB vector and spreads this in the r,g,b registers
    */
-  COLOR_FROMREG_TO_RGB
-  
+  COLOR_FROMREG_TO_RGB,
+  /**
+   * Draws a box at the x,y offset that is stored in the register.
+   * This instruction takes the color of the values stored in the COL register (NOT THE RGB ONE!!).
+   * Supplied are width and height
+   */
+  DRAW_BOX
 
   //TODO: RGB (8bit vals) to combined color value (32 bit) -> store in COL
 }
 
 /**
  * Helper used for providing information about a specific instruction. can be used for parsing
+ * size -> the size in bytes that this instruction takes..
  */
 export const InstructionInformation: Record<Instructions, {size: number}> = {
-    [Instructions.MOV_LIT_REG]: {size: 0},
-    [Instructions.MOV_REG_REG]: {size: 0},
-    [Instructions.MOV_REG_MEM]: {size: 0},
-    [Instructions.MOV_MEM_REG]: {size: 0},
-    [Instructions.MOV_LIT_MEM]: {size: 0},
-    [Instructions.MOV_REG_PTR_REG]: {size: 0},
-    [Instructions.MOV_LIT_OFF_REG]: {size: 0},
-    [Instructions.ADD_REG_REG]: {size: 0},
-    [Instructions.ADD_LIT_REG]: {size: 0},
-    [Instructions.SUB_LIT_REG]: {size: 0},
-    [Instructions.SUB_REG_LIT]: {size: 0},
-    [Instructions.SUB_REG_REG]: {size: 0},
-    [Instructions.INC_REG]: {size: 0},
-    [Instructions.DEC_REG]: {size: 0},
-    [Instructions.MUL_LIT_REG]: {size: 0},
-    [Instructions.MUL_REG_REG]: {size: 0},
-    [Instructions.LSF_REG_LIT]: {size: 0},
-    [Instructions.LSF_REG_REG]: {size: 0},
-    [Instructions.RSF_REG_LIT]: {size: 0},
-    [Instructions.RSF_REG_REG]: {size: 0},
-    [Instructions.AND_REG_LIT]: {size: 0},
-    [Instructions.AND_REG_REG]: {size: 0},
-    [Instructions.OR_REG_LIT]: {size: 0},
-    [Instructions.OR_REG_REG]: {size: 0},
-    [Instructions.XOR_REG_LIT]: {size: 0},
-    [Instructions.XOR_REG_REG]: {size: 0},
-    [Instructions.NOT]: {size: 0},
-    [Instructions.JMP_NOT_EQ]: {size: 0},
-    [Instructions.JNE_REG]: {size: 0},
-    [Instructions.JEQ_REG]: {size: 0},
-    [Instructions.JEQ_LIT]: {size: 0},
-    [Instructions.JLT_REG]: {size: 0},
-    [Instructions.JLT_LIT]: {size: 0},
-    [Instructions.JGT_REG]: {size: 0},
-    [Instructions.JGT_LIT]: {size: 0},
-    [Instructions.JLE_REG]: {size: 0},
-    [Instructions.JLE_LIT]: {size: 0},
-    [Instructions.JGE_REG]: {size: 0},
-    [Instructions.JGE_LIT]: {size: 0},
-    [Instructions.PSH_LIT]: {size: 0},
-    [Instructions.PSH_REG]: {size: 0},
-    [Instructions.POP]: {size: 0},
-    [Instructions.CAL_LIT]: {size: 0},
-    [Instructions.CAL_REG]: {size: 0},
-    [Instructions.RET]: {size: 0},
-    [Instructions.HLT]: {size: 0},
-    [Instructions.RET_INT]: {size: 0},
-    [Instructions.INT]: {size: 0},
-    [Instructions.RAND]: {size: 0},
-    [Instructions.SKIP]: {size: 0},
-    [Instructions.MODIFY_PIXEL]: {size: 0},
-    [Instructions.RENDER]: {size: 0},
-    [Instructions.NEIGHBORING_PIXEL_INDEX_TO_REG]: {size: 0},
-    [Instructions.FETCH_PIXEL_COLOR_BY_INDEX]: {size: 0},
-    [Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES]: {size: 0},
-    [Instructions.RGB_FROMREG_TO_COLOR]: {size: 0},
-    [Instructions.RGB_LIT_TO_COLOR]: {size: 0},
-    [Instructions.COLOR_FROMREG_TO_RGB]: {size: 0},
+    [Instructions.MOV_LIT_REG]: {size: 9},
+    [Instructions.MOV_REG_REG]: {size: 9},
+    [Instructions.MOV_REG_MEM]: {size: 9},
+    [Instructions.MOV_MEM_REG]: {size: 9},
+    [Instructions.MOV_LIT_MEM]: {size: 9},
+    [Instructions.MOV_REG_PTR_REG]: {size: 9},
+    [Instructions.MOV_LIT_OFF_REG]: {size: 13},
+    [Instructions.ADD_REG_REG]: {size: 9},
+    [Instructions.ADD_LIT_REG]: {size: 9},
+    [Instructions.SUB_LIT_REG]: {size: 9},
+    [Instructions.SUB_REG_LIT]: {size: 9},
+    [Instructions.SUB_REG_REG]: {size: 9},
+    [Instructions.INC_REG]: {size: 5},
+    [Instructions.DEC_REG]: {size: 5},
+    [Instructions.MUL_LIT_REG]: {size: 9},
+    [Instructions.MUL_REG_REG]: {size: 9},
+    [Instructions.LSF_REG_LIT]: {size: 9},
+    [Instructions.LSF_REG_REG]: {size: 9},
+    [Instructions.RSF_REG_LIT]: {size: 6},
+    [Instructions.RSF_REG_REG]: {size: 9},
+    [Instructions.AND_REG_LIT]: {size: 9},
+    [Instructions.AND_REG_REG]: {size: 9},
+    [Instructions.OR_REG_LIT]: {size: 9},
+    [Instructions.OR_REG_REG]: {size: 9},
+    [Instructions.XOR_REG_LIT]: {size: 9},
+    [Instructions.XOR_REG_REG]: {size: 9},
+    [Instructions.NOT]: {size: 5},
+    [Instructions.JMP_NOT_EQ]: {size: 9},
+    [Instructions.JNE_REG]: {size: 9},
+    [Instructions.JEQ_REG]: {size: 9},
+    [Instructions.JEQ_LIT]: {size: 9},
+    [Instructions.JLT_REG]: {size: 9},
+    [Instructions.JLT_LIT]: {size: 9},
+    [Instructions.JGT_REG]: {size: 9},
+    [Instructions.JGT_LIT]: {size: 9},
+    [Instructions.JLE_REG]: {size: 9},
+    [Instructions.JLE_LIT]: {size: 9},
+    [Instructions.JGE_REG]: {size: 9},
+    [Instructions.JGE_LIT]: {size: 9},
+    [Instructions.PSH_LIT]: {size: 5},
+    [Instructions.PSH_REG]: {size: 5},
+    [Instructions.PSH_STATE]: {size: 1},
+    [Instructions.POP]: {size: 5},
+    [Instructions.CAL_LIT]: {size: 5},
+    [Instructions.CAL_REG]: {size: 5},
+    [Instructions.RET]: {size: 1},
+    [Instructions.RET_TO_NEXT]: {size: 1},
+    [Instructions.HLT]: {size: 1},
+    [Instructions.RET_INT]: {size: 1},
+    [Instructions.INT]: {size: 5},
+    [Instructions.RAND]: {size: 9},
+    [Instructions.SKIP]: {size: 5},
+    [Instructions.MODIFY_PIXEL]: {size: 1},
+    [Instructions.RENDER]: {size: 1},
+    [Instructions.NEIGHBORING_PIXEL_INDEX_TO_REG]: {size: 10},
+    [Instructions.NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG]: {size: 10},
+    [Instructions.FETCH_PIXEL_COLOR_BY_INDEX]: {size: 5},
+    [Instructions.FETCH_PIXEL_COLOR_BY_REGISTER_INDEX]: {size: 5},
+    [Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES]: {size: 5},
+    [Instructions.RGB_FROMREG_TO_COLOR]: {size: 1},
+    [Instructions.RGB_LIT_TO_COLOR]: {size: 4},
+    [Instructions.COLOR_FROMREG_TO_RGB]: {size: 1},
+    [Instructions.DRAW_BOX]: {size: 9},
+    [Instructions.INTERVAL]: {size: 9}
 }
