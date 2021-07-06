@@ -86,6 +86,17 @@ export default class IDGBuilder {
         this.insert32(registerIndex);
         return this;
     }
+    /**
+     * Move a registers value to another register.
+     * @param from source
+     * @param to destination
+     */
+    MoveRegisterValueToAnother(from: RegisterIndexOf, to: RegisterIndexOf){
+        this.insert8(Instructions.MOV_REG_REG);
+        this.insert32(from);
+        this.insert32(to);
+        return this;
+    }
 
     /**
      * Skips the following instructions (size is calculated).
