@@ -22,14 +22,14 @@ builder.RENDER();
 
 const compiled = builder.compile();
 
-
+Deno.writeFile("./example.idg", compiled);
 
 // test loading compiled code
-const loader = new IDGLoader(compiled);
-loader.onImageUpdate((data)=>{
-    const png = encode(new Uint8Array(data), 10, 6);
-    Deno.writeFile("image.png", png).catch((x)=>{
-        console.log(x);
-    })
-}, true, true);
-loader.startVM();
+// const loader = new IDGLoader(compiled);
+// loader.onImageUpdate((data)=>{
+//     const png = encode(new Uint8Array(data), 10, 6);
+//     Deno.writeFile("image.png", png).catch((x)=>{
+//         console.log(x);
+//     })
+// }, true, true);
+// loader.startVM();
