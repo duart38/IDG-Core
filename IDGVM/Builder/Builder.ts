@@ -17,6 +17,10 @@ export default class IDGBuilder {
     public memoryRequirementInBytes = 4 * 100;
     private imageData: ImageData;
     private flags: Record<string, number>;
+    /**
+     * Represents all the functions (sub-routines with return instruction) created in this builder
+     */
+    private functions: string[] = [];
     public instructions: Uint8Array;
     /**
      * 
@@ -58,11 +62,22 @@ export default class IDGBuilder {
     }
 
     /**
-     * Calls the location provided. use labels to help yourself keep track of where to go.
+     * Adds a warning if the function we are calling has not been created using our internal function creation method.
      */
-    callLocation(address: number): IDGBuilder{
+    private _warnIfNotAFunction(x: string | number){
+        let num = x;
+        if(typeof num === "string") num = this.getFlag(num);
+        if(!(num in this.functions)) console.warn(`WARNING: Calling a function ${x} that might not have a return instruction.`)
+    }
+
+    /**
+     * Calls the location provided. use labels to help yourself keep track of where to go.
+     * NOTE!: uses the internal stack to push the current state. sub-routines called must have a return instruction to pop the state and return back to this location!.
+     */
+    callLocation(address: number | string): IDGBuilder{
+        this._warnIfNotAFunction(address);
         this.insert8(Instructions.CAL_LIT);
-        this.insert32(address);
+        this.insert32(typeof address === "string" ? this.getFlag(address) : address);
         return this;
     }
     /**
@@ -317,6 +332,23 @@ export default class IDGBuilder {
         return this;
     }
 
+    /**
+     * Jumps to a specified location if the value provided is not equal to the one currently stored in the accumulator register ("acc").
+     * NOTE: this method does not push the state so calling a method with a return instruction (function) could be problematic
+     * @param jumpTo address to jump to. use flags to help keep track of where to jump to
+     * @param val the value to check against the register
+     */
+    JumpIfNotEquals(jumpTo: number, val: RegisterKey | number){
+        if(typeof val === "string"){ // JNE_REG
+            this.insert8(Instructions.JNE_REG)
+            this.insert32(this._regKeyToIndex(val));
+            this.insert32(jumpTo);
+        }else{ //JMP_NOT_EQ
+            this.insert8(Instructions.JMP_NOT_EQ)
+            this.insert32(val);
+            this.insert32(jumpTo);
+        }
+    }
 
 
     /**
@@ -351,6 +383,7 @@ export default class IDGBuilder {
         instructionsToSkip.push(Instructions.RET); // now also including a return that we add..
         this.skipInstructions(name, instructionsToSkip);
         this.return(true);
+        this.functions.push(name);
         return this;
     }
 
@@ -361,6 +394,7 @@ export default class IDGBuilder {
      * @param callFunction the flag name (function name) or a number representing an address to call
      */
     atInterval(timeInMs: number, callFunction: string | number):IDGBuilder{
+        this._warnIfNotAFunction(callFunction);
         if(typeof callFunction === "string") callFunction = this.getFlag(callFunction);
         this.insert8(Instructions.INTERVAL);
         this.insert32(timeInMs);
