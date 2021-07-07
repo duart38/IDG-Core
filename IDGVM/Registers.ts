@@ -95,6 +95,7 @@ export enum Instructions {
   JLE_LIT,
   JGE_REG,
   JGE_LIT,
+  GOTO,
 
   // stack instructions
   PSH_LIT,
@@ -215,6 +216,7 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.JLE_LIT]: {size: 9},
     [Instructions.JGE_REG]: {size: 9},
     [Instructions.JGE_LIT]: {size: 9},
+    [Instructions.GOTO]: {size: 5},
     [Instructions.PSH_LIT]: {size: 5},
     [Instructions.PSH_REG]: {size: 5},
     [Instructions.PSH_STATE]: {size: 1},
