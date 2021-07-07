@@ -6,7 +6,7 @@
  * from for example a memory stick (exhibition mode) or from a network signal (event mode)
  */
 
-import { gunzip } from "https://deno.land/x/compress@v0.3.8/mod.ts";
+import { deCompress } from "../utils/bits.ts";
 import { spreadImage } from "../utils/color.ts";
 import IDGVM from "./Machine.ts";
 import { createMemory, MemoryMapper } from "./Memory.ts";
@@ -17,7 +17,7 @@ export default class IDGLoader {
     private vm: IDGVM;
     private memoryMapper: MemoryMapper;
     constructor(rawFileData: Uint8Array, autoStart = false){
-        const decompressed = gunzip(rawFileData);
+        const decompressed = deCompress(rawFileData);
         const x = new DataView(decompressed.buffer);
         const imageWidth = x.getUint32(0);
         const imageHeight = x.getUint32(4);

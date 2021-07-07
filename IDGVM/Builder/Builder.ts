@@ -1,11 +1,10 @@
 import { Direction } from "../../interfaces/Actions.ts";
 import { ImageData } from "../../interfaces/Image.ts";
 import { RGB } from "../../interfaces/RGBA.ts";
-import { chunkUp32 } from "../../utils/bits.ts";
+import { chunkUp32, compress } from "../../utils/bits.ts";
 import { combineRGB } from "../../utils/color.ts";
 import { indexByCoordinates } from "../../utils/coordinates.ts";
 import { InstructionInformation, Instructions, RegisterIndexOf, RegisterKey } from "../Registers.ts";
-import { gzip } from "https://deno.land/x/compress@v0.3.8/mod.ts";
 
 /**
  * The Builder here takes care of easily constructing certain instructions.
@@ -744,6 +743,6 @@ export default class IDGBuilder {
         file.set(image8Bit, header8Bit.length);
         file.set(this.instructions.slice(0, this.instructionIndex + 1), (header8Bit.length + image8Bit.length));
         console.log(`\t\t Final file size: ${file.byteLength} bytes`);
-        return gzip(file);
+        return compress(file)
     }
 }
