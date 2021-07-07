@@ -11,6 +11,7 @@ export default class IDGLoader {
     private memoryMapper: MemoryMapper;
     constructor(rawFileData: Uint8Array, autoStart = false){
         const loaded = IDGLoader.fileLoader(rawFileData);
+        // console.log(loaded);
 
         this.memoryMapper = new MemoryMapper();
         const memory = createMemory(loaded.memoryRequest);
@@ -18,7 +19,8 @@ export default class IDGLoader {
         const writableBytes = new Uint8Array(memory.buffer);
         writableBytes.set(loaded.memorySection);
 
-        this.vm = new IDGVM(this.memoryMapper, memory.byteLength, {imageData: loaded.image, width: loaded.imageWidth, height: loaded.imageHeight});
+        this.vm = new IDGVM(this.memoryMapper, loaded);
+        this.vm.viewMemoryAt(0, 20)
         if(autoStart) this.startVM();
     }
 
@@ -47,16 +49,20 @@ export default class IDGLoader {
         const imageWidth = x.getUint32(0);
         const imageHeight = x.getUint32(4);
         const memorySizeRequest = x.getUint32(8);
-        console.log(memorySizeRequest)
+        const stackSizeRequirement = x.getUint32(12);
+        console.log(`Attempting to load file. header info w(${imageWidth}), h(${imageHeight}), mem(${memorySizeRequest}), stack(${stackSizeRequirement})`)
+
         const image: number[] = [];
-        let i = 12;
-        for(;i < ((imageWidth * imageHeight) * 4) + 9; i += 4){
+        let i = 16;
+        for(;i < ((imageWidth * imageHeight) * 4) + 13; i += 4){
             image.push(x.getUint32(i));
         }
+        console.log("LOADER IMAGE", image)
         const memorySection = decompressed.slice(i,  i + memorySizeRequest);
+        
         return {
             imageWidth, imageHeight, memoryRequest: memorySizeRequest,
-            image, memorySection
+            image, memorySection, stackSizeRequirement
         }
     }
 
