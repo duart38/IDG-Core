@@ -33,3 +33,20 @@ export function compress(rawData: Uint8Array){
 export function deCompress(rawData: Uint8Array){
     return gunzip(rawData)
 }
+
+export class Uint8Constructor{
+    public size: number;
+    private index: number = 0;
+    private _dat: Uint8Array;
+    constructor(size: number){
+        this.size = size;
+        this._dat = new Uint8Array(size);
+    }
+    setNext(data: Uint8Array | ArrayLike<number>){
+        this._dat.set(data, this.index);
+        this.index += data.length;
+    }
+    getData(){
+        return this._dat;
+    }
+}
