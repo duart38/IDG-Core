@@ -44,7 +44,8 @@ export default class IDGBuilder {
         this.flags = {};
         this.instructions = new Uint8Array(preAllocation)
     }
-    //TODO: all instructions here... along with some other ones that group some instructions\
+
+    // TODO: propper loop constructor methods (like functions), also look at notes
 
     /**
      * Sets a flag at the current instruction index (unless specifically defined) so that you can refer back to it in code later.
@@ -123,10 +124,10 @@ export default class IDGBuilder {
     /**
      * Move a value from memory into a register
      */
-    MoveMemoryToRegister(from: number, toRegister: RegisterIndexOf){
+    MoveMemoryToRegister(from: number, toRegister: RegisterKey){
         this.insert8(Instructions.MOV_MEM_REG);
         this.insert32(from);
-        this.insert32(toRegister);
+        this.insert32(this._regKeyToIndex(toRegister));
         return this;
     }
     /**
@@ -148,23 +149,30 @@ export default class IDGBuilder {
     /**
      * Stores a number into memory.
      * @param value the value to put in the location.
-     * @param memoryLocation the location to put the value in
+     * @param memoryLocation the location to put the value in (places it). places at the current instruction index if omitted
      * @param safeCopy defines wether to ensure that the VM always skips this value. If no skipping is applied it is possible to corrupt (or change) the memory of instructions that are in the supplied memory location. (skipping takes up more memory, ~5bytes)
+     * @returns the location where the value has been stored
      */
-    StoreValueInMemory(value: number, memoryLocation: number, safeCopy = true){
+    StoreValueInMemory(value: number, memoryLocation?: number, safeCopy = true){
+
         if(safeCopy === true){
-            this._skip([Instructions.MOV_LIT_MEM])
+            this._skip([], !memoryLocation ? 4 : 0)
         }
+        if(!memoryLocation){
+            this.insert32(this.instructionIndex);
+        }
+        const location = memoryLocation || this.instructionIndex;
+
         this.insert8(Instructions.MOV_LIT_MEM);
         this.insert32(value);
-        this.insert32(memoryLocation);
-        return this;
+        this.insert32(location);
+        return location;
     }
 
-    private _skip(instructionsToSkip: Instructions[]){
+    private _skip(instructionsToSkip: Instructions[], extraBytes = 0){
         const skipTo = instructionsToSkip.reduce((prev, curr)=> prev + InstructionInformation[curr].size, 0);
         this.insert8(Instructions.SKIP)
-        this.insert32(skipTo);
+        this.insert32(skipTo + extraBytes);
     }
 
 
