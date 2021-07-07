@@ -742,7 +742,8 @@ export default class IDGBuilder {
         file.set(header8Bit);
         file.set(image8Bit, header8Bit.length);
         file.set(this.instructions.slice(0, this.instructionIndex + 1), (header8Bit.length + image8Bit.length));
-        console.log(`\t\t Final file size: ${file.byteLength} bytes`);
-        return compress(file)
+        const compressed = compress(file);
+        console.log(`\t Final file size: ${compressed.byteLength} bytes`);
+        return compressed;
     }
 }
