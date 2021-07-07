@@ -1,11 +1,4 @@
-/**
- * Should take in a .idg image and figure out based on the headers how allocation should be
- * done.. when this is done we can call the CPU. think of this as a "usb port" of sorts.
- * 
- * i'm making this in a modular way because there could be a case where we load directly
- * from for example a memory stick (exhibition mode) or from a network signal (event mode)
- */
-
+import { DecodedFile } from "../interfaces/FileShape.ts";
 import { deCompress } from "../utils/bits.ts";
 import { spreadImage } from "../utils/color.ts";
 import IDGVM from "./Machine.ts";
@@ -17,27 +10,15 @@ export default class IDGLoader {
     private vm: IDGVM;
     private memoryMapper: MemoryMapper;
     constructor(rawFileData: Uint8Array, autoStart = false){
-        const decompressed = deCompress(rawFileData);
-        const x = new DataView(decompressed.buffer);
-        const imageWidth = x.getUint32(0);
-        const imageHeight = x.getUint32(4);
-        const memorySizeRequest = x.getUint32(8);
-        console.log(memorySizeRequest)
-        const image: number[] = [];
-        let i = 12;
-        for(;i < ((imageWidth * imageHeight) * 4) + 9; i += 4){
-            image.push(x.getUint32(i));
-        }
+        const loaded = IDGLoader.fileLoader(rawFileData);
 
         this.memoryMapper = new MemoryMapper();
-
-        const memory = createMemory(memorySizeRequest);
+        const memory = createMemory(loaded.memoryRequest);
         this.memoryMapper.map(memory, 0, memory.byteLength);
-        const memorySection = decompressed.slice(i,  i + memorySizeRequest);
         const writableBytes = new Uint8Array(memory.buffer);
-        writableBytes.set(memorySection);
+        writableBytes.set(loaded.memorySection);
 
-        this.vm = new IDGVM(this.memoryMapper, memory.byteLength, {imageData: image, width: imageWidth, height: imageHeight});
+        this.vm = new IDGVM(this.memoryMapper, memory.byteLength, {imageData: loaded.image, width: loaded.imageWidth, height: loaded.imageHeight});
         if(autoStart) this.startVM();
     }
 
@@ -51,6 +32,28 @@ export default class IDGLoader {
         this.vm.onImageRenderRequest((x)=>{
             cb(shouldSpreadImage ? spreadImage(x, alpha) : x);
         });
+    }
+    /**
+     * Loads the raw and compressed IDG file and turns it into a usable result.
+     * @param rawFileData the compressed file, received as is
+     */
+    static fileLoader(rawFileData: Uint8Array): DecodedFile {
+        const decompressed = deCompress(rawFileData);
+        const x = new DataView(decompressed.buffer);
+        const imageWidth = x.getUint32(0);
+        const imageHeight = x.getUint32(4);
+        const memorySizeRequest = x.getUint32(8);
+        console.log(memorySizeRequest)
+        const image: number[] = [];
+        let i = 12;
+        for(;i < ((imageWidth * imageHeight) * 4) + 9; i += 4){
+            image.push(x.getUint32(i));
+        }
+        const memorySection = decompressed.slice(i,  i + memorySizeRequest);
+        return {
+            imageWidth, imageHeight, memoryRequest: memorySizeRequest,
+            image, memorySection
+        }
     }
 
     startVM(){
