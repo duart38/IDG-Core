@@ -25,6 +25,7 @@ export const REGISTERS = <const> [
   "COL", // 14
   "x", // 15
   "y", // 16
+  "li", // 17
   "sp",
   "fp",
   "mb",
@@ -35,9 +36,17 @@ export enum RegisterIndexOf {
   ip, acc,
   r1, r2, r3, r4, r5, r6, r7, r8, r9,
   R, G, B, COL, x, y,
+  /**
+   * Stores the loop index when in for-each like instruction
+   */
+  li,
   sp, fp, mb, im,
 }
-
+/**
+ * Indicates all the states that will be pushed when we request to save the machine state
+ */
+export const PUSHABLE_STATE = REGISTERS.slice(0, RegisterIndexOf.y + 1);
+console.log("pushable state", PUSHABLE_STATE);
 
 export enum Instructions {
   // movement instructions
@@ -153,9 +162,13 @@ export enum Instructions {
    * This instruction takes the color of the values stored in the COL register (NOT THE RGB ONE!!).
    * Supplied are width and height
    */
-  DRAW_BOX
+  DRAW_BOX,
 
-  //TODO: RGB (8bit vals) to combined color value (32 bit) -> store in COL
+  /**
+   * Loops over each individual pixel of the image and calls a function 
+   */
+  LOOP_PIXEL
+
 }
 
 /**
@@ -225,6 +238,7 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.RGB_FROMREG_TO_COLOR]: {size: 1},
     [Instructions.RGB_LIT_TO_COLOR]: {size: 4},
     [Instructions.COLOR_FROMREG_TO_RGB]: {size: 1},
+    [Instructions.LOOP_PIXEL]: {size: 5},
     [Instructions.DRAW_BOX]: {size: 9},
     [Instructions.INTERVAL]: {size: 9}
 }
