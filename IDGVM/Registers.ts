@@ -165,11 +165,6 @@ export enum Instructions {
    */
   DRAW_BOX,
 
-  /**
-   * Loops over each individual pixel of the image and calls a function 
-   */
-  LOOP_PIXEL
-
 }
 
 /**
@@ -240,7 +235,6 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.RGB_FROMREG_TO_COLOR]: {size: 1},
     [Instructions.RGB_LIT_TO_COLOR]: {size: 4},
     [Instructions.COLOR_FROMREG_TO_RGB]: {size: 1},
-    [Instructions.LOOP_PIXEL]: {size: 5},
     [Instructions.DRAW_BOX]: {size: 9},
     [Instructions.INTERVAL]: {size: 9}
 }

@@ -685,16 +685,6 @@ export default class IDGBuilder {
         return this;
     }
 
-    forEachPixel(callSubRoutine: string | number){
-        this._warnIfNotAFunction(callSubRoutine);
-        if(typeof callSubRoutine === "string") callSubRoutine = this.getFlag(callSubRoutine);
-        this.insert8(Instructions.LOOP_PIXEL);
-        this.insert32(callSubRoutine);
-        // since we are pushing the entire state on each loop (but hopefully popping it back before the next iteration) 
-        this.stackSizeRequirement += (REGISTERS.length * 4) + /** stack frame size*/ 4;
-        return this;
-    }
-
     incrementRegister(reg: RegisterKey): IDGBuilder{
         this.insert8(Instructions.INC_REG);
         this.insert32(this._regKeyToIndex(reg));
