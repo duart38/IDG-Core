@@ -33,7 +33,7 @@ const builder = new IDGBuilder({
 //     builder.incrementRegister("acc");
 // loop1.markEnd()
 
-builder.drawCircle(5, 10,10, [255,255,255]);
+builder.drawCircle(30, 100,100, [255,255,255]);
 builder.RENDER();
 
 
