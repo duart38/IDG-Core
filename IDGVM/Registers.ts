@@ -134,6 +134,10 @@ export enum Instructions {
    * Also calls a callback that is always called when the original image is updated.
    */
   RENDER,
+  IMAGE_WIDTH_REG,
+  IMAGE_HEIGHT_REG,
+  /** Also known as the surface (i.e. width * height) */
+  IMAGE_TOTAL_PIXELS_REG,
   /**
    * Gets the neighboring pixel in a given direction and puts its index in the supplied register.
    */
@@ -238,6 +242,9 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.RGB_FROMREG_TO_COLOR]: {size: 1},
     [Instructions.RGB_LIT_TO_COLOR]: {size: 4},
     [Instructions.COLOR_FROMREG_TO_RGB]: {size: 1},
+    [Instructions.IMAGE_WIDTH_REG]: {size: 5},
+    [Instructions.IMAGE_HEIGHT_REG]: {size: 5},
+    [Instructions.IMAGE_TOTAL_PIXELS_REG]: {size: 5},
     [Instructions.DRAW_BOX]: {size: 9},
     [Instructions.INTERVAL]: {size: 9}
 }

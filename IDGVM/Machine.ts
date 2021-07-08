@@ -850,6 +850,21 @@ export default class IDGVM {
         }
         return;
       }
+      case Instructions.IMAGE_WIDTH_REG: {
+        const regToStoreIn = this.fetchRegisterIndex();
+        this.registers.setUint32(regToStoreIn, this.image.width);
+        return;
+      }
+      case Instructions.IMAGE_HEIGHT_REG: {
+        const regToStoreIn = this.fetchRegisterIndex();
+        this.registers.setUint32(regToStoreIn, this.image.height);
+        return;
+      }
+      case Instructions.IMAGE_TOTAL_PIXELS_REG: {
+        const regToStoreIn = this.fetchRegisterIndex();
+        this.registers.setUint32(regToStoreIn, this.image.width * this.image.height);
+        return;
+      }
       case Instructions.INTERVAL: {
         const time = this.fetchCurrentInstruction32();
         const addressToCall = this.fetchCurrentInstruction32();
