@@ -25,6 +25,7 @@ export const REGISTERS = <const> [
   "COL", // 14
   "x", // 15
   "y", // 16
+  "li", // 17
   "sp",
   "fp",
   "mb",
@@ -35,9 +36,17 @@ export enum RegisterIndexOf {
   ip, acc,
   r1, r2, r3, r4, r5, r6, r7, r8, r9,
   R, G, B, COL, x, y,
+  /**
+   * Stores the loop index when in for-each like instruction
+   */
+  li,
   sp, fp, mb, im,
 }
-
+/**
+ * Indicates all the states that will be pushed when we request to save the machine state
+ */
+export const PUSHABLE_STATE = REGISTERS.slice(0, RegisterIndexOf.y + 1);
+console.log("pushable state", PUSHABLE_STATE);
 
 export enum Instructions {
   // movement instructions
@@ -86,6 +95,7 @@ export enum Instructions {
   JLE_LIT,
   JGE_REG,
   JGE_LIT,
+  GOTO,
 
   // stack instructions
   PSH_LIT,
@@ -104,7 +114,10 @@ export enum Instructions {
   RAND, // TODO: RAND_REG_REG
   SKIP,
   /**
-   * Starts an interval that when its time, executes the address provided
+   * Starts an interval that when its time, executes the address provided.
+   * Currently will only run if the machine is still in execution mode (i.e. not halted). this means that
+   * if the machine has reached the end of the memory and thus stops executing (or saw too many empty instructions) this method
+   * will stop executing as the machine will go into a halted state
    */
   INTERVAL,
 
@@ -153,9 +166,8 @@ export enum Instructions {
    * This instruction takes the color of the values stored in the COL register (NOT THE RGB ONE!!).
    * Supplied are width and height
    */
-  DRAW_BOX
+  DRAW_BOX,
 
-  //TODO: RGB (8bit vals) to combined color value (32 bit) -> store in COL
 }
 
 /**
@@ -202,6 +214,7 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.JLE_LIT]: {size: 9},
     [Instructions.JGE_REG]: {size: 9},
     [Instructions.JGE_LIT]: {size: 9},
+    [Instructions.GOTO]: {size: 5},
     [Instructions.PSH_LIT]: {size: 5},
     [Instructions.PSH_REG]: {size: 5},
     [Instructions.PSH_STATE]: {size: 1},

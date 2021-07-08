@@ -1,13 +1,18 @@
 import { Direction } from "../../interfaces/Actions.ts";
-import { IDGHeader } from "../../interfaces/FileShape.ts";
 import { ImageData } from "../../interfaces/Image.ts";
 import { RGB } from "../../interfaces/RGBA.ts";
-import { chunkUp32 } from "../../utils/bits.ts";
+import { chunkUp32, compress, Uint8Constructor } from "../../utils/bits.ts";
 import { combineRGB } from "../../utils/color.ts";
 import { indexByCoordinates } from "../../utils/coordinates.ts";
-import { InstructionInformation, Instructions, RegisterIndexOf, RegisterKey } from "../Registers.ts";
-import { gzip, gunzip } from "https://deno.land/x/compress@v0.3.8/mod.ts";
-
+import { InstructionInformation, Instructions, PUSHABLE_STATE, RegisterIndexOf, RegisterKey, REGISTERS } from "../Registers.ts";
+interface functionBuilderDetails {
+    start:number, end:number, skipPointer: number
+}
+interface IDGFunction {
+    markStart: ()=>void,
+    markEnd: ()=>void,
+    call: ()=>void,
+    __currentFunctionDetail: functionBuilderDetails}
 /**
  * The Builder here takes care of easily constructing certain instructions.
  * It also keeps track of the memory requirements based on what requests are made.
@@ -26,8 +31,9 @@ export default class IDGBuilder {
     /**
      * Represents all the functions (sub-routines with return instruction) created in this builder
      */
-    private functions: string[] = [];
+    private functions: Record<string, {size: number}> = {};
     public instructions: Uint8Array;
+    private stackSizeRequirement = PUSHABLE_STATE.length * 4;
     /**
      * 
      * @param imageData 
@@ -38,7 +44,8 @@ export default class IDGBuilder {
         this.flags = {};
         this.instructions = new Uint8Array(preAllocation)
     }
-    //TODO: all instructions here... along with some other ones that group some instructions\
+
+    // TODO: propper loop constructor methods (like functions), also look at notes
 
     /**
      * Sets a flag at the current instruction index (unless specifically defined) so that you can refer back to it in code later.
@@ -56,18 +63,6 @@ export default class IDGBuilder {
     }
 
     /**
-     * Calls a skipped instruction.
-     * Skipped instructions are also known as functions as they are not evaluated unless called upon.
-     * if the called instruction does not have an end (i.e. RET) then it will continue from there
-     */
-    callSkippedOrFunction(name: string): IDGBuilder {
-        const r = this.flags[name];
-        if(!r) throw new Error(`skipped instruction flag ${name} does not exist.`);
-        this.callLocation(r);
-        return this;
-    }
-
-    /**
      * Adds a warning if the function we are calling has not been created using our internal function creation method.
      */
     private _warnIfNotAFunction(x: string | number){
@@ -81,9 +76,8 @@ export default class IDGBuilder {
      * NOTE!: uses the internal stack to push the current state. sub-routines called must have a return instruction to pop the state and return back to this location!.
      */
     callLocation(address: number | string): IDGBuilder{
-        this._warnIfNotAFunction(address);
         this.insert8(Instructions.CAL_LIT);
-        this.insert32(typeof address === "string" ? this.getFlag(address) : address);
+        this.insert32(typeof address === "string" ? this.getFlag(address) +1 : address + 1);
         return this;
     }
     /**
@@ -130,10 +124,10 @@ export default class IDGBuilder {
     /**
      * Move a value from memory into a register
      */
-    MoveMemoryToRegister(from: number, toRegister: RegisterIndexOf){
+    MoveMemoryToRegister(from: number, toRegister: RegisterKey){
         this.insert8(Instructions.MOV_MEM_REG);
         this.insert32(from);
-        this.insert32(toRegister);
+        this.insert32(this._regKeyToIndex(toRegister));
         return this;
     }
     /**
@@ -155,23 +149,30 @@ export default class IDGBuilder {
     /**
      * Stores a number into memory.
      * @param value the value to put in the location.
-     * @param memoryLocation the location to put the value in
+     * @param memoryLocation the location to put the value in (places it). places at the current instruction index if omitted
      * @param safeCopy defines wether to ensure that the VM always skips this value. If no skipping is applied it is possible to corrupt (or change) the memory of instructions that are in the supplied memory location. (skipping takes up more memory, ~5bytes)
+     * @returns the location where the value has been stored
      */
-    StoreValueInMemory(value: number, memoryLocation: number, safeCopy = true){
+    StoreValueInMemory(value: number, memoryLocation?: number, safeCopy = true){
+
         if(safeCopy === true){
-            this._skip([Instructions.MOV_LIT_MEM])
+            this._skip([], !memoryLocation ? 4 : 0)
         }
+        if(!memoryLocation){
+            this.insert32(this.instructionIndex);
+        }
+        const location = memoryLocation || this.instructionIndex;
+
         this.insert8(Instructions.MOV_LIT_MEM);
         this.insert32(value);
-        this.insert32(memoryLocation);
-        return this;
+        this.insert32(location);
+        return location;
     }
 
-    private _skip(instructionsToSkip: Instructions[]){
+    private _skip(instructionsToSkip: Instructions[], extraBytes = 0){
         const skipTo = instructionsToSkip.reduce((prev, curr)=> prev + InstructionInformation[curr].size, 0);
         this.insert8(Instructions.SKIP)
-        this.insert32(skipTo);
+        this.insert32(skipTo + extraBytes);
     }
 
 
@@ -479,6 +480,7 @@ export default class IDGBuilder {
             this.insert8(Instructions.PSH_LIT);
             this.insert32(val);
         }
+        this.stackSizeRequirement += 4;
         return this;
     }
 
@@ -506,9 +508,9 @@ export default class IDGBuilder {
      * @param name used to store a "flag" in a temporary helper table that can be used to call this skipped instruction later. @see {callFunction}
      */
     skipInstructions(name: string, instructionsToSkip: Instructions[]): IDGBuilder {
-        this.setFlag(name);
         const skipTo = instructionsToSkip.reduce((prev, curr)=> prev + InstructionInformation[curr].size, 0);
         this.insert8(Instructions.SKIP)
+        this.setFlag(name);
         this.insert32(skipTo);
         return this;
     }
@@ -620,18 +622,60 @@ export default class IDGBuilder {
         return this;
     }
     
+    GOTO(address: string | number){
+        if(typeof address === "string") address = this.getFlag(address)
+        this.insert8(Instructions.GOTO);
+        this.insert32(address);
+    }
+    
+    functionBuilder(): IDGFunction {
+        const currentFunctionDetail: {start:number, end:number, skipPointer: number} = {
+            start: 0,
+            end: 0,
+            skipPointer: 0
+        };
+        const call =()=>{
+            //this.GOTO(currentFunctionDetail.start);
+            this.insert8(Instructions.CAL_LIT);
+            this.insert32(currentFunctionDetail.start);
+        }
+        return {
+            markStart: ()=>this.$_startFunction(currentFunctionDetail),
+            markEnd: ()=>this.$_endFunction(currentFunctionDetail),
+            call,
+            __currentFunctionDetail: currentFunctionDetail
+        }
+    }
+    private $_startFunction(currentFunctionDetail: functionBuilderDetails){
 
-    /**
-     * Same as skip instruction but includes a return at the end to better emulate the behavior of a function
-     * @param name name of the function. used for calling later
-     * @param instructionsToSkip the instructions that are in this function (NOTE: you need to manually construct them after this call)
-     */
-    insertFunction(name: string, instructionsToSkip: Instructions[]): IDGBuilder{
-        instructionsToSkip.push(Instructions.RET); // now also including a return that we add..
-        this.skipInstructions(name, instructionsToSkip);
-        this.return(true);
-        this.functions.push(name);
-        return this;
+        this.insert8(Instructions.SKIP);
+        currentFunctionDetail.skipPointer = this.instructionIndex; // set 32 here to replace
+        this.insert32(0); // will be changed later by the end function
+        currentFunctionDetail.start = this.instructionIndex; // start of function instructions. jump to here
+        return ()=>this.$_endFunction(currentFunctionDetail)
+    }
+
+    private $_endFunction(details: functionBuilderDetails){
+
+        this.insert8(Instructions.RET_TO_NEXT);
+
+        details.end = this.instructionIndex;
+        this.instructions.set(chunkUp32(details.end - details.start), details.skipPointer);
+        
+    }
+
+    push(regOrLit: RegisterKey | number){
+        if(typeof regOrLit === "string"){
+            this.insert8(Instructions.PSH_REG);
+            this.insert32(this._regKeyToIndex(regOrLit));
+        }else{
+            this.insert8(Instructions.PSH_LIT);
+            this.insert32(regOrLit);
+        }
+    }
+    pop(regOrLit: RegisterKey){
+        this.insert8(Instructions.POP);
+        this.insert32(this._regKeyToIndex(regOrLit));
     }
 
     /**
@@ -640,12 +684,12 @@ export default class IDGBuilder {
      * @param timeInMs 
      * @param callFunction the flag name (function name) or a number representing an address to call
      */
-    atInterval(timeInMs: number, callFunction: string | number):IDGBuilder{
-        this._warnIfNotAFunction(callFunction);
+    atInterval(timeInMs: number, callFunction: string | number | IDGFunction):IDGBuilder{
+
         if(typeof callFunction === "string") callFunction = this.getFlag(callFunction);
         this.insert8(Instructions.INTERVAL);
         this.insert32(timeInMs);
-        this.insert32(callFunction);
+        this.insert32(typeof callFunction === "number" ? callFunction : callFunction.__currentFunctionDetail.start);
         return this;
     }
 
@@ -713,7 +757,7 @@ export default class IDGBuilder {
      * @returns 
      */
     currentHeapSize(){
-        return this.memoryRequirementInBytes + this.instructionIndex;
+        return this.memoryRequirementInBytes + this.instructionIndex + this.stackSizeRequirement;
     }
     compile(){
         console.log("COMPILING:")
@@ -721,6 +765,7 @@ export default class IDGBuilder {
         TOTAL MEM: ${this.currentHeapSize()} bytes
         INSTR MEM: ${this.instructionIndex} bytes
         IMAGE MEM (allocated separately): ${(this.imageData.width * this.imageData.height) * 4} bytes
+        STACK ALLOCATION: ${this.stackSizeRequirement}
         `)
 
         if(this.imageData.width > 0x7FFFFFFF || this.imageData.height > 0x7FFFFFFF){
@@ -730,15 +775,23 @@ export default class IDGBuilder {
             console.warn(`WARNING: Current head size is longer than ${0x7FFFFFFF}, memory locations after this value cannot be referenced by instructions. instructions will still run`);
         }
 
-        const header: IDGHeader = [this.imageData.width, this.imageData.height, this.currentHeapSize()];
+        const header8Bit = new Uint8Array([...chunkUp32(this.imageData.width), ...chunkUp32(this.imageData.height), ...chunkUp32(this.currentHeapSize()), ...chunkUp32(this.stackSizeRequirement)]);
+        const image8Bit = new Uint8Array(this.imageData.imageData.length * 4);
+        for(let i = 0, k =0; i < image8Bit.length; i += 4, k++){
+            const [first, second, third, fourth] = chunkUp32(this.imageData.imageData[k]);
+            image8Bit[i] = first;
+            image8Bit[i + 1] = second;
+            image8Bit[i + 2] = third;
+            image8Bit[i + 3] = fourth;
+        }
 
-        const header8Bit = Uint8Array.from(header);//new Uint8Array(header);
+        const file = new Uint8Constructor(header8Bit.length + image8Bit.length + this.currentHeapSize());
+        file.setNext(header8Bit);
+        file.setNext(image8Bit);
+        file.setNext(this.instructions.slice(0, this.instructionIndex + 1));
 
-        const file = new Uint8Array(header8Bit.length + this.imageData.imageData.length + this.instructions.length);
-        file.set(header8Bit);
-        file.set(this.imageData.imageData, header8Bit.length);
-        file.set(this.instructions, (header8Bit.length + this.imageData.imageData.length));
-
-        return gzip(file, {level: 6});
+        const compressed = compress(file.getData());
+        console.log(`\t Final file size: ${compressed.byteLength} bytes`);
+        return compressed;
     }
 }

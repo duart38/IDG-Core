@@ -20,21 +20,16 @@ const fakeImage = new Array(fakeWidth * fakeHeight).fill(0);
 
 
 
-const builder = new IDGBuilder({imageData: fakeImage, width: fakeWidth, height: fakeHeight});
-builder.insertFunction("inrecement", [Instructions.INC_REG]); // TODO: return not being called
-builder.incrementRegister(RegisterIndexOf.r1);
-builder.atInterval(2000, "inrecement");
-// some random stuff
-builder.StoreNumberToRegister(99, RegisterIndexOf.r4);
-builder.StoreNumberToRegister(99, RegisterIndexOf.r3);
-builder.StoreNumberToRegister(99, RegisterIndexOf.r2);
+// const builder = new IDGBuilder({imageData: fakeImage, width: fakeWidth, height: fakeHeight});
+// builder.insertFunction("inrecement", [Instructions.INC_REG]); // TODO: return not being called
+// builder.incrementRegister(RegisterIndexOf.r1);
+// builder.atInterval(2000, "inrecement");
+// // some random stuff
+// builder.StoreNumberToRegister(99, RegisterIndexOf.r4);
+// builder.StoreNumberToRegister(99, RegisterIndexOf.r3);
+// builder.StoreNumberToRegister(99, RegisterIndexOf.r2);
 
-writableBytes.set(builder.instructions);
-
-
-
-
-
+// writableBytes.set(builder.instructions);
 
 
 const cpu = new IDGVM(MM, {imageData: fakeImage, width: fakeWidth, height: fakeHeight});
