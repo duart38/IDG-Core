@@ -858,7 +858,6 @@ export default class IDGVM {
         const y = this.getRegister("y");
 
         const radius = this.fetchCurrentInstruction32(); // supplied
-        console.log(`DRAWING CIRCLE x(${x}), y(${y}), color(${color}), radius(${radius})`);
 
         const radSquared = radius ** 2;
         for (let currentY = Math.max(1, y - radius); currentY <= Math.min(y + radius, this.image.height); currentY++) {
