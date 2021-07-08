@@ -1,39 +1,24 @@
 import IDGBuilder from "./IDGVM/Builder/Builder.ts";
 import IDGLoader from "./IDGVM/Loader.ts";
+import { Instructions } from "./IDGVM/Registers.ts";
 
 const builder = new IDGBuilder({
     imageData: new Array(4*4).fill(9),
     width: 4, height: 4
 });
 
-// builder.insertFunction("test", [Instructions.MODIFY_PIXEL, Instructions.RENDER])
-//     .modifyPixel()
-//     .RENDER()
-//     .return(false)
+// const testFunction = builder.functionBuilder();
+// testFunction.markStart()
+//     builder.RGBToColor([255,255,255])
+// testFunction.markEnd();
+// testFunction.call(); // to call the function directly
 
 
 
-// builder.push("ip");
-// builder.callSkippedOrFunction("test");
-// const x = builder.StoreValueInMemory(6)
-// builder.MoveMemoryToRegister(x, "r2")
-
-const testFunction = builder.functionBuilder();
-testFunction.markStart()
-
-builder.RGBToColor([255,255,255])
-
-testFunction.markEnd();
-//testFunction.call(); // to call the function directly
-
-
-builder.modifyPixel();
-builder.StoreNumberToRegister(2, "r1");
-
-
-// TODO: this seems to make the INTERVAL instruction work. make it into an instruction and put it at the final position of ram
-// builder.setFlag("end");
-// builder.GOTO("end");
+const loop1 = builder.loopBuilder(Instructions.JGT_LIT, 5)
+loop1.markStart();
+    builder.incrementRegister("acc");
+loop1.markEnd()
 
 
 const compiled = builder.compile();
