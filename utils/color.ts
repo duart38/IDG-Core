@@ -53,3 +53,15 @@ export function hueShift(input: RGB, fHue: number): RGB {
     out[2] = ByteClamp(input[0] * matrix[2][0] + input[1] * matrix[2][1] + input[2]*matrix[2][2]);
     return out;
 }
+
+export function modifyLuminosity(by: number, color: number){
+    let [r,g,b] = spreadRGB(color);
+    r += by;
+    g += by;
+    b += by;
+    r = (r > 255 ? 255 : (r < 0 ? 0 : r)) as U255;
+    g = (g > 255 ? 255 : (g < 0 ? 0 : g)) as U255;
+    b = (b > 255 ? 255 : (b < 0 ? 0 : b)) as U255;
+
+    return combineRGB([r as U255,g as U255,b as U255])
+}
