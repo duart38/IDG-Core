@@ -114,7 +114,10 @@ export enum Instructions {
   RAND, // TODO: RAND_REG_REG
   SKIP,
   /**
-   * Starts an interval that when its time, executes the address provided
+   * Starts an interval that when its time, executes the address provided.
+   * Currently will only run if the machine is still in execution mode (i.e. not halted). this means that
+   * if the machine has reached the end of the memory and thus stops executing (or saw too many empty instructions) this method
+   * will stop executing as the machine will go into a halted state
    */
   INTERVAL,
 
