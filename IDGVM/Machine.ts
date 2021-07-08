@@ -1,29 +1,16 @@
-import {Instructions, RegisterKey, REGISTERS} from "./Registers.ts"
+import {Instructions, PUSHABLE_STATE, RegisterKey, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
 import { getNeighboringPixelIndex, indexByCoordinates } from "../utils/coordinates.ts";
 import { ImageData } from "../interfaces/Image.ts";
 import { combineRGB, spreadRGB } from "../utils/color.ts";
 import { U255 } from "../interfaces/RGBA.ts";
+import { DecodedFile } from "../interfaces/FileShape.ts";
 
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
 const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
 
 export default class IDGVM {
-
-
   // TODO: flushState(); -> flushes memory and other info to the idg file for hard storage. (probably should be a module)
-  // TODO: image specific instructions like drawing lines and filling a sections.
-  // TODO: pixel specific instructions.
-  // TODO: choose where to storage image in memory and standardize it (could also be done outside of the Machine)
-  // TODO: any method that requires combining more instructions should be done in a higher level language
-  // TODO: MAYBE even define a separate memory for the Image, 
-  // TODO: LOOP instruction..
-
-  // TODO: i want clock based events built in here... this saves me time when i potentially need to interrupt to check clock time..
-  //        also what if a different VM does not implement clock? this could be problematic..
-  //        also part 2.. all systems have a clock... and if they don't we emulate it..
-  //        the clock does not REALLY have to be here we could also define a volatile memory location for it and let some thread or something update it as it sees fit..
-  //        this reduces the internal instructions required here and forces a modularity approach which could be used depending on the system.
 
   private registers: DataView;
   private memory: MemoryMapper;
@@ -50,18 +37,19 @@ export default class IDGVM {
   private imageRenderCB: (newImage: number[])=>void;
 
   private allocatedAmount: number;
+  private halt = false;
   
   /**
    * 
    * @param memory Refers to the allocated memory available to our system
    * @param interruptVectorAddress 
    */
-  constructor(memory: MemoryMapper, allocatedAmount: number, image: ImageData, interruptVectorAddress = 0x249F0) {
+  constructor(memory: MemoryMapper, loadedFile: DecodedFile, interruptVectorAddress = 0x249F0) {
     this.memory = memory;
-    this.image = image;
-    this.imageCopy = [...image.imageData];
+    this.image = {imageData: loadedFile.image, width: loadedFile.imageWidth, height: loadedFile.imageHeight};
+    this.imageCopy = [...this.image.imageData];
     this.imageRenderCB = ()=>{};
-    this.allocatedAmount = allocatedAmount;
+    this.allocatedAmount = loadedFile.memoryRequest;
 
     /**
      * Creating memory for actual values of register
@@ -85,8 +73,8 @@ export default class IDGVM {
     this.isInInterruptHandler = false;
     this.setRegister('im', this.allocatedAmount);
 
-    this.setRegister('sp', this.allocatedAmount - 1);
-    this.setRegister('fp', this.allocatedAmount - 1);
+    this.setRegister('sp', this.allocatedAmount  - loadedFile.stackSizeRequirement);
+    this.setRegister('fp', this.allocatedAmount  - loadedFile.stackSizeRequirement);
 
     this.stackFrameSize = 0;
   }
@@ -175,29 +163,28 @@ export default class IDGVM {
   }
 
   push(value: number) {
+    // TODO: extract the stack in it's own memory to avoid overlap
     const spAddress = this.getRegister('sp');
     this.memory.setUint32(spAddress, value);
     this.setRegister('sp', spAddress - INSTRUCTION_LENGTH_IN_BYTES); // moving stack pointer down
     this.stackFrameSize += INSTRUCTION_LENGTH_IN_BYTES;
   }
 
+  // TODO: extract the stack in it's own memory to avoid overlap
   pop() {
     const nextSpAddress = this.getRegister('sp') + INSTRUCTION_LENGTH_IN_BYTES;
+    
     this.setRegister('sp', nextSpAddress);
     this.stackFrameSize -= INSTRUCTION_LENGTH_IN_BYTES;
     return this.memory.getUint32(nextSpAddress);
   }
 
+  // TODO: extract the stack in it's own memory to avoid overlap
   pushState() {
-    this.push(this.getRegister('r1'));
-    this.push(this.getRegister('r2'));
-    this.push(this.getRegister('r3'));
-    this.push(this.getRegister('r4'));
-    this.push(this.getRegister('r5'));
-    this.push(this.getRegister('r6'));
-    this.push(this.getRegister('r7'));
-    this.push(this.getRegister('r8'));
-    this.push(this.getRegister('ip'));
+    PUSHABLE_STATE.forEach((r)=>{
+      this.push(this.getRegister(r))
+    });
+
     this.push(this.stackFrameSize + INSTRUCTION_LENGTH_IN_BYTES);
 
     this.setRegister('fp', this.getRegister('sp'));
@@ -211,15 +198,7 @@ export default class IDGVM {
     this.stackFrameSize = this.pop();
     const stackFrameSize = this.stackFrameSize;
 
-    this.setRegister('ip', this.pop());
-    this.setRegister('r8', this.pop());
-    this.setRegister('r7', this.pop());
-    this.setRegister('r6', this.pop());
-    this.setRegister('r5', this.pop());
-    this.setRegister('r4', this.pop());
-    this.setRegister('r3', this.pop());
-    this.setRegister('r2', this.pop());
-    this.setRegister('r1', this.pop());
+    [...PUSHABLE_STATE].reverse().forEach((x)=>this.setRegister(x, this.pop()));
 
     const nArgs = this.pop();
     for (let i = 0; i < nArgs; i++) {
@@ -704,6 +683,12 @@ export default class IDGVM {
         return;
       }
 
+      case Instructions.GOTO: {
+        const address = this.fetchCurrentInstruction32();
+        this.setRegister('ip', address);
+        return;
+      }
+
       // Push Literal to the stack
       case Instructions.PSH_LIT: {
         const value = this.fetchCurrentInstruction32();
@@ -739,6 +724,8 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
         this.pushState();
         this.setRegister('ip', address);
+        console.log("Call location called addr:", address, this.getRegister("ip"));
+
         return;
       }
 
@@ -867,8 +854,10 @@ export default class IDGVM {
         const time = this.fetchCurrentInstruction32();
         const addressToCall = this.fetchCurrentInstruction32();
         const intervalHandler = setInterval(()=>{
-          this.pushState();
-          this.setRegister('ip', addressToCall);
+          if(!this.halt){
+            this.pushState();
+            this.setRegister('ip', addressToCall);
+          }
         }, time);
         this.setRegister("r9", intervalHandler); // TODO: make a dedicated place for this
 
@@ -905,15 +894,15 @@ export default class IDGVM {
 
   step() {
     const instruction = this.fetchCurrentInstruction8();
-    console.log("STEP", instruction)
+    console.log(`STEP[${this.getRegister("ip")}] -> instr: ${instruction}`)
     if(instruction === 0) this.emptyInstructionAtStep++;
     if(instruction === -1 || this.emptyInstructionAtStep > 50) return true;
     return this.execute(instruction);
   }
 
   run() {
-    const halt = this.step();
-    if (!halt) {
+    this.halt = this.step() || false;
+    if (!this.halt) {
       setTimeout(() => this.run());
     }
   }
