@@ -12,7 +12,23 @@ interface IDGFunction {
     markStart: ()=>void,
     markEnd: ()=>void,
     call: ()=>void,
-    __currentFunctionDetail: functionBuilderDetails}
+    __currentFunctionDetail: functionBuilderDetails
+}
+
+type conditionalJump =   
+    Instructions.JMP_NOT_EQ |
+    Instructions.JNE_REG |
+    Instructions.JEQ_REG |
+    Instructions.JEQ_LIT |
+    Instructions.JLT_REG |
+    Instructions.JLT_LIT |
+    Instructions.JGT_REG |
+    Instructions.JGT_LIT |
+    Instructions.JLE_REG |
+    Instructions.JLE_LIT |
+    Instructions.JGE_REG |
+    Instructions.JGE_LIT
+
 /**
  * The Builder here takes care of easily constructing certain instructions.
  * It also keeps track of the memory requirements based on what requests are made.
@@ -663,6 +679,53 @@ export default class IDGBuilder {
         this.instructions.set(chunkUp32(details.end - details.start), details.skipPointer);
         
     }
+
+
+
+    
+    loopBuilder(condition: conditionalJump, value: RegisterKey | number) {
+        const currentFunctionDetail: {start:number, end:number, condition: conditionalJump, value: RegisterKey | number} = {
+            start: 0,
+            end: 0,
+            condition,
+            value
+        };
+        return {
+            markStart: ()=>this.$_startLoop(currentFunctionDetail),
+            markEnd: ()=>this.$_endLoop(currentFunctionDetail),
+            __currentFunctionDetail: currentFunctionDetail
+        }
+    }
+    private $_startLoop(details: {start:number, end:number, condition: conditionalJump, value: RegisterKey | number}){
+        details.start = this.instructionIndex; // start of function instructions. jump to here
+    }
+    private $_endLoop(details: {start:number, end:number, condition: conditionalJump, value: RegisterKey | number}){
+        switch(details.condition){
+            case Instructions.JMP_NOT_EQ:
+            case Instructions.JNE_REG:
+                    this.JumpIfNotEquals(details.start, details.value); break;
+            case Instructions.JEQ_REG:
+            case Instructions.JEQ_LIT:
+                    this.JumpIfEquals(details.start, details.value); break;
+            case Instructions.JLT_REG:
+            case Instructions.JLT_LIT:
+                    this.JumpIfLessThan(details.start, details.value); break;
+            case Instructions.JGT_REG:
+            case Instructions.JGT_LIT:
+                    this.JumpIfGreaterThan(details.start, details.value); break;
+            case Instructions.JLE_REG:
+            case Instructions.JLE_LIT:
+                    this.JumpIfLessThanOrEqual(details.start, details.value); break;
+            case Instructions.JGE_REG:
+            case Instructions.JGE_LIT:
+                    this.JumpIfGreaterThanOrEqual(details.start, details.value); break;
+        }
+    }
+
+
+
+
+
 
     push(regOrLit: RegisterKey | number){
         if(typeof regOrLit === "string"){
