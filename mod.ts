@@ -33,7 +33,9 @@ const builder = new IDGBuilder({
 //     builder.incrementRegister("acc");
 // loop1.markEnd()
 
-builder.drawCircle(30, 100,100, [255,255,255]);
+//builder.drawCircle(30, 100,100, [255,255,255]);
+builder.StoreNumberToRegister(80, "r1");
+builder.modifyImageLuminosity("r1",false);
 builder.RENDER();
 
 

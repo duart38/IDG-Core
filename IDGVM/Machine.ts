@@ -2,7 +2,7 @@ import {Instructions, PUSHABLE_STATE, RegisterKey, REGISTERS} from "./Registers.
 import {createMemory, MemoryMapper} from "./Memory.ts"
 import { getNeighboringPixelIndex, indexByCoordinates } from "../utils/coordinates.ts";
 import { ImageData } from "../interfaces/Image.ts";
-import { combineRGB, spreadRGB } from "../utils/color.ts";
+import { combineRGB, modifyLuminosity, spreadRGB } from "../utils/color.ts";
 import { U255 } from "../interfaces/RGBA.ts";
 import { DecodedFile } from "../interfaces/FileShape.ts";
 
@@ -884,6 +884,34 @@ export default class IDGVM {
         this.registers.setUint32(regToStoreIn, this.image.width * this.image.height);
         return;
       }
+      case Instructions.INCREASE_PIXEL_LUMINOSITY_REG: {
+        const luminosity = this.registers.getUint32(this.fetchRegisterIndex());
+        const x = this.getRegister("x");
+        const y = this.getRegister("y");
+        const index = indexByCoordinates(x,y,this.image.width);
+        this.imageCopy[index] = modifyLuminosity(luminosity, this.imageCopy[index]);
+        return;
+      }
+      case Instructions.DECREASE_PIXEL_LUMINOSITY_REG: {
+        const luminosity = -this.registers.getUint32(this.fetchRegisterIndex());
+        const x = this.getRegister("x");
+        const y = this.getRegister("y");
+        const index = indexByCoordinates(x,y,this.image.width);
+        this.imageCopy[index] = modifyLuminosity(luminosity, this.imageCopy[index]);
+        return;
+      }
+      case Instructions.INCREASE_IMAGE_LUMINOSITY_REG: {
+        const luminosity = this.registers.getUint32(this.fetchRegisterIndex());
+        for(let i = 0; i < this.imageCopy.length; i++) this.imageCopy[i] = modifyLuminosity(luminosity, this.imageCopy[i]);
+        return;
+      }
+      case Instructions.DECREASE_IMAGE_LUMINOSITY_REG: {
+        const luminosity = -this.registers.getUint32(this.fetchRegisterIndex());
+        console.log(`decreasing image luminosity by ${luminosity}`);
+        for(let i = 0; i < this.imageCopy.length; i++) this.imageCopy[i] = modifyLuminosity(luminosity, this.imageCopy[i]);
+        return;
+      }
+
       case Instructions.INTERVAL: {
         const time = this.fetchCurrentInstruction32();
         const addressToCall = this.fetchCurrentInstruction32();

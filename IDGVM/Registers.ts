@@ -173,6 +173,11 @@ export enum Instructions {
   DRAW_BOX,
   DRAW_CIRCLE,
 
+  INCREASE_PIXEL_LUMINOSITY_REG,
+  DECREASE_PIXEL_LUMINOSITY_REG,
+  INCREASE_IMAGE_LUMINOSITY_REG,
+  DECREASE_IMAGE_LUMINOSITY_REG
+
 }
 
 /**
@@ -245,6 +250,10 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.COLOR_FROMREG_TO_RGB]: {size: 1},
     [Instructions.IMAGE_WIDTH_REG]: {size: 5},
     [Instructions.IMAGE_HEIGHT_REG]: {size: 5},
+    [Instructions.INCREASE_PIXEL_LUMINOSITY_REG]: {size: 5},
+    [Instructions.DECREASE_PIXEL_LUMINOSITY_REG]: {size: 5},
+    [Instructions.INCREASE_IMAGE_LUMINOSITY_REG]: {size: 5},
+    [Instructions.DECREASE_IMAGE_LUMINOSITY_REG]: {size: 5},
     [Instructions.IMAGE_TOTAL_PIXELS_REG]: {size: 5},
     [Instructions.DRAW_BOX]: {size: 9},
     [Instructions.DRAW_CIRCLE]: {size: 5},

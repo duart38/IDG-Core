@@ -1,6 +1,6 @@
 import { Direction } from "../../interfaces/Actions.ts";
 import { ImageData } from "../../interfaces/Image.ts";
-import { RGB } from "../../interfaces/RGBA.ts";
+import { RGB, U255 } from "../../interfaces/RGBA.ts";
 import { chunkUp32, compress, Uint8Constructor } from "../../utils/bits.ts";
 import { combineRGB } from "../../utils/color.ts";
 import { indexByCoordinates } from "../../utils/coordinates.ts";
@@ -647,6 +647,16 @@ export default class IDGBuilder {
         this.insert8(Instructions.DRAW_CIRCLE);
         this.insert32(radius);
         return this;
+    }
+    ModifyPixelLuminosity(by: RegisterKey, increase = true, x?: number, y?:number,){
+        if(x) this.StoreNumberToRegister(x, "x");
+        if(y) this.StoreNumberToRegister(y, "y");
+        this.insert8(increase == true ? Instructions.INCREASE_PIXEL_LUMINOSITY_REG : Instructions.DECREASE_PIXEL_LUMINOSITY_REG)
+        this.insert32(this._regKeyToIndex(by));
+    }
+    modifyImageLuminosity(by: RegisterKey, increase = true){
+        this.insert8(increase == true ? Instructions.INCREASE_IMAGE_LUMINOSITY_REG : Instructions.DECREASE_IMAGE_LUMINOSITY_REG)
+        this.insert32(this._regKeyToIndex(by));
     }
     
     GOTO(address: string | number){
