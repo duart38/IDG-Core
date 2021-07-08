@@ -658,6 +658,11 @@ export default class IDGBuilder {
         this.insert8(increase == true ? Instructions.INCREASE_IMAGE_LUMINOSITY_REG : Instructions.DECREASE_IMAGE_LUMINOSITY_REG)
         this.insert32(this._regKeyToIndex(by));
     }
+
+    SLEEP(ms: number){
+        this.insert8(Instructions.SLEEP);
+        this.insert32(ms);
+    }
     
     GOTO(address: string | number){
         if(typeof address === "string") address = this.getFlag(address)

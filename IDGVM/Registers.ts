@@ -134,6 +134,7 @@ export enum Instructions {
    * Also calls a callback that is always called when the original image is updated.
    */
   RENDER,
+  SLEEP,
   IMAGE_WIDTH_REG,
   IMAGE_HEIGHT_REG,
   /** Also known as the surface (i.e. width * height) */
@@ -257,5 +258,6 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.IMAGE_TOTAL_PIXELS_REG]: {size: 5},
     [Instructions.DRAW_BOX]: {size: 9},
     [Instructions.DRAW_CIRCLE]: {size: 5},
-    [Instructions.INTERVAL]: {size: 9}
+    [Instructions.INTERVAL]: {size: 9},
+    [Instructions.SLEEP]: {size: 5}
 }

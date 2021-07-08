@@ -5,6 +5,7 @@ import { ImageData } from "../interfaces/Image.ts";
 import { combineRGB, modifyLuminosity, spreadRGB } from "../utils/color.ts";
 import { U255 } from "../interfaces/RGBA.ts";
 import { DecodedFile } from "../interfaces/FileShape.ts";
+import { sleep } from "../utils/timing.ts";
 
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
 const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
@@ -245,7 +246,7 @@ export default class IDGVM {
     this.setRegister('ip', address);
   }
 
-  execute(instruction: number) {
+  async execute(instruction: number) {
     // console.log(`$ Got instruction ${instruction}`)
     switch (instruction) {
       /**
@@ -945,6 +946,12 @@ export default class IDGVM {
         return;
       }
 
+      case Instructions.SLEEP: {
+        const time = this.fetchCurrentInstruction32();
+        await sleep(time);
+        return;
+      }
+
       // Halt all computation
       case Instructions.HLT: {
         return true;
@@ -954,16 +961,16 @@ export default class IDGVM {
     }
   }
 
-  step() {
+  async step() {
     const instruction = this.fetchCurrentInstruction8();
     console.log(`STEP[${this.getRegister("ip")}] -> instr: ${instruction}`)
     if(instruction === 0) this.emptyInstructionAtStep++;
     if(instruction === -1 || this.emptyInstructionAtStep > 50) return true;
-    return this.execute(instruction);
+    return await this.execute(instruction);
   }
 
-  run() {
-    this.halt = this.step() || false;
+  async run() {
+    this.halt = await this.step() || false;
     if (!this.halt) {
       setTimeout(() => this.run());
     }
