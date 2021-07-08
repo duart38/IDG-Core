@@ -61,8 +61,6 @@ export default class IDGBuilder {
         this.instructions = new Uint8Array(preAllocation)
     }
 
-    // TODO: propper loop constructor methods (like functions), also look at notes
-
     /**
      * Sets a flag at the current instruction index (unless specifically defined) so that you can refer back to it in code later.
      * Very useful for jumping around as you don't need to remember the locations in memory.
