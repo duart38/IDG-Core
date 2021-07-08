@@ -171,6 +171,7 @@ export enum Instructions {
    * Supplied are width and height
    */
   DRAW_BOX,
+  DRAW_CIRCLE,
 
 }
 
@@ -246,5 +247,6 @@ export const InstructionInformation: Record<Instructions, {size: number}> = {
     [Instructions.IMAGE_HEIGHT_REG]: {size: 5},
     [Instructions.IMAGE_TOTAL_PIXELS_REG]: {size: 5},
     [Instructions.DRAW_BOX]: {size: 9},
+    [Instructions.DRAW_CIRCLE]: {size: 5},
     [Instructions.INTERVAL]: {size: 9}
 }

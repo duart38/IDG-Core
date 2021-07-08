@@ -635,6 +635,19 @@ export default class IDGBuilder {
         this.insert32(height);
         return this;
     }
+
+    drawCircle(radius: number, x?: number, y?:number, color?: number | RGB){
+        if(x) this.StoreNumberToRegister(x, "x");
+        if(y) this.StoreNumberToRegister(y, "y");
+        if(color){
+            if(Array.isArray(color)) color = combineRGB(color);
+            this.StoreNumberToRegister(color, "COL");
+        }
+        // DRAW_BOX
+        this.insert8(Instructions.DRAW_CIRCLE);
+        this.insert32(radius);
+        return this;
+    }
     
     GOTO(address: string | number){
         if(typeof address === "string") address = this.getFlag(address)

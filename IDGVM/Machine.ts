@@ -850,6 +850,26 @@ export default class IDGVM {
         }
         return;
       }
+
+      case Instructions.DRAW_CIRCLE: {
+        const color = this.getRegister("COL");
+
+        const x = this.getRegister("x");
+        const y = this.getRegister("y");
+
+        const radius = this.fetchCurrentInstruction32(); // supplied
+        console.log(`DRAWING CIRCLE x(${x}), y(${y}), color(${color}), radius(${radius})`);
+
+        const radSquared = radius ** 2;
+        for (let currentY = Math.max(1, y - radius); currentY <= Math.min(y + radius, this.image.height); currentY++) {
+            for (let currentX = Math.max(1, x - radius); currentX <= Math.min(x + radius, this.image.width); currentX++) {
+                if ((currentX - x) ** 2 + (currentY - y) ** 2 < radSquared) this.imageCopy[indexByCoordinates(currentX, currentY, this.image.width)] = color;
+            }
+        }
+        return;
+      }
+
+
       case Instructions.IMAGE_WIDTH_REG: {
         const regToStoreIn = this.fetchRegisterIndex();
         this.registers.setUint32(regToStoreIn, this.image.width);
