@@ -185,6 +185,7 @@ export enum Instructions {
   INCREASE_IMAGE_LUMINOSITY_REG,
   DECREASE_IMAGE_LUMINOSITY_REG,
 
+  // TODO: filters.. they save the state of the pixels that they will modify and next round they reset the previous pixels and apply something else
 
   /////// MISC ///////////
   /**
@@ -194,6 +195,7 @@ export enum Instructions {
    * @todo make one of these for values in a color range
    */
   LANGTONS_ANT,
+  SEEDS,
 
   DEBUG,
 
@@ -282,5 +284,6 @@ export const InstructionInformation: Record<Instructions, {size: number, desc: s
     [Instructions.DRAW_CIRCLE]: {size: 5, desc: "DRAW_CIRCLE"},
     [Instructions.INTERVAL]: {size: 9, desc: "INTERVAL"},
     [Instructions.SLEEP]: {size: 5, desc: "SLEEP"},
-    [Instructions.LANGTONS_ANT]: {size: 9 , desc: "Apply langtons ant for one generation"}
+    [Instructions.LANGTONS_ANT]: {size: 9 , desc: "Apply langtons ant for one generation"},
+    [Instructions.SEEDS]: {size: 9 , desc: "Apply Seeds by Brian Silverman"},
 }

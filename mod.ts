@@ -18,36 +18,46 @@ import { Direction } from "./interfaces/Actions.ts";
 
 const size = 50;
 const builder = new IDGBuilder({
-    imageData: new Array(size*size).fill(combineRGB([255,255,255])),
+    imageData: new Array(size*size).fill(combineRGB([0,0,0])),
     width: size, height: size
 });
-// builder.memoryRequirementInBytes += 4 * 100;
-
-// 1 -> right
-// 2 -> bottom
-// 3 -> left
-// 4 -> top
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
-// TODO: instead of method chaining always make the functions return their index after
-// TODO: for all jumpIf statements make a separate method that we jump to if the thing is true.. this method proceeds to push the state and call the desired method?
-//        draw the above.
+// TODO: ......
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
-builder.StoreNumberToRegister(25, "x");
-builder.StoreNumberToRegister(25, "y");
+// builder.modifyPixelAt(30,30, [255,255,255]);
+// builder.modifyPixelAt(30+1,30-1, [255,255,255]);
+// builder.modifyPixelAt(30+2,30-2, [255,255,255]);
+// builder.modifyPixelAt(30+3,30-3, [255,255,255]);
+// builder.modifyPixelAt(30+4,30-4, [255,255,255]);
+// builder.modifyPixelAt(30+5,30-5, [255,255,255]);
+// builder.modifyPixelAt(30+6,30-6, [255,255,255]);
+// builder.modifyPixelAt(30+7,30-7, [255,255,255]);
+// builder.modifyPixelAt(30+8,30-8, [255,255,255]);
+// builder.modifyPixelAt(30+9,30-9, [255,255,255]);
+// builder.modifyPixelAt(30+10,30-10, [255,255,255]);
+
+
+const liveColor = combineRGB([255,255,255]);
+const deadColor = combineRGB([0,0,0]);
+
+builder.modifyPixelAt(23, 20, liveColor);
+builder.modifyPixelAt(25, 20, liveColor);
+builder.modifyPixelAt(27, 20, liveColor);
+
+builder.RENDER();
+
 const afterInit = builder.setFlag("afterInit");
-
-builder.langtonsAnt(combineRGB([255,255,255]), combineRGB([0,0,0]))
+builder.seeds(liveColor, deadColor) // on, off
 builder.RENDER()
-
 builder.GOTO(afterInit);
 
 
@@ -59,7 +69,7 @@ const compiled = builder.compile();
 // // test loading compiled code
 const loader = new IDGLoader(compiled);
 loader.onImageUpdate((data)=>{
-    console.log("render called")
+    // console.log("render called")
     const png = encode(new Uint8Array(data), size, size);
     Deno.writeFile("image.png", png).catch((x)=>{
         console.log("image encoding error: ", x);

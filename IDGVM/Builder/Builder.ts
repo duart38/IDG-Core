@@ -755,6 +755,7 @@ export default class IDGBuilder {
     }
     private $_startLoop(details: {start:number, end:number, condition: conditionalJump, value: RegisterKey | number}){
         details.start = this.instructionIndex; // start of function instructions. jump to here
+        this.pop("r7"); // TODO: change this... the problem is that i call jumps below that push to stack without popping (memory leak)
     }
     private $_endLoop(details: {start:number, end:number, condition: conditionalJump, value: RegisterKey | number}){
         switch(details.condition){
@@ -793,6 +794,12 @@ export default class IDGBuilder {
         this.insert8(Instructions.LANGTONS_ANT);
         this.insert32(clockColor);
         this.insert32(antiClockColor);
+    }
+
+    seeds(onColor: number, offColor: number){
+        this.insert8(Instructions.SEEDS);
+        this.insert32(onColor);
+        this.insert32(offColor);
     }
 
     pushInstructionPointer(){

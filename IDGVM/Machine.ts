@@ -6,6 +6,7 @@ import { combineRGB, modifyLuminosity, spreadRGB } from "../utils/color.ts";
 import { U255 } from "../interfaces/RGBA.ts";
 import { DecodedFile } from "../interfaces/FileShape.ts";
 import { sleep } from "../utils/timing.ts";
+import { seeds } from "../utils/misc.ts";
 
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
 const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
@@ -896,6 +897,19 @@ export default class IDGVM {
           // move forward one unit
           moveForward(direction);
           saveBack(direction, currentX, currentY);
+        }
+        return;
+      }
+
+      case Instructions.SEEDS: {
+        const onColor = this.fetchCurrentInstruction32();
+        const offColor = this.fetchCurrentInstruction32();
+
+        for(let i = 0; i < this.image.imageData.length;i++){
+          const t = seeds(this, i ,onColor, offColor);
+          if(t){
+            this.imageCopy[i] = t
+          }
         }
         return;
       }
