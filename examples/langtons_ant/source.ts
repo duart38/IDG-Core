@@ -9,6 +9,24 @@ const builder = new IDGBuilder({
     width: size, height: size
 });
 
+
+/*
+    // This can also be achieved with an instruction internally (faster)
+    // The code below shows how.
+
+    builder.StoreNumberToRegister(25, "x");
+    builder.StoreNumberToRegister(25, "y");
+    const afterInit = builder.setFlag("afterInit");
+
+    builder.langtonsAnt(combineRGB([255,255,255]), combineRGB([0,0,0]))
+    builder.RENDER()
+
+    builder.GOTO(afterInit);
+
+ */
+
+
+
 // 1 -> right
 // 2 -> bottom
 // 3 -> left
