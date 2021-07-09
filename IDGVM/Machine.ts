@@ -29,9 +29,9 @@ export default class IDGVM {
   /**
    * Copy of the image to modify.
    */
-  private imageCopy: number[];
+  public imageCopy: number[];
   /** The image itself */
-  private image: ImageData;
+  public image: ImageData;
   /**
    * Callback that is executed when a render request has been made
    */
