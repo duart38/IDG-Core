@@ -10,6 +10,10 @@ const builder = new IDGBuilder({
     width: size, height: size
 });
 
+function randomB(min:number, max:number){
+    return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
 const liveColor = combineRGB([255,255,255]);
 const deadColor = combineRGB([0,0,0]);
 
@@ -20,6 +24,15 @@ builder.modifyPixelAt(27, 20, liveColor);
 builder.modifyPixelAt(23, 22, liveColor);
 builder.modifyPixelAt(25, 22, liveColor);
 builder.modifyPixelAt(27, 22, liveColor);
+
+const middle = size / 2;
+builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
+builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
+builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
+builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
+builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
+builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
+builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
 
 builder.RENDER();
 
