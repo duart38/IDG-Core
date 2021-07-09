@@ -18,13 +18,14 @@ export function clamp(value: number, length: number): number{
 export function getNeighboringPixelIndex(direction: Direction, from: number, width: number) {
     switch(direction){
         case Direction.left: {
-            const [x,y] = coordinatesByIndex(from, width);
-            return indexByCoordinates(x-1, y, width);
+            // const [x,y] = coordinatesByIndex(from, width);
+            // return indexByCoordinates(x-1, y, width);
+            return from - 1;
         }
         case Direction.right: {
-            // return from + 4, this.;
-            const [x,y] = coordinatesByIndex(from, width);
-            return indexByCoordinates(x+1, y, width);
+            // const [x,y] = coordinatesByIndex(from, width);
+            // return indexByCoordinates(x+1, y, width);
+            return from + 1;
         }
         case Direction.topLeft: {
             const [x,y] = coordinatesByIndex(from, width);
