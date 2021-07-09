@@ -46,16 +46,16 @@ export function rule184(machine: IDGVM, zeroColor: number, oneColor: number, idx
  * Seeds cellular automation calculation on a given pixel. returns the color to replace by
  */
 export function seeds(_this: IDGVM, index: number, liveColor:number, deadColor: number){
-
+    const currentColor = _this.getPixelColor(index);
     /*
     In each time step, a cell turns on  if it was off but had exactly two neighbors that were on;
     all other cells turn off.
     */
    const color = (idx: number) =>{
-    return _this.image.imageData[idx];
+    return _this.getPixelColor(idx);
    }
 
-    if(_this.image.imageData[index] === deadColor){ // if it was off
+    if(currentColor === deadColor){ // if it was off
         
         const topLeft = color(getNeighboringPixelIndex(Direction.topLeft, index, _this.image.width));
         const top = color(getNeighboringPixelIndex(Direction.top, index, _this.image.width));
@@ -75,8 +75,56 @@ export function seeds(_this: IDGVM, index: number, liveColor:number, deadColor: 
                 }, 0)
         // if it had exactly 2 neighbors that are on
         if(onNeighbors === 2){
-            return liveColor
+            _this.setPixelColor(index, liveColor);
+        }else{
+            _this.setPixelColor(index, deadColor);
         }
+    }else{
+        _this.setPixelColor(index, deadColor)
     }
-    return deadColor;
 }
+
+
+/*
+
+
+        const liveColor = this.fetchCurrentInstruction32();
+        const deadColor = this.fetchCurrentInstruction32();
+        
+
+        for(let index = 0; index < this.image.imageData.length;index++){
+          const currentColor = this.image.imageData[index];
+            const color = (idx: number) =>{
+                return this.image.imageData[idx];
+              }
+  
+              if(currentColor === liveColor) this.imageCopy[index] = deadColor;
+              if(currentColor === deadColor){ // if it was off
+                  const topLeft = color(getNeighboringPixelIndex(Direction.topLeft, index, this.image.width));
+                  const top = color(getNeighboringPixelIndex(Direction.top, index, this.image.width));
+                  const topRight = color(getNeighboringPixelIndex(Direction.topRight, index, this.image.width));
+  
+                  const left = color(getNeighboringPixelIndex(Direction.left, index, this.image.width));
+                  const right = color(getNeighboringPixelIndex(Direction.right, index, this.image.width));
+  
+                  const bottomLeft = color(getNeighboringPixelIndex(Direction.bottomLeft, index, this.image.width))
+                  const bottom = color(getNeighboringPixelIndex(Direction.bottom, index, this.image.width))
+                  const bottomRight = color(getNeighboringPixelIndex(Direction.bottomRight, index, this.image.width))
+  
+                  const onNeighbors = [topLeft, top, topRight, left, right ,bottomLeft, bottom, bottomRight]
+                          .reduce((prev, curr)=>{
+                              prev += curr === liveColor ? 1 : 0
+                              return prev;
+                          }, 0)
+                  // if it had exactly 2 neighbors that are on
+                  if(onNeighbors === 2){
+                      this.imageCopy[index] = liveColor;
+                  }else{
+                    this.imageCopy[index] = deadColor;
+                  }
+              }else{
+                this.imageCopy[index] = deadColor;
+              }
+
+
+*/

@@ -7,6 +7,7 @@ import { U255 } from "../interfaces/RGBA.ts";
 import { DecodedFile } from "../interfaces/FileShape.ts";
 import { sleep } from "../utils/timing.ts";
 import { seeds } from "../utils/misc.ts";
+import { Direction } from "../interfaces/Actions.ts";
 
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
 const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
@@ -247,6 +248,13 @@ export default class IDGVM {
 
     // Jump to the interupt handler
     this.setRegister('ip', address);
+  }
+
+  getPixelColor(n: number){
+    return this.image.imageData[n]
+  }
+  setPixelColor(n: number, value: number){
+    this.imageCopy[n] = value;
   }
 
   async execute(instruction: number) {
@@ -906,10 +914,7 @@ export default class IDGVM {
         const offColor = this.fetchCurrentInstruction32();
 
         for(let i = 0; i < this.image.imageData.length;i++){
-          const t = seeds(this, i ,onColor, offColor);
-          if(t){
-            this.imageCopy[i] = t
-          }
+          seeds(this, i ,onColor, offColor);
         }
         return;
       }
