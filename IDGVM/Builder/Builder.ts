@@ -49,7 +49,7 @@ export default class IDGBuilder {
      */
     private functions: Record<string, {size: number}> = {};
     public instructions: Uint8Array;
-    private stackSizeRequirement = PUSHABLE_STATE.length * 4;
+    public stackSizeRequirement = PUSHABLE_STATE.length * 4;
     /**
      * 
      * @param imageData 
@@ -65,10 +65,10 @@ export default class IDGBuilder {
      * Sets a flag at the current instruction index (unless specifically defined) so that you can refer back to it in code later.
      * Very useful for jumping around as you don't need to remember the locations in memory.
      */
-    setFlag(name: string, atIndex = this.instructionIndex): IDGBuilder{
+    setFlag(name: string, atIndex = this.instructionIndex){
         if(this.flags[name]) console.warn(`Warning: renamed flag ${name}. you may ignore if intentional`);
         this.flags[name] = atIndex;
-        return this;
+        return atIndex;
     }
     getFlag(name: string){
         const r = this.flags[name];
@@ -94,6 +94,7 @@ export default class IDGBuilder {
         this.insert32(typeof address === "string" ? this.getFlag(address) +1 : address + 1);
         return this;
     }
+
     /**
      * Calls the location of the registers value.
      * NOTE!: uses the internal stack to push the current state. sub-routines called must have a return instruction to pop the state and return back to this location!.
@@ -129,10 +130,10 @@ export default class IDGBuilder {
      * @param from source
      * @param to destination
      */
-    MoveRegisterValueToAnother(from: RegisterIndexOf, to: RegisterIndexOf){
+    MoveRegisterValueToAnother(from: RegisterKey, to: RegisterKey){
         this.insert8(Instructions.MOV_REG_REG);
-        this.insert32(from);
-        this.insert32(to);
+        this.insert32(this._regKeyToIndex(from));
+        this.insert32(this._regKeyToIndex(to));
         return this;
     }
     /**
@@ -189,6 +190,9 @@ export default class IDGBuilder {
         this.insert32(skipTo + extraBytes);
     }
 
+    private _sizeOf(ins: Instructions){
+        return InstructionInformation[ins].size;
+    }
 
     private _regKeyToIndex(x: RegisterKey){
         return RegisterIndexOf[x];
@@ -388,8 +392,13 @@ export default class IDGBuilder {
      * @param jumpTo address to jump to. pass in a string to automatically get a saved flag
      * @param val the value to check against the register
      */
-    JumpIfEquals(jumpTo: number | string, val: RegisterKey | number){
+    JumpIfEquals(jumpTo: number | string | IDGFunction, val: RegisterKey | number){
         if(typeof jumpTo === "string") jumpTo = this.getFlag(jumpTo);
+        if(typeof jumpTo !== "number"){
+            // TODO: next error is here, we pre-maturely push but what if it is false? we obviously don't pop...
+            //this.pushInstructionPointerWithOffset(this._sizeOf(Instructions.JGT_REG) + 1);
+            jumpTo = jumpTo.__currentFunctionDetail.start;
+        }
         if(typeof val === "string"){ // JEQ_REG
             this.insert8(Instructions.JEQ_REG)
             this.insert32(this._regKeyToIndex(val));
@@ -408,8 +417,13 @@ export default class IDGBuilder {
      * @param jumpTo address to jump to. pass in a string to automatically get a saved flag
      * @param val the value to check against the register
      */
-    JumpIfLessThan(jumpTo: number | string, val: RegisterKey | number){
+    JumpIfLessThan(jumpTo: number | string | IDGFunction, val: RegisterKey | number){
         if(typeof jumpTo === "string") jumpTo = this.getFlag(jumpTo);
+        if(typeof jumpTo !== "number"){
+            // TODO: next error is here, we pre-maturely push but what if it is false? we obviously don't pop...
+            // this.pushInstructionPointerWithOffset(this._sizeOf(Instructions.JGT_REG) + 1);
+            jumpTo = jumpTo.__currentFunctionDetail.start;
+        }
         if(typeof val === "string"){ // JLT_REG
             this.insert8(Instructions.JLT_REG)
             this.insert32(this._regKeyToIndex(val));
@@ -427,8 +441,13 @@ export default class IDGBuilder {
      * @param jumpTo address to jump to. pass in a string to automatically get a saved flag
      * @param val the value to check against the register
      */
-    JumpIfGreaterThan(jumpTo: number | string, val: RegisterKey | number){
+    JumpIfGreaterThan(jumpTo: number | string | IDGFunction, val: RegisterKey | number){
         if(typeof jumpTo === "string") jumpTo = this.getFlag(jumpTo);
+        if(typeof jumpTo !== "number"){
+            // TODO: next error is here, we pre-maturely push but what if it is false? we obviously don't pop...
+            // this.pushInstructionPointerWithOffset(this._sizeOf(Instructions.JGT_REG) + 1);
+            jumpTo = jumpTo.__currentFunctionDetail.start;
+        }
         if(typeof val === "string"){ // JGT_REG
             this.insert8(Instructions.JGT_REG)
             this.insert32(this._regKeyToIndex(val));
@@ -596,6 +615,11 @@ export default class IDGBuilder {
         return this;
     }
 
+    fetchPixelIndexByRegisterCoordinates(storeIn: RegisterKey){
+        this.insert8(Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES);
+        this.insert32(this._regKeyToIndex(storeIn))
+    }
+
 
     /**
      * Converts RGB from a register (if no value provided) or a literal (if you provide it directly) and stores it in the color register ("COL")
@@ -658,6 +682,10 @@ export default class IDGBuilder {
         this.insert8(increase == true ? Instructions.INCREASE_IMAGE_LUMINOSITY_REG : Instructions.DECREASE_IMAGE_LUMINOSITY_REG)
         this.insert32(this._regKeyToIndex(by));
     }
+    shiftPixel(direction: Direction){
+        this.insert8(Instructions.SHIFT_PIXEL_LIT);
+        this.insert8(direction);
+    }
 
     SLEEP(ms: number){
         this.insert8(Instructions.SLEEP);
@@ -672,12 +700,15 @@ export default class IDGBuilder {
     
     functionBuilder(): IDGFunction {
         const currentFunctionDetail: {start:number, end:number, skipPointer: number} = {
-            start: 0,
-            end: 0,
+            start: -1,
+            end: -1,
             skipPointer: 0
         };
         const call =()=>{
             //this.GOTO(currentFunctionDetail.start);
+            if(currentFunctionDetail.start === -1 || currentFunctionDetail.end === -1){
+                throw new Error(`function not constructed properly`)
+            }
             this.insert8(Instructions.CAL_LIT);
             this.insert32(currentFunctionDetail.start);
         }
@@ -699,10 +730,10 @@ export default class IDGBuilder {
 
     private $_endFunction(details: functionBuilderDetails){
 
-        this.insert8(Instructions.RET_TO_NEXT);
+        this.insert8(Instructions.RET);
 
         details.end = this.instructionIndex;
-        this.instructions.set(chunkUp32(details.end - details.start), details.skipPointer);
+        this.instructions.set(chunkUp32(details.end - details.start), details.skipPointer); // set back the amount we need to skip to cover this entire function
         
     }
 
@@ -749,9 +780,18 @@ export default class IDGBuilder {
     }
 
 
+    debug(id: number){
+        this.insert8(Instructions.DEBUG);
+        this.insert8(id);
+    }
 
-
-
+    pushInstructionPointer(){
+        this.insert8(Instructions.PSH_IP);
+    }
+    pushInstructionPointerWithOffset(offsetBy: number){
+        this.insert8(Instructions.PSH_IP_OFFSETTED);
+        this.insert32(offsetBy);
+    }
 
     push(regOrLit: RegisterKey | number){
         if(typeof regOrLit === "string"){
