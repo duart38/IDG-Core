@@ -78,4 +78,5 @@ export function seeds(_this: IDGVM, index: number, liveColor:number, deadColor: 
             return liveColor
         }
     }
+    return deadColor;
 }
