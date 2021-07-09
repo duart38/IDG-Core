@@ -1,4 +1,4 @@
-import { Instructions, PUSHABLE_STATE, RegisterKey, REGISTERS} from "./Registers.ts"
+import { InstructionInformation, Instructions, PUSHABLE_STATE, RegisterKey, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
 import { getNeighboringPixelIndex, indexByCoordinates } from "../utils/coordinates.ts";
 import { ImageData } from "../interfaces/Image.ts";
@@ -854,24 +854,51 @@ export default class IDGVM {
         return;
       }
 
-      // TODO: change this to flip-pixel (where we flip one to the other)
-      // case Instructions.SHIFT_PIXEL_LIT: {
-      //   const direction = this.fetchCurrentInstruction8() as Direction;
-      //   // deno-lint-ignore camelcase
-      //   const current_x = this.getRegister("x");
-      //   // deno-lint-ignore camelcase
-      //   const current_y = this.getRegister("y");
-      //   // deno-lint-ignore camelcase
-      //   const current_idx = indexByCoordinates(current_x,current_y, this.image.width);
-      //   // deno-lint-ignore camelcase
-      //   const current_color = this.image.imageData[current_idx];
-      //   // deno-lint-ignore camelcase
-      //   const next_idx = getNeighboringPixelIndex(direction, current_idx, this.image.width);
-      //   this.imageCopy[current_idx] = this.getRegister("COL"); // replace current pixel with color in reg
-      //   this.imageCopy[next_idx] = current_color; // make the next pixel the color of the last pixel
+      case Instructions.LANGTONS_ANT: {
+        let currentX = this.getRegister("x");
+        let currentY = this.getRegister("y");
+        let direction = this.getRegister("r9"); // TODO: dedicated or something else
+        const color1 = this.fetchCurrentInstruction32(); // clock
+        const color2 = this.fetchCurrentInstruction32(); // anti-clock
 
-      //   return;
-      // }
+        const thisIndex = indexByCoordinates(currentX, currentY, this.image.width);
+        
+        const moveForward = (d: number)=>{
+          switch(d){
+            case 1: currentX++; break; // 1 -> right
+            case 2: currentY++; break; // 2 -> bottom
+            case 3: currentX--; break; // 3  -> left
+            case 4: currentY--; break; // 4 -> top
+          }
+        }
+
+        const saveBack = (dir: number, x: number, y: number) => {
+          this.setRegister("r9", dir);
+          this.setRegister("x", x);
+          this.setRegister("y", y);
+        }
+
+        if(color1 === this.image.imageData[thisIndex]){
+          // turn 90° clockwise, 
+          direction++;
+          if(direction > 4) direction = 1;
+          // flip the color of the square,
+          this.imageCopy[thisIndex] = color2;
+          // move forward one unit
+          moveForward(direction);
+          saveBack(direction, currentX, currentY);
+        }else if(color2 === this.image.imageData[indexByCoordinates(currentX, currentY, this.image.width)]){
+          // turn 90° counter-clockwise
+          direction--;
+          if(direction < 1) direction = 4;
+          // flip the color of the square
+          this.imageCopy[thisIndex] = color1;
+          // move forward one unit
+          moveForward(direction);
+          saveBack(direction, currentX, currentY);
+        }
+        return;
+      }
 
 
       case Instructions.DRAW_BOX: {
@@ -1015,7 +1042,7 @@ export default class IDGVM {
 
   async step() {
     const instruction = this.fetchCurrentInstruction8();
-    //console.log(`IP[${this.getRegister("ip")}] -> instr: ${instruction} $$ ${InstructionInformation[instruction as Instructions]?.desc || "EMPTY SLOT"}`)
+    // console.log(`IP[${this.getRegister("ip")}] -> instr: ${instruction} $$ ${InstructionInformation[instruction as Instructions]?.desc || "EMPTY SLOT"}`)
     if(instruction === 0) this.emptyInstructionAtStep++;
     if(instruction === -1 || this.emptyInstructionAtStep > 50) return true;
     return await this.execute(instruction);
