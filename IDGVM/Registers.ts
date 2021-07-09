@@ -186,6 +186,14 @@ export enum Instructions {
   DECREASE_IMAGE_LUMINOSITY_REG,
 
 
+  /////// MISC ///////////
+  /**
+   * apply langton's ANT for 1 generation on the values in the x and y registers (modifies them afterwards)
+   * supplied are the colors you want to apply to.
+   * currently r9 register holds the directional value
+   * @todo make one of these for values in a color range
+   */
+  LANGTONS_ANT,
 
   DEBUG,
 
@@ -273,5 +281,6 @@ export const InstructionInformation: Record<Instructions, {size: number, desc: s
     [Instructions.DRAW_BOX]: {size: 9, desc: "DRAW_BOX"},
     [Instructions.DRAW_CIRCLE]: {size: 5, desc: "DRAW_CIRCLE"},
     [Instructions.INTERVAL]: {size: 9, desc: "INTERVAL"},
-    [Instructions.SLEEP]: {size: 5, desc: "SLEEP"}
+    [Instructions.SLEEP]: {size: 5, desc: "SLEEP"},
+    [Instructions.LANGTONS_ANT]: {size: 9 , desc: "Apply langtons ant for one generation"}
 }

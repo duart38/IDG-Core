@@ -785,6 +785,16 @@ export default class IDGBuilder {
         this.insert8(id);
     }
 
+    langtonsAnt(clockColor: number, antiClockColor: number, at?: [number, number]){
+        if(at) {
+            this.StoreNumberToRegister(at[0], "x");
+            this.StoreNumberToRegister(at[1], "y");
+        }
+        this.insert8(Instructions.LANGTONS_ANT);
+        this.insert32(clockColor);
+        this.insert32(antiClockColor);
+    }
+
     pushInstructionPointer(){
         this.insert8(Instructions.PSH_IP);
     }
