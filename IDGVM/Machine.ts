@@ -1,4 +1,4 @@
-import {Instructions, PUSHABLE_STATE, RegisterKey, REGISTERS} from "./Registers.ts"
+import { Instructions, PUSHABLE_STATE, RegisterKey, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
 import { getNeighboringPixelIndex, indexByCoordinates } from "../utils/coordinates.ts";
 import { ImageData } from "../interfaces/Image.ts";
@@ -39,6 +39,8 @@ export default class IDGVM {
 
   private allocatedAmount: number;
   private halt = false;
+
+  private IPStack: number[] = []
   
   /**
    * 
@@ -538,9 +540,10 @@ export default class IDGVM {
       // Jump to an address if literal value is not equal to the value in the accumulator
       case Instructions.JMP_NOT_EQ: {
         const value = this.fetchCurrentInstruction32();
-        const addressToJumpTo = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
         if (value !== this.getRegister('acc')) {
-          this.setRegister('ip', addressToJumpTo);
+          this.IPStack.push(this.getRegister("ip"));
+          this.setRegister('ip', address);
         }
 
         return;
@@ -553,6 +556,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value !== this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -565,6 +569,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value === this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -578,6 +583,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value === this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -590,6 +596,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value < this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -603,6 +610,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value < this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -615,6 +623,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value > this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -628,6 +637,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value > this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -640,6 +650,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value <= this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -653,6 +664,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value <= this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -665,6 +677,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value >= this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -678,6 +691,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value >= this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -703,15 +717,29 @@ export default class IDGVM {
         this.push(this.registers.getUint32(registerIndex));
         return;
       }
+
+      /**
+       * @deprecated
+       */
       case Instructions.PSH_STATE: {
         this.pushState()
+        return;
+      }
+
+      case Instructions.PSH_IP: {
+        this.IPStack.push(this.getRegister("ip"));
+        return;
+      }
+      case Instructions.PSH_IP_OFFSETTED: {
+        this.IPStack.push(this.getRegister("ip") + this.fetchCurrentInstruction32());
         return;
       }
 
       // Pop
       case Instructions.POP: {
         const registerIndex = this.fetchRegisterIndex();
-        const value = this.pop();
+        const value = this.IPStack.pop();
+        if(!value) throw new Error("Pop called on an empty stack");
         this.registers.setUint32(registerIndex, value);
         return;
       }
@@ -723,9 +751,8 @@ export default class IDGVM {
        *  */ 
       case Instructions.CAL_LIT: {
         const address = this.fetchCurrentInstruction32();
-        this.pushState();
+        this.IPStack.push(this.getRegister("ip"));
         this.setRegister('ip', address);
-        console.log("Call location called addr:", address, this.getRegister("ip"));
 
         return;
       }
@@ -734,7 +761,7 @@ export default class IDGVM {
       case Instructions.CAL_REG: {
         const registerIndex = this.fetchRegisterIndex();
         const address = this.registers.getUint32(registerIndex);
-        this.pushState();
+        this.IPStack.push(this.getRegister("ip"));
         this.setRegister('ip', address);
         return;
       }
@@ -760,9 +787,6 @@ export default class IDGVM {
       }
 
       case Instructions.MODIFY_PIXEL: {
-        // const x = this.fetchCurrentInstruction32();
-        // const y = this.fetchCurrentInstruction32();
-        // const color = this.fetchCurrentInstruction32();
         const x = this.getRegister("x");
         const y = this.getRegister("y");
         const color = this.getRegister("COL");
@@ -800,7 +824,7 @@ export default class IDGVM {
       case Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES: {
         const x = this.getRegister("x");
         const y = this.getRegister("y");
-        const reg = this.fetchCurrentInstruction32(); // where to store
+        const reg = this.fetchRegisterIndex(); // where to store
         this.registers.setUint32(reg, indexByCoordinates(x,y,this.image.width));
         return;
       }
@@ -830,15 +854,34 @@ export default class IDGVM {
         return;
       }
 
+      // TODO: change this to flip-pixel (where we flip one to the other)
+      // case Instructions.SHIFT_PIXEL_LIT: {
+      //   const direction = this.fetchCurrentInstruction8() as Direction;
+      //   // deno-lint-ignore camelcase
+      //   const current_x = this.getRegister("x");
+      //   // deno-lint-ignore camelcase
+      //   const current_y = this.getRegister("y");
+      //   // deno-lint-ignore camelcase
+      //   const current_idx = indexByCoordinates(current_x,current_y, this.image.width);
+      //   // deno-lint-ignore camelcase
+      //   const current_color = this.image.imageData[current_idx];
+      //   // deno-lint-ignore camelcase
+      //   const next_idx = getNeighboringPixelIndex(direction, current_idx, this.image.width);
+      //   this.imageCopy[current_idx] = this.getRegister("COL"); // replace current pixel with color in reg
+      //   this.imageCopy[next_idx] = current_color; // make the next pixel the color of the last pixel
+
+      //   return;
+      // }
+
 
       case Instructions.DRAW_BOX: {
         const color = this.getRegister("COL");
 
-        let x = this.getRegister("x");
-        let y = this.getRegister("y");
+        const x = this.getRegister("x");
+        const y = this.getRegister("y");
 
-        let width = this.fetchCurrentInstruction32(); // supplied
-        let height = this.fetchCurrentInstruction32(); // supplied
+        const width = this.fetchCurrentInstruction32(); // supplied
+        const height = this.fetchCurrentInstruction32(); // supplied
 
 
           for (let tY = 0; tY <= height; tY++) {
@@ -908,7 +951,6 @@ export default class IDGVM {
       }
       case Instructions.DECREASE_IMAGE_LUMINOSITY_REG: {
         const luminosity = -this.registers.getUint32(this.fetchRegisterIndex());
-        console.log(`decreasing image luminosity by ${luminosity}`);
         for(let i = 0; i < this.imageCopy.length; i++) this.imageCopy[i] = modifyLuminosity(luminosity, this.imageCopy[i]);
         return;
       }
@@ -936,13 +978,16 @@ export default class IDGVM {
 
       // Return from subroutine
       case Instructions.RET: {
-        this.popState();
+        let lastIP = this.IPStack.pop();
+        if(!lastIP) throw new Error("Nowhere to return to");
+        this.setRegister("ip", lastIP);
         return;
       }
 
       case Instructions.RET_TO_NEXT: {
-        this.popState();
-        this.setRegister("ip", this.getRegister("ip") + 1);
+        let lastIP = this.IPStack.pop();
+        if(!lastIP) throw new Error("Nowhere to return to");
+        this.setRegister("ip", lastIP + 1);
         return;
       }
 
@@ -956,6 +1001,13 @@ export default class IDGVM {
       case Instructions.HLT: {
         return true;
       }
+      case Instructions.DEBUG: {
+        const id = this.fetchCurrentInstruction8();
+        console.log(`####### DEBUG ${id} ##################`)
+        this.debug();
+        console.log(`####### END DEBUG ${id} ##############`)
+        return;
+      }
       case 0: {return;}
       default: console.error(`instruction ${0} is not an executable instruction, make sure your instructions are aligned properly by padding the values that are too small for a complete instruction.`)
     }
@@ -963,7 +1015,7 @@ export default class IDGVM {
 
   async step() {
     const instruction = this.fetchCurrentInstruction8();
-    console.log(`STEP[${this.getRegister("ip")}] -> instr: ${instruction}`)
+    //console.log(`IP[${this.getRegister("ip")}] -> instr: ${instruction} $$ ${InstructionInformation[instruction as Instructions]?.desc || "EMPTY SLOT"}`)
     if(instruction === 0) this.emptyInstructionAtStep++;
     if(instruction === -1 || this.emptyInstructionAtStep > 50) return true;
     return await this.execute(instruction);
