@@ -7,7 +7,7 @@ import { U255 } from "./interfaces/RGBA.ts";
 import { Direction } from "./interfaces/Actions.ts";
 
 
-const size = 500;
+const size = 30;
 const builder = new IDGBuilder({
     imageData: new Array(size*size).fill(combineRGB([0,0,0])),
     width: size, height: size
@@ -31,33 +31,29 @@ function randomB(min:number, max:number){
 const liveColor = combineRGB([255,255,255]);
 const deadColor = combineRGB([0,0,0]);
 
-builder.modifyPixelAt(23, 20, liveColor);
-builder.modifyPixelAt(25, 20, liveColor);
-builder.modifyPixelAt(27, 20, liveColor);
-
-builder.modifyPixelAt(23, 22, liveColor);
-builder.modifyPixelAt(25, 22, liveColor);
-builder.modifyPixelAt(27, 22, liveColor);
-
-const middle = size / 2;
-builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
-builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
-builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
-builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
-builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
-builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
-builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
+function test(_a: number, _b: number){
+    return Math.exp(_a) % Math.sin(_b) - Math.sqrt(_a) + Math.sqrt(_a) % Math.exp(_b) * Math.cos(_b) % Math.sqrt(_a) * Math.cos(_b)
+}
 
 
 
+// builder.RENDER();
+
+// const afterInit = builder.setFlag("afterInit");
+// builder.seeds(liveColor, deadColor) // on, off
+// builder.RENDER()
+// builder.GOTO(afterInit);
+
+builder.StoreNumberToRegister(1, "r1");
+builder.StoreNumberToRegister(1, "r2");
+
+builder.StoreNumberToRegister(5, "r3");
+builder.StoreNumberToRegister(5, "r4");
+
+builder.StoreNumberToRegister(combineRGB([255,255,255]), "COL");
+
+builder.drawLineReg(["r1", "r2"], ["r3", "r4"]);
 builder.RENDER();
-
-const afterInit = builder.setFlag("afterInit");
-builder.seeds(liveColor, deadColor) // on, off
-builder.RENDER()
-builder.GOTO(afterInit);
-
-
 
 const compiled = builder.compile();
 

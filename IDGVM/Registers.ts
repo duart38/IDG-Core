@@ -178,6 +178,12 @@ export enum Instructions {
    */
   DRAW_BOX,
   DRAW_CIRCLE,
+  /**
+   * Draws a line taking the x and the y of both points from 4 registers
+   */
+  DRAW_LINE_P1REG_P2REG,
+  // DRAW_LINE_P1LIT_P2LIT,
+
   SHIFT_PIXEL_LIT,
 
   INCREASE_PIXEL_LUMINOSITY_REG,
@@ -281,6 +287,7 @@ export const InstructionInformation: Record<Instructions, {size: number, desc: s
     [Instructions.DECREASE_IMAGE_LUMINOSITY_REG]: {size: 5, desc: "DECREASE_IMAGE_LUMINOSITY_REG"},
     [Instructions.IMAGE_TOTAL_PIXELS_REG]: {size: 5, desc: "IMAGE_TOTAL_PIXELS_REG"},
     [Instructions.DRAW_BOX]: {size: 9, desc: "DRAW_BOX"},
+    [Instructions.DRAW_LINE_P1REG_P2REG]: {size: 17, desc: "Draw line between 2 points fetched from register"},
     [Instructions.DRAW_CIRCLE]: {size: 5, desc: "DRAW_CIRCLE"},
     [Instructions.INTERVAL]: {size: 9, desc: "INTERVAL"},
     [Instructions.SLEEP]: {size: 5, desc: "SLEEP"},

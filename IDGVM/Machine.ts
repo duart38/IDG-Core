@@ -1,6 +1,6 @@
 import { InstructionInformation, Instructions, PUSHABLE_STATE, RegisterKey, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
-import { getNeighboringPixelIndex, indexByCoordinates } from "../utils/coordinates.ts";
+import { drawLine, getNeighboringPixelIndex, indexByCoordinates } from "../utils/coordinates.ts";
 import { ImageData } from "../interfaces/Image.ts";
 import { combineRGB, modifyLuminosity, spreadRGB } from "../utils/color.ts";
 import { U255 } from "../interfaces/RGBA.ts";
@@ -912,10 +912,7 @@ export default class IDGVM {
       case Instructions.SEEDS: {
         const onColor = this.fetchCurrentInstruction32();
         const offColor = this.fetchCurrentInstruction32();
-
-        for(let i = 0; i < this.image.imageData.length;i++){
-          seeds(this, i ,onColor, offColor);
-        }
+        for(let i = 0; i < this.image.imageData.length;i++) seeds(this, i ,onColor, offColor);
         return;
       }
 
@@ -932,8 +929,7 @@ export default class IDGVM {
 
           for (let tY = 0; tY <= height; tY++) {
             for (let tX = 0; tX <= width; tX++) {
-              const nX = tX + x;
-              const nY = tY + y;
+              const nX = tX + x; const nY = tY + y;
               if (Math.min(nX, nY) < 1 || nX > this.image.width || nY > this.image.height) continue;
               this.imageCopy[indexByCoordinates(nX, nY, this.image.width)] = color;
             }
@@ -955,6 +951,15 @@ export default class IDGVM {
                 if ((currentX - x) ** 2 + (currentY - y) ** 2 < radSquared) this.imageCopy[indexByCoordinates(currentX, currentY, this.image.width)] = color;
             }
         }
+        return;
+      }
+      case Instructions.DRAW_LINE_P1REG_P2REG: {
+        const point1_x = this.registers.getUint32(this.fetchRegisterIndex());
+        const point1_y = this.registers.getUint32(this.fetchRegisterIndex());
+
+        const point2_x = this.registers.getUint32(this.fetchRegisterIndex());
+        const point2_y = this.registers.getUint32(this.fetchRegisterIndex());
+        drawLine(this,point1_x, point1_y,  point2_x, point2_y);
         return;
       }
 
