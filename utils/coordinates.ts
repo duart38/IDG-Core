@@ -111,7 +111,7 @@ function plotLineHigh(_this: IDGVM, x0: number, y0: number, x1: number, y1:numbe
 }
 
 
-function drawLine(_this: IDGVM, x0: number, y0: number, x1: number, y1:number){
+export function drawLine(_this: IDGVM, x0: number, y0: number, x1: number, y1:number){
     if(Math.abs(y1 - y0) < Math.abs(x1 - x0)){ //if abs(y1 - y0) < abs(x1 - x0)
         if(x0 > x1) plotLineLow(_this, x1, y1, x0, y0)
         else plotLineLow(_this, x0, y0, x1, y1)
