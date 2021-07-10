@@ -44,15 +44,16 @@ function test(_a: number, _b: number){
 // builder.RENDER()
 // builder.GOTO(afterInit);
 
-builder.StoreNumberToRegister(1, "r1");
-builder.StoreNumberToRegister(1, "r2");
+// builder.StoreNumberToRegister(1, "r1");
+// builder.StoreNumberToRegister(1, "r2");
 
-builder.StoreNumberToRegister(5, "r3");
-builder.StoreNumberToRegister(5, "r4");
+// builder.StoreNumberToRegister(5, "r3");
+// builder.StoreNumberToRegister(5, "r4");
 
 builder.StoreNumberToRegister(combineRGB([255,255,255]), "COL");
 
-builder.drawLineReg(["r1", "r2"], ["r3", "r4"]);
+// builder.drawLineReg(["r1", "r2"], ["r3", "r4"]);
+builder.drawLineLit([1,1], [5,5])
 builder.RENDER();
 
 const compiled = builder.compile();

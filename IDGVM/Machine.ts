@@ -962,6 +962,15 @@ export default class IDGVM {
         drawLine(this,point1_x, point1_y,  point2_x, point2_y);
         return;
       }
+      case Instructions.DRAW_LINE_P1LIT_P2LIT: {
+        const point1_x = this.fetchCurrentInstruction32();
+        const point1_y = this.fetchCurrentInstruction32();
+
+        const point2_x = this.fetchCurrentInstruction32();
+        const point2_y = this.fetchCurrentInstruction32();
+        drawLine(this,point1_x, point1_y,  point2_x, point2_y);
+        return;
+      }
 
 
       case Instructions.IMAGE_WIDTH_REG: {

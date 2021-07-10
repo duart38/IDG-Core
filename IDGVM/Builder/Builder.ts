@@ -668,6 +668,15 @@ export default class IDGBuilder {
         this.insert32(this._regKeyToIndex(point2[0]));
         this.insert32(this._regKeyToIndex(point2[1]));
     }
+    drawLineLit(point1: [number, number], point2: [number, number]){
+        this.insert8(Instructions.DRAW_LINE_P1LIT_P2LIT);
+        this.insert32(point1[0]);
+        this.insert32(point1[1]);
+
+        this.insert32(point2[0]);
+        this.insert32(point2[1]);
+    }
+
     drawCircle(radius: number, x?: number, y?:number, color?: number | RGB){
         if(x) this.StoreNumberToRegister(x, "x");
         if(y) this.StoreNumberToRegister(y, "y");
