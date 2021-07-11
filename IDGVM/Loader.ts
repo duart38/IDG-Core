@@ -57,7 +57,7 @@ export default class IDGLoader {
         for(;i < ((imageWidth * imageHeight) * 4) + 13; i += 4){
             image.push(x.getUint32(i));
         }
-        console.log("LOADER IMAGE", image)
+        console.log("LOADER IMAGE LENGTH", image.length)
         const memorySection = decompressed.slice(i,  i + memorySizeRequest);
         
         return {

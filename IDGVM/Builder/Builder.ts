@@ -1,6 +1,6 @@
 import { Direction } from "../../interfaces/Actions.ts";
 import { ImageData } from "../../interfaces/Image.ts";
-import { RGB } from "../../interfaces/RGBA.ts";
+import { RGB, U255 } from "../../interfaces/RGBA.ts";
 import { chunkUp32, compress, Uint8Constructor } from "../../utils/bits.ts";
 import { combineRGB } from "../../utils/color.ts";
 import { indexByCoordinates } from "../../utils/coordinates.ts";
@@ -12,7 +12,23 @@ interface IDGFunction {
     markStart: ()=>void,
     markEnd: ()=>void,
     call: ()=>void,
-    __currentFunctionDetail: functionBuilderDetails}
+    __currentFunctionDetail: functionBuilderDetails
+}
+
+type conditionalJump =   
+    Instructions.JMP_NOT_EQ |
+    Instructions.JNE_REG |
+    Instructions.JEQ_REG |
+    Instructions.JEQ_LIT |
+    Instructions.JLT_REG |
+    Instructions.JLT_LIT |
+    Instructions.JGT_REG |
+    Instructions.JGT_LIT |
+    Instructions.JLE_REG |
+    Instructions.JLE_LIT |
+    Instructions.JGE_REG |
+    Instructions.JGE_LIT
+
 /**
  * The Builder here takes care of easily constructing certain instructions.
  * It also keeps track of the memory requirements based on what requests are made.
@@ -33,7 +49,7 @@ export default class IDGBuilder {
      */
     private functions: Record<string, {size: number}> = {};
     public instructions: Uint8Array;
-    private stackSizeRequirement = PUSHABLE_STATE.length * 4;
+    public stackSizeRequirement = PUSHABLE_STATE.length * 4;
     /**
      * 
      * @param imageData 
@@ -45,16 +61,14 @@ export default class IDGBuilder {
         this.instructions = new Uint8Array(preAllocation)
     }
 
-    // TODO: propper loop constructor methods (like functions), also look at notes
-
     /**
      * Sets a flag at the current instruction index (unless specifically defined) so that you can refer back to it in code later.
      * Very useful for jumping around as you don't need to remember the locations in memory.
      */
-    setFlag(name: string, atIndex = this.instructionIndex): IDGBuilder{
+    setFlag(name: string, atIndex = this.instructionIndex){
         if(this.flags[name]) console.warn(`Warning: renamed flag ${name}. you may ignore if intentional`);
         this.flags[name] = atIndex;
-        return this;
+        return atIndex;
     }
     getFlag(name: string){
         const r = this.flags[name];
@@ -80,6 +94,7 @@ export default class IDGBuilder {
         this.insert32(typeof address === "string" ? this.getFlag(address) +1 : address + 1);
         return this;
     }
+
     /**
      * Calls the location of the registers value.
      * NOTE!: uses the internal stack to push the current state. sub-routines called must have a return instruction to pop the state and return back to this location!.
@@ -115,10 +130,10 @@ export default class IDGBuilder {
      * @param from source
      * @param to destination
      */
-    MoveRegisterValueToAnother(from: RegisterIndexOf, to: RegisterIndexOf){
+    MoveRegisterValueToAnother(from: RegisterKey, to: RegisterKey){
         this.insert8(Instructions.MOV_REG_REG);
-        this.insert32(from);
-        this.insert32(to);
+        this.insert32(this._regKeyToIndex(from));
+        this.insert32(this._regKeyToIndex(to));
         return this;
     }
     /**
@@ -175,6 +190,9 @@ export default class IDGBuilder {
         this.insert32(skipTo + extraBytes);
     }
 
+    private _sizeOf(ins: Instructions){
+        return InstructionInformation[ins].size;
+    }
 
     private _regKeyToIndex(x: RegisterKey){
         return RegisterIndexOf[x];
@@ -374,8 +392,13 @@ export default class IDGBuilder {
      * @param jumpTo address to jump to. pass in a string to automatically get a saved flag
      * @param val the value to check against the register
      */
-    JumpIfEquals(jumpTo: number | string, val: RegisterKey | number){
+    JumpIfEquals(jumpTo: number | string | IDGFunction, val: RegisterKey | number){
         if(typeof jumpTo === "string") jumpTo = this.getFlag(jumpTo);
+        if(typeof jumpTo !== "number"){
+            // TODO: next error is here, we pre-maturely push but what if it is false? we obviously don't pop...
+            //this.pushInstructionPointerWithOffset(this._sizeOf(Instructions.JGT_REG) + 1);
+            jumpTo = jumpTo.__currentFunctionDetail.start;
+        }
         if(typeof val === "string"){ // JEQ_REG
             this.insert8(Instructions.JEQ_REG)
             this.insert32(this._regKeyToIndex(val));
@@ -394,8 +417,13 @@ export default class IDGBuilder {
      * @param jumpTo address to jump to. pass in a string to automatically get a saved flag
      * @param val the value to check against the register
      */
-    JumpIfLessThan(jumpTo: number | string, val: RegisterKey | number){
+    JumpIfLessThan(jumpTo: number | string | IDGFunction, val: RegisterKey | number){
         if(typeof jumpTo === "string") jumpTo = this.getFlag(jumpTo);
+        if(typeof jumpTo !== "number"){
+            // TODO: next error is here, we pre-maturely push but what if it is false? we obviously don't pop...
+            // this.pushInstructionPointerWithOffset(this._sizeOf(Instructions.JGT_REG) + 1);
+            jumpTo = jumpTo.__currentFunctionDetail.start;
+        }
         if(typeof val === "string"){ // JLT_REG
             this.insert8(Instructions.JLT_REG)
             this.insert32(this._regKeyToIndex(val));
@@ -413,8 +441,13 @@ export default class IDGBuilder {
      * @param jumpTo address to jump to. pass in a string to automatically get a saved flag
      * @param val the value to check against the register
      */
-    JumpIfGreaterThan(jumpTo: number | string, val: RegisterKey | number){
+    JumpIfGreaterThan(jumpTo: number | string | IDGFunction, val: RegisterKey | number){
         if(typeof jumpTo === "string") jumpTo = this.getFlag(jumpTo);
+        if(typeof jumpTo !== "number"){
+            // TODO: next error is here, we pre-maturely push but what if it is false? we obviously don't pop...
+            // this.pushInstructionPointerWithOffset(this._sizeOf(Instructions.JGT_REG) + 1);
+            jumpTo = jumpTo.__currentFunctionDetail.start;
+        }
         if(typeof val === "string"){ // JGT_REG
             this.insert8(Instructions.JGT_REG)
             this.insert32(this._regKeyToIndex(val));
@@ -582,6 +615,11 @@ export default class IDGBuilder {
         return this;
     }
 
+    fetchPixelIndexByRegisterCoordinates(storeIn: RegisterKey){
+        this.insert8(Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES);
+        this.insert32(this._regKeyToIndex(storeIn))
+    }
+
 
     /**
      * Converts RGB from a register (if no value provided) or a literal (if you provide it directly) and stores it in the color register ("COL")
@@ -621,6 +659,55 @@ export default class IDGBuilder {
         this.insert32(height);
         return this;
     }
+
+    drawLineReg(point1: [RegisterKey, RegisterKey], point2: [RegisterKey, RegisterKey]){
+        this.insert8(Instructions.DRAW_LINE_P1REG_P2REG);
+        this.insert32(this._regKeyToIndex(point1[0]));
+        this.insert32(this._regKeyToIndex(point1[1]));
+
+        this.insert32(this._regKeyToIndex(point2[0]));
+        this.insert32(this._regKeyToIndex(point2[1]));
+    }
+    drawLineLit(point1: [number, number], point2: [number, number]){
+        this.insert8(Instructions.DRAW_LINE_P1LIT_P2LIT);
+        this.insert32(point1[0]);
+        this.insert32(point1[1]);
+
+        this.insert32(point2[0]);
+        this.insert32(point2[1]);
+    }
+
+    drawCircle(radius: number, x?: number, y?:number, color?: number | RGB){
+        if(x) this.StoreNumberToRegister(x, "x");
+        if(y) this.StoreNumberToRegister(y, "y");
+        if(color){
+            if(Array.isArray(color)) color = combineRGB(color);
+            this.StoreNumberToRegister(color, "COL");
+        }
+        // DRAW_BOX
+        this.insert8(Instructions.DRAW_CIRCLE);
+        this.insert32(radius);
+        return this;
+    }
+    ModifyPixelLuminosity(by: RegisterKey, increase = true, x?: number, y?:number,){
+        if(x) this.StoreNumberToRegister(x, "x");
+        if(y) this.StoreNumberToRegister(y, "y");
+        this.insert8(increase == true ? Instructions.INCREASE_PIXEL_LUMINOSITY_REG : Instructions.DECREASE_PIXEL_LUMINOSITY_REG)
+        this.insert32(this._regKeyToIndex(by));
+    }
+    modifyImageLuminosity(by: RegisterKey, increase = true){
+        this.insert8(increase == true ? Instructions.INCREASE_IMAGE_LUMINOSITY_REG : Instructions.DECREASE_IMAGE_LUMINOSITY_REG)
+        this.insert32(this._regKeyToIndex(by));
+    }
+    shiftPixel(direction: Direction){
+        this.insert8(Instructions.SHIFT_PIXEL_LIT);
+        this.insert8(direction);
+    }
+
+    SLEEP(ms: number){
+        this.insert8(Instructions.SLEEP);
+        this.insert32(ms);
+    }
     
     GOTO(address: string | number){
         if(typeof address === "string") address = this.getFlag(address)
@@ -630,12 +717,15 @@ export default class IDGBuilder {
     
     functionBuilder(): IDGFunction {
         const currentFunctionDetail: {start:number, end:number, skipPointer: number} = {
-            start: 0,
-            end: 0,
+            start: -1,
+            end: -1,
             skipPointer: 0
         };
         const call =()=>{
             //this.GOTO(currentFunctionDetail.start);
+            if(currentFunctionDetail.start === -1 || currentFunctionDetail.end === -1){
+                throw new Error(`function not constructed properly`)
+            }
             this.insert8(Instructions.CAL_LIT);
             this.insert32(currentFunctionDetail.start);
         }
@@ -657,11 +747,84 @@ export default class IDGBuilder {
 
     private $_endFunction(details: functionBuilderDetails){
 
-        this.insert8(Instructions.RET_TO_NEXT);
+        this.insert8(Instructions.RET);
 
         details.end = this.instructionIndex;
-        this.instructions.set(chunkUp32(details.end - details.start), details.skipPointer);
+        this.instructions.set(chunkUp32(details.end - details.start), details.skipPointer); // set back the amount we need to skip to cover this entire function
         
+    }
+
+
+
+    
+    loopBuilder(condition: conditionalJump, value: RegisterKey | number) {
+        const currentFunctionDetail: {start:number, end:number, condition: conditionalJump, value: RegisterKey | number} = {
+            start: 0,
+            end: 0,
+            condition,
+            value
+        };
+        return {
+            markStart: ()=>this.$_startLoop(currentFunctionDetail),
+            markEnd: ()=>this.$_endLoop(currentFunctionDetail),
+            __currentFunctionDetail: currentFunctionDetail
+        }
+    }
+    private $_startLoop(details: {start:number, end:number, condition: conditionalJump, value: RegisterKey | number}){
+        details.start = this.instructionIndex; // start of function instructions. jump to here
+        this.pop("r7"); // TODO: change this... the problem is that i call jumps below that push to stack without popping (memory leak)
+    }
+    private $_endLoop(details: {start:number, end:number, condition: conditionalJump, value: RegisterKey | number}){
+        switch(details.condition){
+            case Instructions.JMP_NOT_EQ:
+            case Instructions.JNE_REG:
+                    this.JumpIfNotEquals(details.start, details.value); break;
+            case Instructions.JEQ_REG:
+            case Instructions.JEQ_LIT:
+                    this.JumpIfEquals(details.start, details.value); break;
+            case Instructions.JLT_REG:
+            case Instructions.JLT_LIT:
+                    this.JumpIfLessThan(details.start, details.value); break;
+            case Instructions.JGT_REG:
+            case Instructions.JGT_LIT:
+                    this.JumpIfGreaterThan(details.start, details.value); break;
+            case Instructions.JLE_REG:
+            case Instructions.JLE_LIT:
+                    this.JumpIfLessThanOrEqual(details.start, details.value); break;
+            case Instructions.JGE_REG:
+            case Instructions.JGE_LIT:
+                    this.JumpIfGreaterThanOrEqual(details.start, details.value); break;
+        }
+    }
+
+
+    debug(id: number){
+        this.insert8(Instructions.DEBUG);
+        this.insert8(id);
+    }
+
+    langtonsAnt(clockColor: number, antiClockColor: number, at?: [number, number]){
+        if(at) {
+            this.StoreNumberToRegister(at[0], "x");
+            this.StoreNumberToRegister(at[1], "y");
+        }
+        this.insert8(Instructions.LANGTONS_ANT);
+        this.insert32(clockColor);
+        this.insert32(antiClockColor);
+    }
+
+    seeds(onColor: number, offColor: number){
+        this.insert8(Instructions.SEEDS);
+        this.insert32(onColor);
+        this.insert32(offColor);
+    }
+
+    pushInstructionPointer(){
+        this.insert8(Instructions.PSH_IP);
+    }
+    pushInstructionPointerWithOffset(offsetBy: number){
+        this.insert8(Instructions.PSH_IP_OFFSETTED);
+        this.insert32(offsetBy);
     }
 
     push(regOrLit: RegisterKey | number){

@@ -1,10 +1,13 @@
-import {Instructions, PUSHABLE_STATE, RegisterKey, REGISTERS} from "./Registers.ts"
+import { InstructionInformation, Instructions, PUSHABLE_STATE, RegisterKey, REGISTERS} from "./Registers.ts"
 import {createMemory, MemoryMapper} from "./Memory.ts"
-import { getNeighboringPixelIndex, indexByCoordinates } from "../utils/coordinates.ts";
+import { drawLine, getNeighboringPixelIndex, indexByCoordinates } from "../utils/coordinates.ts";
 import { ImageData } from "../interfaces/Image.ts";
-import { combineRGB, spreadRGB } from "../utils/color.ts";
+import { combineRGB, modifyLuminosity, spreadRGB } from "../utils/color.ts";
 import { U255 } from "../interfaces/RGBA.ts";
 import { DecodedFile } from "../interfaces/FileShape.ts";
+import { sleep } from "../utils/timing.ts";
+import { seeds } from "../utils/misc.ts";
+import { Direction } from "../interfaces/Actions.ts";
 
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
 const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
@@ -28,9 +31,9 @@ export default class IDGVM {
   /**
    * Copy of the image to modify.
    */
-  private imageCopy: number[];
+  public imageCopy: number[];
   /** The image itself */
-  private image: ImageData;
+  public image: ImageData;
   /**
    * Callback that is executed when a render request has been made
    */
@@ -38,6 +41,8 @@ export default class IDGVM {
 
   private allocatedAmount: number;
   private halt = false;
+
+  private IPStack: number[] = []
   
   /**
    * 
@@ -245,7 +250,14 @@ export default class IDGVM {
     this.setRegister('ip', address);
   }
 
-  execute(instruction: number) {
+  getPixelColor(n: number){
+    return this.image.imageData[n]
+  }
+  setPixelColor(n: number, value: number){
+    this.imageCopy[n] = value;
+  }
+
+  async execute(instruction: number) {
     // console.log(`$ Got instruction ${instruction}`)
     switch (instruction) {
       /**
@@ -537,9 +549,10 @@ export default class IDGVM {
       // Jump to an address if literal value is not equal to the value in the accumulator
       case Instructions.JMP_NOT_EQ: {
         const value = this.fetchCurrentInstruction32();
-        const addressToJumpTo = this.fetchCurrentInstruction32();
+        const address = this.fetchCurrentInstruction32();
         if (value !== this.getRegister('acc')) {
-          this.setRegister('ip', addressToJumpTo);
+          this.IPStack.push(this.getRegister("ip"));
+          this.setRegister('ip', address);
         }
 
         return;
@@ -552,6 +565,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value !== this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -564,6 +578,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value === this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -577,6 +592,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value === this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -589,6 +605,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value < this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -602,6 +619,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value < this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -614,6 +632,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value > this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -627,6 +646,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value > this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -639,6 +659,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value <= this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -652,6 +673,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value <= this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -664,6 +686,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value >= this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -677,6 +700,7 @@ export default class IDGVM {
         const address = this.fetchCurrentInstruction32();
 
         if (value >= this.getRegister('acc')) {
+          this.IPStack.push(this.getRegister("ip"));
           this.setRegister('ip', address);
         }
 
@@ -702,15 +726,29 @@ export default class IDGVM {
         this.push(this.registers.getUint32(registerIndex));
         return;
       }
+
+      /**
+       * @deprecated
+       */
       case Instructions.PSH_STATE: {
         this.pushState()
+        return;
+      }
+
+      case Instructions.PSH_IP: {
+        this.IPStack.push(this.getRegister("ip"));
+        return;
+      }
+      case Instructions.PSH_IP_OFFSETTED: {
+        this.IPStack.push(this.getRegister("ip") + this.fetchCurrentInstruction32());
         return;
       }
 
       // Pop
       case Instructions.POP: {
         const registerIndex = this.fetchRegisterIndex();
-        const value = this.pop();
+        const value = this.IPStack.pop();
+        if(!value) throw new Error("Pop called on an empty stack");
         this.registers.setUint32(registerIndex, value);
         return;
       }
@@ -722,9 +760,8 @@ export default class IDGVM {
        *  */ 
       case Instructions.CAL_LIT: {
         const address = this.fetchCurrentInstruction32();
-        this.pushState();
+        this.IPStack.push(this.getRegister("ip"));
         this.setRegister('ip', address);
-        console.log("Call location called addr:", address, this.getRegister("ip"));
 
         return;
       }
@@ -733,7 +770,7 @@ export default class IDGVM {
       case Instructions.CAL_REG: {
         const registerIndex = this.fetchRegisterIndex();
         const address = this.registers.getUint32(registerIndex);
-        this.pushState();
+        this.IPStack.push(this.getRegister("ip"));
         this.setRegister('ip', address);
         return;
       }
@@ -759,9 +796,6 @@ export default class IDGVM {
       }
 
       case Instructions.MODIFY_PIXEL: {
-        // const x = this.fetchCurrentInstruction32();
-        // const y = this.fetchCurrentInstruction32();
-        // const color = this.fetchCurrentInstruction32();
         const x = this.getRegister("x");
         const y = this.getRegister("y");
         const color = this.getRegister("COL");
@@ -799,7 +833,7 @@ export default class IDGVM {
       case Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES: {
         const x = this.getRegister("x");
         const y = this.getRegister("y");
-        const reg = this.fetchCurrentInstruction32(); // where to store
+        const reg = this.fetchRegisterIndex(); // where to store
         this.registers.setUint32(reg, indexByCoordinates(x,y,this.image.width));
         return;
       }
@@ -829,27 +863,158 @@ export default class IDGVM {
         return;
       }
 
+      case Instructions.LANGTONS_ANT: {
+        let currentX = this.getRegister("x");
+        let currentY = this.getRegister("y");
+        let direction = this.getRegister("r9"); // TODO: dedicated or something else
+        const color1 = this.fetchCurrentInstruction32(); // clock
+        const color2 = this.fetchCurrentInstruction32(); // anti-clock
+
+        const thisIndex = indexByCoordinates(currentX, currentY, this.image.width);
+        
+        const moveForward = (d: number)=>{
+          switch(d){
+            case 1: currentX++; break; // 1 -> right
+            case 2: currentY++; break; // 2 -> bottom
+            case 3: currentX--; break; // 3  -> left
+            case 4: currentY--; break; // 4 -> top
+          }
+        }
+
+        const saveBack = (dir: number, x: number, y: number) => {
+          this.setRegister("r9", dir);
+          this.setRegister("x", x);
+          this.setRegister("y", y);
+        }
+
+        if(color1 === this.image.imageData[thisIndex]){
+          // turn 90° clockwise, 
+          direction++;
+          if(direction > 4) direction = 1;
+          // flip the color of the square,
+          this.imageCopy[thisIndex] = color2;
+          // move forward one unit
+          moveForward(direction);
+          saveBack(direction, currentX, currentY);
+        }else if(color2 === this.image.imageData[indexByCoordinates(currentX, currentY, this.image.width)]){
+          // turn 90° counter-clockwise
+          direction--;
+          if(direction < 1) direction = 4;
+          // flip the color of the square
+          this.imageCopy[thisIndex] = color1;
+          // move forward one unit
+          moveForward(direction);
+          saveBack(direction, currentX, currentY);
+        }
+        return;
+      }
+
+      case Instructions.SEEDS: {
+        const onColor = this.fetchCurrentInstruction32();
+        const offColor = this.fetchCurrentInstruction32();
+        for(let i = 0; i < this.image.imageData.length;i++) seeds(this, i ,onColor, offColor);
+        return;
+      }
+
 
       case Instructions.DRAW_BOX: {
         const color = this.getRegister("COL");
 
-        let x = this.getRegister("x");
-        let y = this.getRegister("y");
+        const x = this.getRegister("x");
+        const y = this.getRegister("y");
 
-        let width = this.fetchCurrentInstruction32(); // supplied
-        let height = this.fetchCurrentInstruction32(); // supplied
+        const width = this.fetchCurrentInstruction32(); // supplied
+        const height = this.fetchCurrentInstruction32(); // supplied
 
 
           for (let tY = 0; tY <= height; tY++) {
             for (let tX = 0; tX <= width; tX++) {
-              const nX = tX + x;
-              const nY = tY + y;
+              const nX = tX + x; const nY = tY + y;
               if (Math.min(nX, nY) < 1 || nX > this.image.width || nY > this.image.height) continue;
               this.imageCopy[indexByCoordinates(nX, nY, this.image.width)] = color;
             }
         }
         return;
       }
+
+      case Instructions.DRAW_CIRCLE: {
+        const color = this.getRegister("COL");
+
+        const x = this.getRegister("x");
+        const y = this.getRegister("y");
+
+        const radius = this.fetchCurrentInstruction32(); // supplied
+
+        const radSquared = radius ** 2;
+        for (let currentY = Math.max(1, y - radius); currentY <= Math.min(y + radius, this.image.height); currentY++) {
+            for (let currentX = Math.max(1, x - radius); currentX <= Math.min(x + radius, this.image.width); currentX++) {
+                if ((currentX - x) ** 2 + (currentY - y) ** 2 < radSquared) this.imageCopy[indexByCoordinates(currentX, currentY, this.image.width)] = color;
+            }
+        }
+        return;
+      }
+      case Instructions.DRAW_LINE_P1REG_P2REG: {
+        const point1_x = this.registers.getUint32(this.fetchRegisterIndex());
+        const point1_y = this.registers.getUint32(this.fetchRegisterIndex());
+
+        const point2_x = this.registers.getUint32(this.fetchRegisterIndex());
+        const point2_y = this.registers.getUint32(this.fetchRegisterIndex());
+        drawLine(this,point1_x, point1_y,  point2_x, point2_y);
+        return;
+      }
+      case Instructions.DRAW_LINE_P1LIT_P2LIT: {
+        const point1_x = this.fetchCurrentInstruction32();
+        const point1_y = this.fetchCurrentInstruction32();
+
+        const point2_x = this.fetchCurrentInstruction32();
+        const point2_y = this.fetchCurrentInstruction32();
+        drawLine(this,point1_x, point1_y,  point2_x, point2_y);
+        return;
+      }
+
+
+      case Instructions.IMAGE_WIDTH_REG: {
+        const regToStoreIn = this.fetchRegisterIndex();
+        this.registers.setUint32(regToStoreIn, this.image.width);
+        return;
+      }
+      case Instructions.IMAGE_HEIGHT_REG: {
+        const regToStoreIn = this.fetchRegisterIndex();
+        this.registers.setUint32(regToStoreIn, this.image.height);
+        return;
+      }
+      case Instructions.IMAGE_TOTAL_PIXELS_REG: {
+        const regToStoreIn = this.fetchRegisterIndex();
+        this.registers.setUint32(regToStoreIn, this.image.width * this.image.height);
+        return;
+      }
+      case Instructions.INCREASE_PIXEL_LUMINOSITY_REG: {
+        const luminosity = this.registers.getUint32(this.fetchRegisterIndex());
+        const x = this.getRegister("x");
+        const y = this.getRegister("y");
+        const index = indexByCoordinates(x,y,this.image.width);
+        this.imageCopy[index] = modifyLuminosity(luminosity, this.imageCopy[index]);
+        return;
+      }
+      case Instructions.DECREASE_PIXEL_LUMINOSITY_REG: {
+        const luminosity = -this.registers.getUint32(this.fetchRegisterIndex());
+        const x = this.getRegister("x");
+        const y = this.getRegister("y");
+        const index = indexByCoordinates(x,y,this.image.width);
+        this.imageCopy[index] = modifyLuminosity(luminosity, this.imageCopy[index]);
+        return;
+      }
+      case Instructions.INCREASE_IMAGE_LUMINOSITY_REG: {
+        const luminosity = this.registers.getUint32(this.fetchRegisterIndex());
+        for(let i = 0; i < this.imageCopy.length; i++) this.imageCopy[i] = modifyLuminosity(luminosity, this.imageCopy[i]);
+        return;
+      }
+      case Instructions.DECREASE_IMAGE_LUMINOSITY_REG: {
+        const luminosity = -this.registers.getUint32(this.fetchRegisterIndex());
+        for(let i = 0; i < this.imageCopy.length; i++) this.imageCopy[i] = modifyLuminosity(luminosity, this.imageCopy[i]);
+        return;
+      }
+
       case Instructions.INTERVAL: {
         const time = this.fetchCurrentInstruction32();
         const addressToCall = this.fetchCurrentInstruction32();
@@ -873,13 +1038,22 @@ export default class IDGVM {
 
       // Return from subroutine
       case Instructions.RET: {
-        this.popState();
+        let lastIP = this.IPStack.pop();
+        if(!lastIP) throw new Error("Nowhere to return to");
+        this.setRegister("ip", lastIP);
         return;
       }
 
       case Instructions.RET_TO_NEXT: {
-        this.popState();
-        this.setRegister("ip", this.getRegister("ip") + 1);
+        let lastIP = this.IPStack.pop();
+        if(!lastIP) throw new Error("Nowhere to return to");
+        this.setRegister("ip", lastIP + 1);
+        return;
+      }
+
+      case Instructions.SLEEP: {
+        const time = this.fetchCurrentInstruction32();
+        await sleep(time);
         return;
       }
 
@@ -887,21 +1061,28 @@ export default class IDGVM {
       case Instructions.HLT: {
         return true;
       }
+      case Instructions.DEBUG: {
+        const id = this.fetchCurrentInstruction8();
+        console.log(`####### DEBUG ${id} ##################`)
+        this.debug();
+        console.log(`####### END DEBUG ${id} ##############`)
+        return;
+      }
       case 0: {return;}
       default: console.error(`instruction ${0} is not an executable instruction, make sure your instructions are aligned properly by padding the values that are too small for a complete instruction.`)
     }
   }
 
-  step() {
+  async step() {
     const instruction = this.fetchCurrentInstruction8();
-    console.log(`STEP[${this.getRegister("ip")}] -> instr: ${instruction}`)
+    // console.log(`IP[${this.getRegister("ip")}] -> instr: ${instruction} $$ ${InstructionInformation[instruction as Instructions]?.desc || "EMPTY SLOT"}`)
     if(instruction === 0) this.emptyInstructionAtStep++;
     if(instruction === -1 || this.emptyInstructionAtStep > 50) return true;
-    return this.execute(instruction);
+    return await this.execute(instruction);
   }
 
-  run() {
-    this.halt = this.step() || false;
+  async run() {
+    this.halt = await this.step() || false;
     if (!this.halt) {
       setTimeout(() => this.run());
     }
