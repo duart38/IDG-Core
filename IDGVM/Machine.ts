@@ -254,7 +254,9 @@ export default class IDGVM {
     return this.image.imageData[n]
   }
   setPixelColor(n: number, value: number){
-    this.imageCopy[n] = value;
+    if(n > 0 && n < this.imageCopy.length){
+      this.imageCopy[n] = value;
+    }
   }
 
   async execute(instruction: number) {
