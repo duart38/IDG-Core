@@ -152,6 +152,7 @@ export default class IDGVM {
     this.setRegister('ip', nextInstructionAddress + 1);
     return instruction;
   }
+  //TODO: fetch instruction methods for signed integers
 
   fetchCurrentInstruction16() {
     const nextInstructionAddress = this.getRegister('ip');

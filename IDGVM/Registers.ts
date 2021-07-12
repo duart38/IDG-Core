@@ -50,26 +50,37 @@ console.log("pushable state", PUSHABLE_STATE);
 
 export enum Instructions {
   // movement instructions
+  // TODO: combine, use 8-bit value to know which one we are referring to
   MOV_LIT_REG = 1, // shift to make all instructions values go after 1.. 0 is for un-initialized
   MOV_REG_REG,
   MOV_REG_MEM,
   MOV_MEM_REG,
   MOV_LIT_MEM,
-  MOV_REG_PTR_REG,
-  MOV_LIT_OFF_REG,
+  MOV_REG_PTR_REG, // TODO: not very needed
+  MOV_LIT_OFF_REG, // TODO: not very needed
 
   // arithmetic shenanigans
+  // TODO: combine and use 8-bit to represent which of them we are referring to
   ADD_REG_REG,
+  // TODO: ADD_REG_MEM (after we combine)
+  // TODO: ADD_LIT_MEM (after we combine)
   ADD_LIT_REG,
   SUB_LIT_REG,
   SUB_REG_LIT,
   SUB_REG_REG,
+  // TODO: SUB_REG_MEM (after we combine)
+  // TODO: SUB_MEM_REG (after we combine)
+  // TODO: SUB_LIT_MEM (after we combine)
+  // TODO: SUB_MEM_LIT (after we combine)
   INC_REG,
   DEC_REG,
   MUL_LIT_REG,
   MUL_REG_REG,
+  // TODO: MUL_LIT_MEM (after we combine)
+  // TODO: MUL_LIT_REG (after we combine)
 
   // bitwise operations
+  // TODO: combine and introduce 8-bit instr to indicate which one to target
   LSF_REG_LIT,
   LSF_REG_REG,
   RSF_REG_LIT,
@@ -83,7 +94,8 @@ export enum Instructions {
   NOT,
 
   // jumpy baby jump
-  JMP_NOT_EQ,
+  // TODO: combine all of these together and represent the "type" with an 8-bit integer. also include types for storing outside of the acc
+  JMP_NOT_EQ, // TODO: rename to JNE_LIT (but must be combined, see above todo)
   JNE_REG,
   JEQ_REG,
   JEQ_LIT,
@@ -127,23 +139,30 @@ export enum Instructions {
   INTERVAL,
 
 
-  // TODO: dump to disk (.idg or internal) instruction. this ins is problematic as in some cases (browser) you would not be able to persist data
-
   // image specific instructions
   /**
    * Modifies the pixel data by taking values from the registers (x,y,COL)
    */
   MODIFY_PIXEL,
+
+
+
   /**
    * Instructs VM to render the image (basically dumping the image copy into the image itself).
    * Also calls a callback that is always called when the original image is updated.
    */
   RENDER,
   SLEEP,
+
+
+  // TODO: combine IMAGE_*. including todo's
   IMAGE_WIDTH_REG,
+  // TODO: IMAGE_WIDTH_MEM
   IMAGE_HEIGHT_REG,
-  /** Also known as the surface (i.e. width * height) */
+  // TODO: IMAGE_HEIGHT_MEM 
   IMAGE_TOTAL_PIXELS_REG,
+  // TODO: IMAGE_TOTAL_PIXELS_MEM
+
   /**
    * Gets the neighboring pixel in a given direction and puts its index in the supplied register.
    */
@@ -171,6 +190,8 @@ export enum Instructions {
    * Converts the color value stored in the register COL to an RGB vector and spreads this in the r,g,b registers
    */
   COLOR_FROMREG_TO_RGB,
+
+  // TODO: combine draw instructions aswell 
   /**
    * Draws a box at the x,y offset that is stored in the register.
    * This instruction takes the color of the values stored in the COL register (NOT THE RGB ONE!!).
@@ -178,6 +199,7 @@ export enum Instructions {
    */
   DRAW_BOX,
   DRAW_CIRCLE,
+  // TODO: draw arc (curve)
   /**
    * Draws a line taking the x and the y of both points from 4 registers
    */
@@ -186,12 +208,23 @@ export enum Instructions {
 
   SHIFT_PIXEL_LIT,
 
+
+  // TODO: combine
   INCREASE_PIXEL_LUMINOSITY_REG,
-  DECREASE_PIXEL_LUMINOSITY_REG,
+  DECREASE_PIXEL_LUMINOSITY_REG, // TODO: introduce singed integer and combine with increasing by using negative values
   INCREASE_IMAGE_LUMINOSITY_REG,
   DECREASE_IMAGE_LUMINOSITY_REG,
+  // TODO: adjust R
+  // TODO: adjust G
+  // TODO: adjust B
 
-  // TODO: filters.. they save the state of the pixels that they will modify and next round they reset the previous pixels and apply something else
+
+
+  // TODO: instruction to define (bounds) in which a certain action can take place (https://en.wikipedia.org/wiki/Point_in_polygon#Ray_casting_algorithm)
+  // TODO: fill bounds
+  // TODO: apply blur to bounds (based on kernel)
+  // TODO: 
+
 
   /////// MISC ///////////
   /**
@@ -206,6 +239,12 @@ export enum Instructions {
   DEBUG,
 
 }
+
+
+// TODO: add a map here that indicates for each instructions the size of the parameters they take
+//        e.g.: [1, 4, 4] -> 8-bit, 32-bit, 32-bit, we would probably use an enum here instead of those values
+//        the above is to be used with the upcoming yield (generator) functions
+
 
 /**
  * Helper used for providing information about a specific instruction. can be used for parsing
