@@ -70,6 +70,6 @@ export default class IDGLoader {
         this.vm.run();
     }
     stopVM(){
-        this.vm.execute(Instructions.HLT);
+        this.vm.execute([Instructions.HLT]);
     }
 }
