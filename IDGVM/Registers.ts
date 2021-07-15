@@ -51,62 +51,35 @@ console.log("pushable state", PUSHABLE_STATE);
 export enum Instructions {
   // movement instructions
   // TODO: combine, use 8-bit value to know which one we are referring to
-  MOV_LIT_REG = 1, // shift to make all instructions values go after 1.. 0 is for un-initialized
-  MOV_REG_REG,
-  MOV_REG_MEM,
-  MOV_MEM_REG,
-  MOV_LIT_MEM,
-  MOV_REG_PTR_REG, // TODO: not very needed
-  MOV_LIT_OFF_REG, // TODO: not very needed
+  MOVE = 1,
 
   // arithmetic shenanigans
   // TODO: combine and use 8-bit to represent which of them we are referring to
-  ADD_REG_REG,
-  // TODO: ADD_REG_MEM (after we combine)
-  // TODO: ADD_LIT_MEM (after we combine)
-  ADD_LIT_REG,
-  SUB_LIT_REG,
-  SUB_REG_LIT,
-  SUB_REG_REG,
-  // TODO: SUB_REG_MEM (after we combine)
-  // TODO: SUB_MEM_REG (after we combine)
-  // TODO: SUB_LIT_MEM (after we combine)
-  // TODO: SUB_MEM_LIT (after we combine)
+  ADD,
+  
+  SUBTRACT,
+
   INC_REG,
   DEC_REG,
-  MUL_LIT_REG,
-  MUL_REG_REG,
-  // TODO: MUL_LIT_MEM (after we combine)
-  // TODO: MUL_LIT_REG (after we combine)
+  MULTIPLY,
 
   // bitwise operations
   // TODO: combine and introduce 8-bit instr to indicate which one to target
-  LSF_REG_LIT,
-  LSF_REG_REG,
-  RSF_REG_LIT,
-  RSF_REG_REG,
-  AND_REG_LIT,
-  AND_REG_REG,
-  OR_REG_LIT,
-  OR_REG_REG,
-  XOR_REG_LIT,
-  XOR_REG_REG,
+  BITWISE_SHIFT,
+
+  BITWISE_AND,
+  BITWISE_OR,
   NOT,
 
   // jumpy baby jump
-  // TODO: combine all of these together and represent the "type" with an 8-bit integer. also include types for storing outside of the acc
-  JMP_NOT_EQ, // TODO: rename to JNE_LIT (but must be combined, see above todo)
-  JNE_REG,
-  JEQ_REG,
-  JEQ_LIT,
-  JLT_REG,
-  JLT_LIT,
-  JGT_REG,
-  JGT_LIT,
-  JLE_REG,
-  JLE_LIT,
-  JGE_REG,
-  JGE_LIT,
+  /**
+   * Jump based on the value in the accumulator against a condition
+   **/
+  JMP_ACC,
+  // TODO: add separate jump instructions for checking against 2 locations instead of accumulator
+
+
+  
   GOTO,
 
   // stack instructions
@@ -117,8 +90,8 @@ export enum Instructions {
    */
   PSH_STATE,
   POP,
-  CAL_LIT,
-  CAL_REG,
+  CALL,
+
   RET,
   RET_TO_NEXT,
   HLT,
@@ -210,6 +183,7 @@ export enum Instructions {
 
 
   // TODO: combine
+  // TODO: also make sure to include a zone mode (it cant introduce another parameter so figure out something else)
   INCREASE_PIXEL_LUMINOSITY_REG,
   DECREASE_PIXEL_LUMINOSITY_REG, // TODO: introduce singed integer and combine with increasing by using negative values
   INCREASE_IMAGE_LUMINOSITY_REG,
@@ -244,93 +218,70 @@ export enum Instructions {
 // TODO: add a map here that indicates for each instructions the size of the parameters they take
 //        e.g.: [1, 4, 4] -> 8-bit, 32-bit, 32-bit, we would probably use an enum here instead of those values
 //        the above is to be used with the upcoming yield (generator) functions
+export enum ParameterFetchType {
+  unsignedINT8, signedINT8,
+  unsignedINT16, signedINT16,
+  unsignedINT32, signedINT32,
+  registerIndex
 
+}
 
 /**
- * Helper used for providing information about a specific instruction. can be used for parsing
- * size -> the size in bytes that this instruction takes..
+ * Includes the list of parameters (types) that the generator should fetch.
+ * NOTE: Does not include the instruction itself as that has already been fetched at the time of querying this object
  */
-export const InstructionInformation: Record<Instructions, {size: number, desc: string}> = {
-    [Instructions.PSH_IP]: {size: 1, desc: "Push instruction pointer to stack"},
-    [Instructions.PSH_IP_OFFSETTED]: {size: 5, desc: "Push instruction pointer with, an offset applied, to the stack"},
-    [Instructions.DEBUG]: {size: 2, desc: "!debug!"},
-    [Instructions.MOV_LIT_REG]: {size: 9, desc: "move a literal value to register"},
-    [Instructions.MOV_REG_REG]: {size: 9, desc: "move a register to a register"},
-    [Instructions.MOV_REG_MEM]: {size: 9, desc: "move register to a memory location"},
-    [Instructions.MOV_MEM_REG]: {size: 9, desc: "move memory to a register"},
-    [Instructions.MOV_LIT_MEM]: {size: 9, desc: "move literal to memory"},
-    [Instructions.MOV_REG_PTR_REG]: {size: 9, desc: "move register pointer to a memory"},
-    [Instructions.MOV_LIT_OFF_REG]: {size: 13, desc: ""},
-    [Instructions.ADD_REG_REG]: {size: 9, desc: "Add register to register and store in acc"},
-    [Instructions.ADD_LIT_REG]: {size: 9, desc: "Add literal to register and store in acc"},
-    [Instructions.SUB_LIT_REG]: {size: 9, desc: "Subtract literal from register and store in acc"},
-    [Instructions.SUB_REG_LIT]: {size: 9, desc: "subtract reg from literal and store in acc"},
-    [Instructions.SUB_REG_REG]: {size: 9, desc: "subtract reg from reg and store in acc"},
-    [Instructions.INC_REG]: {size: 5, desc: "increment register in place"},
-    [Instructions.DEC_REG]: {size: 5, desc: "decrement register in place"},
-    [Instructions.MUL_LIT_REG]: {size: 9, desc: "multiply literal by register and store in acc"},
-    [Instructions.MUL_REG_REG]: {size: 9, desc: "multiply register by register and store in acc"},
-    [Instructions.LSF_REG_LIT]: {size: 9, desc: "left shift reg by literal in place"},
-    [Instructions.LSF_REG_REG]: {size: 9, desc: "left shift reg by reg and store in first reg"},
-    [Instructions.RSF_REG_LIT]: {size: 6, desc: "right shift reg by lit and store in place"},
-    [Instructions.RSF_REG_REG]: {size: 9, desc: "right shift reg by reg and store in first"},
-    [Instructions.AND_REG_LIT]: {size: 9, desc: "reg & lit -> acc"},
-    [Instructions.AND_REG_REG]: {size: 9, desc: "reg & reg -> acc"},
-    [Instructions.OR_REG_LIT]: {size: 9, desc: "reg OR lit -> acc"},
-    [Instructions.OR_REG_REG]: {size: 9, desc: "reg OR reg -> acc"},
-    [Instructions.XOR_REG_LIT]: {size: 9, desc: "reg XOR lit -> acc"},
-    [Instructions.XOR_REG_REG]: {size: 9, desc: "reg XOR reg -> acc"},
-    [Instructions.NOT]: {size: 5, desc: "reg bitwise-NOT reg -> acc"},
-    [Instructions.JMP_NOT_EQ]: {size: 9, desc: "Jump if literal not equals to acc"},
-    [Instructions.JNE_REG]: {size: 9, desc: "Jump if regV not equals to acc"},
-    [Instructions.JEQ_REG]: {size: 9, desc: "Jump if regV is equals to acc"},
-    [Instructions.JEQ_LIT]: {size: 9, desc: "Jump if literal is equal to acc"},
-    [Instructions.JLT_REG]: {size: 9, desc: "Jump if regV is less than acc"},
-    [Instructions.JLT_LIT]: {size: 9, desc: "Jump if literal is less than acc"},
-    [Instructions.JGT_REG]: {size: 9, desc: "Jump if regV is greater than acc"},
-    [Instructions.JGT_LIT]: {size: 9, desc: "Jump if literal is greater than acc"},
-    [Instructions.JLE_REG]: {size: 9, desc: "Jump if regV is less than or equal to acc"},
-    [Instructions.JLE_LIT]: {size: 9, desc: "Jump if literal is less than or equal to acc"},
-    [Instructions.JGE_REG]: {size: 9, desc: "Jump if regV is greater than or equal to acc"},
-    [Instructions.JGE_LIT]: {size: 9, desc: "Jump if literal is greater than or equal to acc"},
-    [Instructions.GOTO]: {size: 5, desc: "Go to address"},
-    [Instructions.PSH_LIT]: {size: 5, desc: "push a literal unto the stack"},
-    [Instructions.PSH_REG]: {size: 5, desc: "push a regV to the stack"},
-    [Instructions.PSH_STATE]: {size: 1, desc: "push all register state values on the stack"},
-    [Instructions.POP]: {size: 5, desc: "pop one item from the stack"},
-    [Instructions.CAL_LIT]: {size: 5, desc: "call a literal address"},
-    [Instructions.CAL_REG]: {size: 5, desc: "call an address from the value of a register"},
-    [Instructions.RET]: {size: 1, desc: "return from a subroutine"},
-    [Instructions.RET_TO_NEXT]: {size: 1, desc: "return from a subroutine but increment ip by one"},
-    [Instructions.HLT]: {size: 1, desc: "halt the machine"},
-    [Instructions.RET_INT]: {size: 1, desc: "return from an interup"},
-    [Instructions.INT]: {size: 5, desc: "interrupt"},
-    [Instructions.RAND]: {size: 9, desc: "get a random number and store it in acc"},
-    [Instructions.SKIP]: {size: 5, desc: "skip instructions"},
-    [Instructions.MODIFY_PIXEL]: {size: 1, desc: "modify a pixel"},
-    [Instructions.RENDER]: {size: 1, desc: "request a render"},
-    [Instructions.SHIFT_PIXEL_LIT]: {size: 2, desc: "shift a pixel in a given direction"},
-    [Instructions.NEIGHBORING_PIXEL_INDEX_TO_REG]: {size: 10, desc: "gets a neighboring pixel stores it in a register"},
-    [Instructions.NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG]: {size: 10, desc: "gets a neighboring pixel stores it in a register"},
-    [Instructions.FETCH_PIXEL_COLOR_BY_INDEX]: {size: 5, desc: "Fetch pixel color by index (literal) and store in COL"},
-    [Instructions.FETCH_PIXEL_COLOR_BY_REGISTER_INDEX]: {size: 5, desc: "pixel color by registerV and store in COL"},
-    [Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES]: {size: 5, desc: "pixel color by register 'x','y' -> COL"},
-    [Instructions.RGB_FROMREG_TO_COLOR]: {size: 1, desc: "RGB_FROMREG_TO_COLOR"},
-    [Instructions.RGB_LIT_TO_COLOR]: {size: 4, desc: "RGB_LIT_TO_COLOR"},
-    [Instructions.COLOR_FROMREG_TO_RGB]: {size: 1, desc: "COLOR_FROMREG_TO_RGB"},
-    [Instructions.IMAGE_WIDTH_REG]: {size: 5, desc: "IMAGE_WIDTH_REG"},
-    [Instructions.IMAGE_HEIGHT_REG]: {size: 5, desc: "IMAGE_HEIGHT_REG"},
-    [Instructions.INCREASE_PIXEL_LUMINOSITY_REG]: {size: 5, desc: "INCREASE_PIXEL_LUMINOSITY_REG"},
-    [Instructions.DECREASE_PIXEL_LUMINOSITY_REG]: {size: 5, desc: "DECREASE_PIXEL_LUMINOSITY_REG"},
-    [Instructions.INCREASE_IMAGE_LUMINOSITY_REG]: {size: 5, desc: "INCREASE_IMAGE_LUMINOSITY_REG"},
-    [Instructions.DECREASE_IMAGE_LUMINOSITY_REG]: {size: 5, desc: "DECREASE_IMAGE_LUMINOSITY_REG"},
-    [Instructions.IMAGE_TOTAL_PIXELS_REG]: {size: 5, desc: "IMAGE_TOTAL_PIXELS_REG"},
-    [Instructions.DRAW_BOX]: {size: 9, desc: "DRAW_BOX"},
-    [Instructions.DRAW_LINE_P1REG_P2REG]: {size: 17, desc: "Draw line between 2 points fetched from register"},
-    [Instructions.DRAW_LINE_P1LIT_P2LIT]: {size: 17, desc: "Draw line between 2 points fetched from 4 literal values"},
-    [Instructions.DRAW_CIRCLE]: {size: 5, desc: "DRAW_CIRCLE"},
-    [Instructions.INTERVAL]: {size: 9, desc: "INTERVAL"},
-    [Instructions.SLEEP]: {size: 5, desc: "SLEEP"},
-    [Instructions.LANGTONS_ANT]: {size: 9 , desc: "Apply langtons ant for one generation"},
-    [Instructions.SEEDS]: {size: 9 , desc: "Apply Seeds by Brian Silverman"},
+export const InstructionParams: Record<Instructions, ParameterFetchType[]> = {
+  [Instructions.PSH_IP]: [],
+  [Instructions.PSH_IP_OFFSETTED]: [ParameterFetchType.unsignedINT32],
+  [Instructions.DEBUG]: [ParameterFetchType.unsignedINT8],
+  [Instructions.MOVE]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+  [Instructions.ADD]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+  [Instructions.SUBTRACT]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+  [Instructions.INC_REG]: [ParameterFetchType.signedINT32],
+  [Instructions.DEC_REG]: [ParameterFetchType.signedINT32],
+  [Instructions.MULTIPLY]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+  [Instructions.BITWISE_SHIFT]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+  [Instructions.BITWISE_AND]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+  [Instructions.BITWISE_OR]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+  [Instructions.NOT]: [ParameterFetchType.unsignedINT32],
+  [Instructions.JMP_ACC]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+  [Instructions.GOTO]: [ParameterFetchType.unsignedINT32],
+  [Instructions.PSH_LIT]: [ParameterFetchType.unsignedINT32],
+  [Instructions.PSH_REG]: [ParameterFetchType.unsignedINT32],
+  [Instructions.PSH_STATE]: [],
+  [Instructions.POP]: [ParameterFetchType.unsignedINT32],
+  [Instructions.CALL]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32],
+  [Instructions.RET]: [],
+  [Instructions.RET_TO_NEXT]: [],
+  [Instructions.HLT]: [],
+  [Instructions.RET_INT]: [],
+  [Instructions.INT]: [ParameterFetchType.unsignedINT32],
+  [Instructions.RAND]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+  [Instructions.SKIP]: [ParameterFetchType.unsignedINT32],
+  [Instructions.MODIFY_PIXEL]: [],
+  [Instructions.RENDER]: [],
+  [Instructions.SHIFT_PIXEL_LIT]: [],
+  [Instructions.NEIGHBORING_PIXEL_INDEX_TO_REG]: [],
+  [Instructions.NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG]: [],
+  [Instructions.FETCH_PIXEL_COLOR_BY_INDEX]: [],
+  [Instructions.FETCH_PIXEL_COLOR_BY_REGISTER_INDEX]: [],
+  [Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES]: [],
+  [Instructions.RGB_FROMREG_TO_COLOR]: [],
+  [Instructions.RGB_LIT_TO_COLOR]: [],
+  [Instructions.COLOR_FROMREG_TO_RGB]: [],
+  [Instructions.IMAGE_WIDTH_REG]: [],
+  [Instructions.IMAGE_HEIGHT_REG]: [],
+  [Instructions.INCREASE_PIXEL_LUMINOSITY_REG]: [],
+  [Instructions.DECREASE_PIXEL_LUMINOSITY_REG]: [],
+  [Instructions.INCREASE_IMAGE_LUMINOSITY_REG]: [],
+  [Instructions.DECREASE_IMAGE_LUMINOSITY_REG]: [],
+  [Instructions.IMAGE_TOTAL_PIXELS_REG]: [],
+  [Instructions.DRAW_BOX]: [],
+  [Instructions.DRAW_LINE_P1REG_P2REG]: [],
+  [Instructions.DRAW_LINE_P1LIT_P2LIT]: [],
+  [Instructions.DRAW_CIRCLE]: [],
+  [Instructions.INTERVAL]: [],
+  [Instructions.SLEEP]: [],
+  [Instructions.LANGTONS_ANT]: [],
+  [Instructions.SEEDS]: [],
 }
