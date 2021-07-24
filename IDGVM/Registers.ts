@@ -50,8 +50,8 @@ console.log("pushable state", PUSHABLE_STATE);
 
 export enum Instructions {
   // movement instructions
-  // TODO: combine, use 8-bit value to know which one we are referring to
   MOVE = 1,
+  MOVE_S, // move instruction but with signed values
 
   // arithmetic shenanigans
   // TODO: combine and use 8-bit to represent which of them we are referring to
@@ -101,7 +101,7 @@ export enum Instructions {
   PSH_IP_OFFSETTED,
 
   // QOF instructions
-  RAND, // TODO: RAND_REG_REG
+  RAND,
   SKIP,
   /**
    * Starts an interval that when its time, executes the address provided.
@@ -116,6 +116,7 @@ export enum Instructions {
   /**
    * Modifies the pixel data by taking values from the registers (x,y,COL)
    */
+  MODIFY_PIXEL_REG,
   MODIFY_PIXEL,
 
 
@@ -128,66 +129,53 @@ export enum Instructions {
   SLEEP,
 
 
-  // TODO: combine IMAGE_*. including todo's
-  IMAGE_WIDTH_REG,
-  // TODO: IMAGE_WIDTH_MEM
-  IMAGE_HEIGHT_REG,
-  // TODO: IMAGE_HEIGHT_MEM 
-  IMAGE_TOTAL_PIXELS_REG,
-  // TODO: IMAGE_TOTAL_PIXELS_MEM
+  FETCH_IMAGE_INFO,
 
   /**
    * Gets the neighboring pixel in a given direction and puts its index in the supplied register.
    */
-  NEIGHBORING_PIXEL_INDEX_TO_REG,
-  NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG,
-  /**
-   * Fetches the pixel color from the supplied index and dumps it into the COL register
-   */
+  FETCH_PIXEL_NEIGHBOR,
   FETCH_PIXEL_COLOR_BY_INDEX,
-  FETCH_PIXEL_COLOR_BY_REGISTER_INDEX,
   /**
    * Fetches a pixel index by the x and y values currently stored in the register.. stores it in the supplied register
    */
   FETCH_PIXEL_INDEX_BY_REG_COORDINATES,
   /**
-   * Converts the RGB value stored in the register to a combined RGB color and stores it in the COL register
+   * Fetches the pixel index based on the supplied x,y locations or literals and stored in the provided location
+   * Note: "FETCH_PIXEL_INDEX_BY_REG_COORDINATES" is preferred as it is more efficient (takes up less memory)
+   * */
+  FETCH_PIXEL_INDEX,
+  /**
+   * Converts the RGB value stored in the register to a combined RGB color and stores it in the COL register.
+   * This instruction is more efficient than the "RGB_TO_COLOR" as it requires no parameters
    */
   RGB_FROMREG_TO_COLOR,
   /**
    * Converts the RGB literal (supplied) to a combined RGB color and stored it in the COL register.
-   * NOTE: consider using this instruction instead of manually pushing things to the register. this method takes less space.
+   * Prefer this instruction over "RGB_FROMREG_TO_COLOR" as it is more efficient
    */
-  RGB_LIT_TO_COLOR,
+  RGB_TO_COLOR,
   /**
    * Converts the color value stored in the register COL to an RGB vector and spreads this in the r,g,b registers
    */
   COLOR_FROMREG_TO_RGB,
 
-  // TODO: combine draw instructions aswell 
-  /**
-   * Draws a box at the x,y offset that is stored in the register.
-   * This instruction takes the color of the values stored in the COL register (NOT THE RGB ONE!!).
-   * Supplied are width and height
-   */
+
   DRAW_BOX,
+  DRAW_BOX_MANUAL,
   DRAW_CIRCLE,
   // TODO: draw arc (curve)
   /**
    * Draws a line taking the x and the y of both points from 4 registers
    */
-  DRAW_LINE_P1REG_P2REG,
-  DRAW_LINE_P1LIT_P2LIT,
+
+  DRAW_LINE_POINTS,
 
   SHIFT_PIXEL_LIT,
 
 
-  // TODO: combine
   // TODO: also make sure to include a zone mode (it cant introduce another parameter so figure out something else)
-  INCREASE_PIXEL_LUMINOSITY_REG,
-  DECREASE_PIXEL_LUMINOSITY_REG, // TODO: introduce singed integer and combine with increasing by using negative values
-  INCREASE_IMAGE_LUMINOSITY_REG,
-  DECREASE_IMAGE_LUMINOSITY_REG,
+  MODIFY_LUMINOSITY,
   // TODO: adjust R
   // TODO: adjust G
   // TODO: adjust B
@@ -215,7 +203,6 @@ export enum Instructions {
 }
 
 
-// TODO: add a map here that indicates for each instructions the size of the parameters they take
 //        e.g.: [1, 4, 4] -> 8-bit, 32-bit, 32-bit, we would probably use an enum here instead of those values
 //        the above is to be used with the upcoming yield (generator) functions
 export enum ParameterFetchType {
@@ -235,6 +222,7 @@ export const InstructionParams: Record<Instructions, ParameterFetchType[]> = {
   [Instructions.PSH_IP_OFFSETTED]: [ParameterFetchType.unsignedINT32],
   [Instructions.DEBUG]: [ParameterFetchType.unsignedINT8],
   [Instructions.MOVE]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+  [Instructions.MOVE_S]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32], // TODO: test this by providing signed values and see if it retains its precision
   [Instructions.ADD]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
   [Instructions.SUBTRACT]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
   [Instructions.INC_REG]: [ParameterFetchType.signedINT32],
@@ -258,30 +246,25 @@ export const InstructionParams: Record<Instructions, ParameterFetchType[]> = {
   [Instructions.INT]: [ParameterFetchType.unsignedINT32],
   [Instructions.RAND]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
   [Instructions.SKIP]: [ParameterFetchType.unsignedINT32],
-  [Instructions.MODIFY_PIXEL]: [],
+  [Instructions.MODIFY_PIXEL_REG]: [], // takes all values from the register
+  [Instructions.MODIFY_PIXEL]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
   [Instructions.RENDER]: [],
-  [Instructions.SHIFT_PIXEL_LIT]: [],
-  [Instructions.NEIGHBORING_PIXEL_INDEX_TO_REG]: [],
-  [Instructions.NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG]: [],
-  [Instructions.FETCH_PIXEL_COLOR_BY_INDEX]: [],
-  [Instructions.FETCH_PIXEL_COLOR_BY_REGISTER_INDEX]: [],
-  [Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES]: [],
+  [Instructions.SHIFT_PIXEL_LIT]: [], // TODO: not implemented yet (see Machine.ts)
+  [Instructions.FETCH_PIXEL_NEIGHBOR]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32], // type, direction, where to check, where to put
+  [Instructions.FETCH_PIXEL_COLOR_BY_INDEX]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+  [Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES]: [ParameterFetchType.unsignedINT32],
+  [Instructions.FETCH_PIXEL_INDEX]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
   [Instructions.RGB_FROMREG_TO_COLOR]: [],
-  [Instructions.RGB_LIT_TO_COLOR]: [],
+  [Instructions.RGB_TO_COLOR]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT8],
   [Instructions.COLOR_FROMREG_TO_RGB]: [],
-  [Instructions.IMAGE_WIDTH_REG]: [],
-  [Instructions.IMAGE_HEIGHT_REG]: [],
-  [Instructions.INCREASE_PIXEL_LUMINOSITY_REG]: [],
-  [Instructions.DECREASE_PIXEL_LUMINOSITY_REG]: [],
-  [Instructions.INCREASE_IMAGE_LUMINOSITY_REG]: [],
-  [Instructions.DECREASE_IMAGE_LUMINOSITY_REG]: [],
-  [Instructions.IMAGE_TOTAL_PIXELS_REG]: [],
-  [Instructions.DRAW_BOX]: [],
-  [Instructions.DRAW_LINE_P1REG_P2REG]: [],
-  [Instructions.DRAW_LINE_P1LIT_P2LIT]: [],
-  [Instructions.DRAW_CIRCLE]: [],
-  [Instructions.INTERVAL]: [],
-  [Instructions.SLEEP]: [],
-  [Instructions.LANGTONS_ANT]: [],
-  [Instructions.SEEDS]: [],
+  [Instructions.FETCH_IMAGE_INFO]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT32],
+  [Instructions.MODIFY_LUMINOSITY]: [ParameterFetchType.unsignedINT8, ParameterFetchType.signedINT32],
+  [Instructions.DRAW_BOX]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT16, ParameterFetchType.unsignedINT16],
+  [Instructions.DRAW_BOX_MANUAL]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT16, ParameterFetchType.unsignedINT16, ParameterFetchType.unsignedINT16, ParameterFetchType.unsignedINT16, ParameterFetchType.unsignedINT32],
+  [Instructions.DRAW_LINE_POINTS]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT16, ParameterFetchType.unsignedINT16, ParameterFetchType.unsignedINT16, ParameterFetchType.unsignedINT16],
+  [Instructions.DRAW_CIRCLE]: [ParameterFetchType.unsignedINT8, ParameterFetchType.unsignedINT16],
+  [Instructions.INTERVAL]: [ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+  [Instructions.SLEEP]: [ParameterFetchType.unsignedINT32],
+  [Instructions.LANGTONS_ANT]: [ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+  [Instructions.SEEDS]: [ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
 }
