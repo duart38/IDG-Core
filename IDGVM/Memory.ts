@@ -71,10 +71,21 @@ export class MemoryMapper {
     const finalAddress = region.remap ? address - region.start : address;
     return region.device.getUint32(finalAddress);
   }
+  getInt32(address: number): number {
+    const region = this.findRegion(address);
+    const finalAddress = region.remap ? address - region.start : address;
+    return region.device.getInt32(finalAddress);
+  }
+
   setUint32(address: number, value: number): void {
     const region = this.findRegion(address);
     const finalAddress = region.remap ? address - region.start : address;
     return region.device.setUint32(finalAddress, value);
+  }
+  setInt32(address: number, value: number): void {
+    const region = this.findRegion(address);
+    const finalAddress = region.remap ? address - region.start : address;
+    return region.device.setInt32(finalAddress, value);
   }
 
   setUint16(address: number, value: number): void {
@@ -155,8 +166,17 @@ export class InstructionParser {
     }
     return this.registers.getUint32(this.registerMap[name]);
   }
+  getSignedRegister(name: RegisterKey) {
+    if (!(name in this.registerMap)) {
+      throw new Error(`getRegister: No such register '${name}'`);
+    }
+    return this.registers.getInt32(this.registerMap[name]);
+  }
   getRegisterAt(offset: number){
     return this.registers.getUint32(offset);
+  }
+  getSignedRegisterAt(offset: number){
+    return this.registers.getInt32(offset);
   }
 
   setRegister(name: RegisterKey, value: number) {
@@ -165,15 +185,32 @@ export class InstructionParser {
     }
     return this.registers.setUint32(this.registerMap[name], value);
   }
+  setSignedRegister(name: RegisterKey, value: number) {
+    if (!(name in this.registerMap)) {
+      throw new Error(`setRegister: No such register '${name}'`);
+    }
+    return this.registers.setInt32(this.registerMap[name], value);
+  }
   setRegisterAt(offset: number, value: number){
     this.registers.setUint32(offset, value);
+  }
+  setSignedRegisterAt(offset: number, value: number){
+    this.registers.setInt32(offset, value);
   }
   setMemoryAt(offset: number, value: number){
     this.memory.setUint32(offset, value);
   }
+  setSignedMemoryAt(offset: number, value: number){
+    this.memory.setInt32(offset, value);
+  }
+
   getMemoryAt(offset: number){
     return this.memory.getUint32(offset);
   }
+  getSignedMemoryAt(offset: number){
+    return this.memory.getInt32(offset);
+  }
+
 
   push(value: number) {
     // TODO: extract the stack in it's own memory to avoid overlap
