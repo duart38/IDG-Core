@@ -1,5 +1,5 @@
 import { Direction } from "../../interfaces/Actions.ts";
-import { getNeighboringPixelIndex } from "../../utils/coordinates.ts";
+import { getNeighboringPixelIndex, indexByCoordinates } from "../../utils/coordinates.ts";
 import IDGVM from "../Machine.ts";
 
 export enum NeighborRetrievalType {
@@ -11,6 +11,11 @@ export enum PixelColorByIndexType {
     FETCH_PIXEL_COLOR_REG,
     FETCH_PIXEL_COLOR_MEM,
     FETCH_PIXEL_COLOR_LIT
+}
+export enum PixelIndexFetchType {
+    FETCH_PIXEL_INDEX_REG_REG,
+    FETCH_PIXEL_INDEX_LIT_LIT,
+    FETCH_PIXEL_INDEX_MEM_MEM,
 }
 
 /**
@@ -56,5 +61,31 @@ export function fetchNeighboringPixel(_this: IDGVM, params: number[]){
             _this.setRegisterAt(reg, idx);
             return;
           }
+    }
+}
+
+export function fetchPixelIndex(_this: IDGVM, params: number[]){
+    switch(params[1]){
+        case PixelIndexFetchType.FETCH_PIXEL_INDEX_REG_REG: {
+            const x = _this.getRegisterAt(params[2]);
+            const y = _this.getRegisterAt(params[3]);
+            const reg = params[4]; // where to store
+            _this.setRegisterAt(reg, indexByCoordinates(x,y, _this.image.width));
+            break;
+        }
+        case PixelIndexFetchType.FETCH_PIXEL_INDEX_LIT_LIT: {
+            const x = params[2];
+            const y = params[3];
+            const reg = params[4]; // where to store
+            _this.setRegisterAt(reg, indexByCoordinates(x,y, _this.image.width));
+            break;
+        }
+        case PixelIndexFetchType.FETCH_PIXEL_INDEX_MEM_MEM: {
+            const x = _this.getMemoryAt(params[2]);
+            const y = _this.getMemoryAt(params[3]);
+            const reg = params[4]; // where to store
+            _this.setRegisterAt(reg, indexByCoordinates(x,y, _this.image.width));
+            break;
+        }
     }
 }
