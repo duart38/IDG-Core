@@ -1,5 +1,12 @@
 import { DecodedFile } from "../interfaces/FileShape.ts";
-import { InstructionParams, Instructions, ParameterFetchType, PUSHABLE_STATE, RegisterKey, REGISTERS } from "./Registers.ts";
+import {
+  InstructionParams,
+  Instructions,
+  ParameterFetchType,
+  PUSHABLE_STATE,
+  RegisterKey,
+  REGISTERS,
+} from "./Registers.ts";
 
 export const createMemory = (sizeInBytes: number) => {
   const ab = new ArrayBuffer(sizeInBytes);
@@ -46,7 +53,7 @@ export class MemoryMapper {
   findRegion(address: number) {
     let region = this.regions.find(
       (r: { start: number; end: number }) =>
-        address >= r.start && address <= r.end
+        address >= r.start && address <= r.end,
     );
     if (!region) {
       throw new Error(`No memory region found for address ${address}`);
@@ -71,7 +78,6 @@ export class MemoryMapper {
     const finalAddress = region.remap ? address - region.start : address;
     return region.device.getInt8(finalAddress);
   }
-
 
   getUint32(address: number): number {
     const region = this.findRegion(address);
@@ -122,36 +128,48 @@ export class InstructionParser {
   protected allocatedAmount: number;
   protected halt = false;
 
-    /**
+  /**
    * Indicates how many empty instructions we saw after each other..
    */
-     protected emptyInstructionAtStep = 0;
-  constructor(memory: MemoryMapper, loadedFile: DecodedFile, interruptVectorAddress = 0x249F0) {
+  protected emptyInstructionAtStep = 0;
+  constructor(
+    memory: MemoryMapper,
+    loadedFile: DecodedFile,
+    interruptVectorAddress = 0x249F0,
+  ) {
     this.memory = memory;
     this.allocatedAmount = loadedFile.memoryRequest;
-     /**
+    /**
      * Creating memory for actual values of register
      * System is currently 32-bits so that's 24bytes for each register
      */
-      this.registers = createMemory(REGISTERS.length * INSTRUCTION_LENGTH_IN_BYTES);
-      /**
+    this.registers = createMemory(
+      REGISTERS.length * INSTRUCTION_LENGTH_IN_BYTES,
+    );
+    /**
        * Defining where in the registers (defined above) the values
        * in the map will be pointing to.
        */
-      this.registerMap = REGISTERS.reduce((map, name, i) => {
-        // multiply by 2 to make sure that the offsets do not overlap one another
-        map[name] = i * INSTRUCTION_LENGTH_IN_BYTES;
-        return map;
-      }, {} as Record<string, number>);
-  
-      this.interruptVectorAddress = interruptVectorAddress;
-      this.isInInterruptHandler = false;
-      this.setRegister('im', this.allocatedAmount);
-  
-      this.setRegister('sp', this.allocatedAmount  - loadedFile.stackSizeRequirement);
-      this.setRegister('fp', this.allocatedAmount  - loadedFile.stackSizeRequirement);
-  
-      this.stackFrameSize = 0;
+    this.registerMap = REGISTERS.reduce((map, name, i) => {
+      // multiply by 2 to make sure that the offsets do not overlap one another
+      map[name] = i * INSTRUCTION_LENGTH_IN_BYTES;
+      return map;
+    }, {} as Record<string, number>);
+
+    this.interruptVectorAddress = interruptVectorAddress;
+    this.isInInterruptHandler = false;
+    this.setRegister("im", this.allocatedAmount);
+
+    this.setRegister(
+      "sp",
+      this.allocatedAmount - loadedFile.stackSizeRequirement,
+    );
+    this.setRegister(
+      "fp",
+      this.allocatedAmount - loadedFile.stackSizeRequirement,
+    );
+
+    this.stackFrameSize = 0;
   }
 
   /**
@@ -179,10 +197,10 @@ export class InstructionParser {
     }
     return this.registers.getInt32(this.registerMap[name]);
   }
-  getRegisterAt(offset: number){
+  getRegisterAt(offset: number) {
     return this.registers.getUint32(offset);
   }
-  getSignedRegisterAt(offset: number){
+  getSignedRegisterAt(offset: number) {
     return this.registers.getInt32(offset);
   }
 
@@ -198,71 +216,72 @@ export class InstructionParser {
     }
     return this.registers.setInt32(this.registerMap[name], value);
   }
-  setRegisterAt(offset: number, value: number){
+  setRegisterAt(offset: number, value: number) {
     this.registers.setUint32(offset, value);
   }
-  setSignedRegisterAt(offset: number, value: number){
+  setSignedRegisterAt(offset: number, value: number) {
     this.registers.setInt32(offset, value);
   }
-  setMemoryAt(offset: number, value: number){
+  setMemoryAt(offset: number, value: number) {
     this.memory.setUint32(offset, value);
   }
-  setSignedMemoryAt(offset: number, value: number){
+  setSignedMemoryAt(offset: number, value: number) {
     this.memory.setInt32(offset, value);
   }
 
-  getMemoryAt(offset: number){
+  getMemoryAt(offset: number) {
     return this.memory.getUint32(offset);
   }
-  getSignedMemoryAt(offset: number){
+  getSignedMemoryAt(offset: number) {
     return this.memory.getInt32(offset);
   }
 
-
   push(value: number) {
     // TODO: extract the stack in it's own memory to avoid overlap
-    const spAddress = this.getRegister('sp');
+    const spAddress = this.getRegister("sp");
     this.memory.setUint32(spAddress, value);
-    this.setRegister('sp', spAddress - INSTRUCTION_LENGTH_IN_BYTES); // moving stack pointer down
+    this.setRegister("sp", spAddress - INSTRUCTION_LENGTH_IN_BYTES); // moving stack pointer down
     this.stackFrameSize += INSTRUCTION_LENGTH_IN_BYTES;
   }
 
   // TODO: extract the stack in it's own memory to avoid overlap
   pop() {
-    const nextSpAddress = this.getRegister('sp') + INSTRUCTION_LENGTH_IN_BYTES;
-    
-    this.setRegister('sp', nextSpAddress);
+    const nextSpAddress = this.getRegister("sp") + INSTRUCTION_LENGTH_IN_BYTES;
+
+    this.setRegister("sp", nextSpAddress);
     this.stackFrameSize -= INSTRUCTION_LENGTH_IN_BYTES;
     return this.memory.getUint32(nextSpAddress);
   }
 
   // TODO: extract the stack in it's own memory to avoid overlap
   pushState() {
-    PUSHABLE_STATE.forEach((r)=>{
-      this.push(this.getRegister(r))
+    PUSHABLE_STATE.forEach((r) => {
+      this.push(this.getRegister(r));
     });
 
     this.push(this.stackFrameSize + INSTRUCTION_LENGTH_IN_BYTES);
 
-    this.setRegister('fp', this.getRegister('sp'));
+    this.setRegister("fp", this.getRegister("sp"));
     this.stackFrameSize = 0;
   }
 
   popState() {
-    const framePointerAddress = this.getRegister('fp');
-    this.setRegister('sp', framePointerAddress);
+    const framePointerAddress = this.getRegister("fp");
+    this.setRegister("sp", framePointerAddress);
 
     this.stackFrameSize = this.pop();
     const stackFrameSize = this.stackFrameSize;
 
-    [...PUSHABLE_STATE].reverse().forEach((x)=>this.setRegister(x, this.pop()));
+    [...PUSHABLE_STATE].reverse().forEach((x) =>
+      this.setRegister(x, this.pop())
+    );
 
     const nArgs = this.pop();
     for (let i = 0; i < nArgs; i++) {
       this.pop();
     }
 
-    this.setRegister('fp', framePointerAddress + stackFrameSize);
+    this.setRegister("fp", framePointerAddress + stackFrameSize);
   }
 
   /**
@@ -335,15 +354,22 @@ export class InstructionParser {
     this.setRegister("ip", nextInstructionAddress + 4);
     return instruction;
   }
-  fetchParameter(t: ParameterFetchType): number{
-    switch(t){
-      case ParameterFetchType.unsignedINT8: return this.fetchCurrentInstruction8()
-      case ParameterFetchType.signedINT8: return this.fetchCurrentSignedInstruction8();
-      case ParameterFetchType.unsignedINT16: return this.fetchCurrentInstruction16()
-      case ParameterFetchType.unsignedINT32: return this.fetchCurrentInstruction32()
-      case ParameterFetchType.signedINT32: return this.fetchCurrentSignedInstruction32();
-      case ParameterFetchType.registerIndex: return this.fetchRegisterIndex()
-      default: throw new Error("Incorrect register fetch type")
+  fetchParameter(t: ParameterFetchType): number {
+    switch (t) {
+      case ParameterFetchType.unsignedINT8:
+        return this.fetchCurrentInstruction8();
+      case ParameterFetchType.signedINT8:
+        return this.fetchCurrentSignedInstruction8();
+      case ParameterFetchType.unsignedINT16:
+        return this.fetchCurrentInstruction16();
+      case ParameterFetchType.unsignedINT32:
+        return this.fetchCurrentInstruction32();
+      case ParameterFetchType.signedINT32:
+        return this.fetchCurrentSignedInstruction32();
+      case ParameterFetchType.registerIndex:
+        return this.fetchRegisterIndex();
+      default:
+        throw new Error("Incorrect register fetch type");
     }
   }
 
@@ -352,13 +378,15 @@ export class InstructionParser {
    * @yields [instruction, param1, param2, ...]. where the parameters are optional, but the instruction is always present.
    * */
   *fetch() {
-    while(true){
+    while (true) {
       const instruction = this.fetchCurrentInstruction8() as Instructions;
-      if(instruction <= 0) break;
-      const params = InstructionParams[instruction]
+      if (instruction <= 0) break;
+      const params = InstructionParams[instruction];
       const arr = new Array<number>(params.length + 1);
       arr[0] = instruction; // adds the instruction to the array
-      for(let i = 0; i < params.length; i++) arr[i+1] = this.fetchParameter(params[i]);
+      for (let i = 0; i < params.length; i++) {
+        arr[i + 1] = this.fetchParameter(params[i]);
+      }
       yield arr;
     }
   }

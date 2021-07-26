@@ -3,14 +3,28 @@
  */
 export type bool = 0 | 1;
 export enum arithmetic {
- ADDITION, SUBTRACTION, DIVISION, MULTIPLICATION,
- BITSHIFT_LEFT, BITSIGNEDSHIFT_RIGHT, BITSHIFT_RIGHT, BIT_AND, BIT_OR, BIT_XOR, BIT_NOT
+  ADDITION,
+  SUBTRACTION,
+  DIVISION,
+  MULTIPLICATION,
+  BITSHIFT_LEFT,
+  BITSIGNEDSHIFT_RIGHT,
+  BITSHIFT_RIGHT,
+  BIT_AND,
+  BIT_OR,
+  BIT_XOR,
+  BIT_NOT,
 }
 /**
 * Direction from the current position
 */
 export enum Direction {
-    topLeft, top, topRight,
-    left, /** idx */ right,
-    bottomLeft, bottom, bottomRight
+  topLeft,
+  top,
+  topRight,
+  left,
+  /** idx */ right,
+  bottomLeft,
+  bottom,
+  bottomRight,
 }

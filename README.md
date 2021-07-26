@@ -1,4 +1,3 @@
 # Cel
 
-IDG -> Instruction Driven Graphics
-name.idg
+IDG -> Instruction Driven Graphics name.idg
