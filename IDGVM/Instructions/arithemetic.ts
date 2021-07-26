@@ -136,6 +136,13 @@ export function addition(_this: IDGVM, param: number[]) {
       _this.setRegister("acc", r1V + memV);
       break;
     }
+    case additionType.ADD_REG_LIT: {
+      const r1 = param[2];
+      const literal = param[3];
+      const r1V = _this.getRegisterAt(r1);
+      _this.setRegister("acc", literal + r1V);
+      break;
+    }
   }
 }
 
