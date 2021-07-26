@@ -76,7 +76,7 @@ export default class IDGLoader {
   }
 
   startVM() {
-    this.vm.run();
+    return this.vm.run();
   }
   stopVM() {
     this.vm.execute([Instructions.HLT]);
