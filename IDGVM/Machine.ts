@@ -1,12 +1,10 @@
 import { Instructions, RegisterKey } from "./Registers.ts";
 import { InstructionParser, MemoryMapper } from "./Memory.ts";
 import {
-  drawLine,
-  getNeighboringPixelIndex,
   indexByCoordinates,
 } from "../utils/coordinates.ts";
 import { ImageData } from "../interfaces/Image.ts";
-import { combineRGB, modifyLuminosity, spreadRGB } from "../utils/color.ts";
+import { combineRGB, spreadRGB } from "../utils/color.ts";
 import { U255 } from "../interfaces/RGBA.ts";
 import { DecodedFile } from "../interfaces/FileShape.ts";
 import { sleep } from "../utils/timing.ts";
@@ -39,7 +37,7 @@ import {
 } from "./Instructions/shapes.ts";
 
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
-const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
+//const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
 
 export default class IDGVM extends InstructionParser {
   // Image specific stuff
@@ -499,14 +497,14 @@ export default class IDGVM extends InstructionParser {
       // Return from subroutine
 
       case Instructions.RET: {
-        let lastIP = this.IPStack.pop();
+        const lastIP = this.IPStack.pop();
         if (!lastIP) throw new Error("Nowhere to return to");
         this.setRegister("ip", lastIP);
         return;
       }
 
       case Instructions.RET_TO_NEXT: {
-        let lastIP = this.IPStack.pop();
+        const lastIP = this.IPStack.pop();
         if (!lastIP) throw new Error("Nowhere to return to");
         this.setRegister("ip", lastIP + 1);
         return;
