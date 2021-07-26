@@ -162,7 +162,7 @@ export default class IDGVM  extends InstructionParser{
 
       // Increment value in register (puts result back in the same register)
       case Instructions.INC_REG: {
-        const r1 = this.fetchRegisterIndex();
+        const r1 = instruction[1];
         const r1v = this.registers.getUint32(r1);
         this.registers.setUint32(r1, r1v + 1);
         return;
@@ -170,7 +170,7 @@ export default class IDGVM  extends InstructionParser{
 
       // Decrement value in register (puts result back in the same register)
       case Instructions.DEC_REG: {
-        const r1 = this.fetchRegisterIndex();
+        const r1 = instruction[1];
         const oldValue = this.registers.getUint32(r1);
         this.registers.setUint32(r1, oldValue - 1);
         return;
