@@ -1,7 +1,7 @@
 import { Direction } from "../../interfaces/Actions.ts";
 import { ImageData } from "../../interfaces/Image.ts";
 import { RGB, U255 } from "../../interfaces/RGBA.ts";
-import { chunkUp32, compress, Uint8Constructor } from "../../utils/bits.ts";
+import { chunkUp16, chunkUp32, compress, Uint8Constructor } from "../../utils/bits.ts";
 import { combineRGB } from "../../utils/color.ts";
 import { indexByCoordinates } from "../../utils/coordinates.ts";
 import {
@@ -139,15 +139,19 @@ export default class IDGBuilder {
   /**
      * Insert a 32-bit instruction at the current index and then increment to point to an empty spot for the next insert
      */
-  private insert32(n: number) {
+  public insert32(n: number) {
     this.instructions.set(chunkUp32(n), this.instructionIndex);
     this.instructionIndex += 4;
+  }
+  public insert16(n: number) {
+    this.instructions.set(chunkUp16(n), this.instructionIndex);
+    this.instructionIndex += 2;
   }
   /**
      * Inserts a 1 byte (8bit) instruction and increments the index accordingly
      * @param n
      */
-  private insert8(n: number) {
+  public insert8(n: number) {
     this.instructions[this.instructionIndex++] = n;
   }
 
