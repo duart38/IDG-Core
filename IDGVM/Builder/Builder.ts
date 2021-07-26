@@ -257,7 +257,7 @@ export default class IDGBuilder {
     this.insert32(skipTo + extraBytes);
   }
 
-  private _regKeyToIndex(x: RegisterKey) {
+  public _regKeyToIndex(x: RegisterKey) {
     return RegisterIndexOf[x] * 4;
   }
 
