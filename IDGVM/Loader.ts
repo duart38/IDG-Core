@@ -23,9 +23,9 @@ export default class IDGLoader {
     if (autoStart) this.startVM();
   }
 
-  static loadFromImage(url: string) {
-    // TODO: make this. (fetch https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API for web worker support)
-  }
+  // static loadFromImage(url: string) {
+  //   // TODO: make this. (fetch https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API for web worker support)
+  // }
 
   /**
      * Executes callback when the VM makes a request to render a new frame
