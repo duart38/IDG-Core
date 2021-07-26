@@ -66,6 +66,13 @@ export class MemoryMapper {
     return region.device.getUint8(finalAddress);
   }
 
+  getInt8(address: number): number {
+    const region = this.findRegion(address);
+    const finalAddress = region.remap ? address - region.start : address;
+    return region.device.getInt8(finalAddress);
+  }
+
+
   getUint32(address: number): number {
     const region = this.findRegion(address);
     const finalAddress = region.remap ? address - region.start : address;
@@ -276,6 +283,20 @@ export class InstructionParser {
     this.setRegister("ip", nextInstructionAddress + 1);
     return instruction;
   }
+
+  public fetchCurrentSignedInstruction8() {
+    // get the instruction pointer address that houses the next instruction
+    const nextInstructionAddress = this.getRegister("ip");
+    // gets the actual instruction value from that location in memory
+    if (nextInstructionAddress + 1 > this.allocatedAmount) {
+      this.emptyInstructionAtStep = 9999;
+      return -1;
+    }
+    const instruction = this.memory.getInt8(nextInstructionAddress);
+    // increment the program counter (instruction pointer) to the next instruction.
+    this.setRegister("ip", nextInstructionAddress + 1);
+    return instruction;
+  }
   //TODO: fetch instruction methods for signed integers
 
   public fetchCurrentInstruction16() {
@@ -304,13 +325,23 @@ export class InstructionParser {
     return instruction;
   }
 
+  public fetchCurrentSignedInstruction32() {
+    const nextInstructionAddress = this.getRegister("ip");
+    if (nextInstructionAddress + 4 > this.allocatedAmount) {
+      this.emptyInstructionAtStep = 9999;
+      return -1;
+    }
+    const instruction = this.memory.getInt32(nextInstructionAddress);
+    this.setRegister("ip", nextInstructionAddress + 4);
+    return instruction;
+  }
   fetchParameter(t: ParameterFetchType): number{
     switch(t){
       case ParameterFetchType.unsignedINT8: return this.fetchCurrentInstruction8()
-      case ParameterFetchType.signedINT8: return (()=>{console.log("!!!!!TODO!!!!!!"); return -1})()
+      case ParameterFetchType.signedINT8: return this.fetchCurrentSignedInstruction8();
       case ParameterFetchType.unsignedINT16: return this.fetchCurrentInstruction16()
       case ParameterFetchType.unsignedINT32: return this.fetchCurrentInstruction32()
-      case ParameterFetchType.signedINT32: return (()=>{console.log("!!!!!TODO!!!!!!"); return -1})()
+      case ParameterFetchType.signedINT32: return this.fetchCurrentSignedInstruction32();
       case ParameterFetchType.registerIndex: return this.fetchRegisterIndex()
       default: throw new Error("Incorrect register fetch type")
     }
