@@ -987,10 +987,10 @@ export default class IDGBuilder {
     }
 
     /**
-     * Fetches the pixel color and stores it in the color register ("COL")
+     * Fetches the pixel color and stores it in the color register
      * @param atLocation 
      */
-    fetchPixelColor(atLocation: number |  [number, number] | RegisterKey){
+    fetchPixelColor(atLocation: number |  [number, number] | RegisterKey, storeInReg: RegisterKey ){
         
         if(Array.isArray(atLocation)) atLocation = indexByCoordinates(atLocation[0], atLocation[1], this.imageData.width)
         else if(typeof atLocation === "string"){
@@ -1002,7 +1002,8 @@ export default class IDGBuilder {
             this.insert8(Instructions.FETCH_PIXEL_COLOR_BY_INDEX);
             this.insert8(PixelColorByIndexType.FETCH_PIXEL_COLOR_LIT);
         }
-        this.insert32(atLocation);
+        this.insert32(atLocation); // where to check
+        this.insert32(this._regKeyToIndex(storeInReg)); // where to store
         return this;
     }
 

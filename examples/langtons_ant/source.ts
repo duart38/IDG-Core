@@ -108,7 +108,7 @@ turn90ANTIClockWise.markEnd();
 
 
 builder.fetchPixelIndexByRegisterCoordinates("r4");
-builder.fetchPixelColor("r4"); // this puts the result in "COL" register
+builder.fetchPixelColor("r4", "COL"); // this puts the result in "COL" register
 builder.MoveRegisterValueToAnother("COL", "acc"); // jumps below need acc value. so move.
 
 
@@ -125,7 +125,7 @@ builder.GOTO(afterInit);
 
 const compiled = builder.compile();
 
-Deno.writeFile("./langtons_ant.idg", compiled);
+// Deno.writeFile("./langtons_ant.idg", compiled);
 
 // // test loading compiled code
 const loader = new IDGLoader(compiled);
