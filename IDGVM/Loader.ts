@@ -81,4 +81,10 @@ export default class IDGLoader {
   stopVM() {
     this.vm.execute([Instructions.HLT]);
   }
+  /**
+   * Gets the constructed machine. should be used for debugging purposes only.
+   * */
+  getVM() {
+    return this.vm;
+  }
 }
