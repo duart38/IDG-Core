@@ -1,6 +1,6 @@
 import { Direction } from "../../interfaces/Actions.ts";
 import { ImageData } from "../../interfaces/Image.ts";
-import { RGB, U255 } from "../../interfaces/RGBA.ts";
+import { RGB } from "../../interfaces/RGBA.ts";
 import { chunkUp16, chunkUp32, compress, Uint8Constructor } from "../../utils/bits.ts";
 import { combineRGB } from "../../utils/color.ts";
 import { indexByCoordinates } from "../../utils/coordinates.ts";
@@ -26,7 +26,6 @@ import {
   PUSHABLE_STATE,
   RegisterIndexOf,
   RegisterKey,
-  REGISTERS,
 } from "../Registers.ts";
 interface functionBuilderDetails {
   start: number;
