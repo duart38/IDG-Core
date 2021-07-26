@@ -4,7 +4,15 @@ import { RGB, U255 } from "../../interfaces/RGBA.ts";
 import { chunkUp32, compress, Uint8Constructor } from "../../utils/bits.ts";
 import { combineRGB } from "../../utils/color.ts";
 import { indexByCoordinates } from "../../utils/coordinates.ts";
-import { InstructionInformation, Instructions, PUSHABLE_STATE, RegisterIndexOf, RegisterKey, REGISTERS } from "../Registers.ts";
+import { additionType, multiplicationType, subtractionType } from "../Instructions/arithemetic.ts";
+import { andType, orType, shiftType } from "../Instructions/bitwise.ts";
+import { RGBConversionType } from "../Instructions/color.ts";
+import { AccJumpType, CallType } from "../Instructions/jump.ts";
+import { moveType } from "../Instructions/moving.ts";
+import { LuminosityModificationType } from "../Instructions/pixelModification.ts";
+import { NeighborRetrievalType, PixelColorByIndexType } from "../Instructions/pixelRetrieval.ts";
+import { DrawLineType } from "../Instructions/shapes.ts";
+import { InstructionParams, Instructions, ParameterFetchType, PUSHABLE_STATE, RegisterIndexOf, RegisterKey, REGISTERS } from "../Registers.ts";
 interface functionBuilderDetails {
     start:number, end:number, skipPointer: number
 }
@@ -15,19 +23,7 @@ interface IDGFunction {
     __currentFunctionDetail: functionBuilderDetails
 }
 
-type conditionalJump =   
-    Instructions.JMP_NOT_EQ |
-    Instructions.JNE_REG |
-    Instructions.JEQ_REG |
-    Instructions.JEQ_LIT |
-    Instructions.JLT_REG |
-    Instructions.JLT_LIT |
-    Instructions.JGT_REG |
-    Instructions.JGT_LIT |
-    Instructions.JLE_REG |
-    Instructions.JLE_LIT |
-    Instructions.JGE_REG |
-    Instructions.JGE_LIT
+type conditionalJump = AccJumpType;
 
 /**
  * The Builder here takes care of easily constructing certain instructions.
@@ -90,7 +86,9 @@ export default class IDGBuilder {
      * NOTE!: uses the internal stack to push the current state. sub-routines called must have a return instruction to pop the state and return back to this location!.
      */
     callLocation(address: number | string): IDGBuilder{
-        this.insert8(Instructions.CAL_LIT);
+        // TODO: liter, memory, reg?
+        this.insert8(Instructions.CALL);
+        this.insert8(CallType.CAL_LIT);
         this.insert32(typeof address === "string" ? this.getFlag(address) +1 : address + 1);
         return this;
     }
@@ -100,7 +98,8 @@ export default class IDGBuilder {
      * NOTE!: uses the internal stack to push the current state. sub-routines called must have a return instruction to pop the state and return back to this location!.
      */
     callLocationStoredInRegister(reg: RegisterKey){
-        this.insert8(Instructions.CAL_REG);
+        this.insert8(Instructions.CALL);
+        this.insert8(CallType.CAL_REG);
         this.insert32(this._regKeyToIndex(reg));
         return this;
     }
@@ -120,7 +119,8 @@ export default class IDGBuilder {
     }
 
     StoreNumberToRegister(n: number, registerKey: RegisterKey): IDGBuilder{
-        this.insert8(Instructions.MOV_LIT_REG);
+        this.insert8(Instructions.MOVE);
+        this.insert8(moveType.MOV_LIT_REG);
         this.insert32(n);
         this.insert32(this._regKeyToIndex(registerKey));
         return this;
@@ -131,7 +131,8 @@ export default class IDGBuilder {
      * @param to destination
      */
     MoveRegisterValueToAnother(from: RegisterKey, to: RegisterKey){
-        this.insert8(Instructions.MOV_REG_REG);
+        this.insert8(Instructions.MOVE);
+        this.insert8(moveType.MOV_REG_REG);
         this.insert32(this._regKeyToIndex(from));
         this.insert32(this._regKeyToIndex(to));
         return this;
@@ -140,25 +141,27 @@ export default class IDGBuilder {
      * Move a value from memory into a register
      */
     MoveMemoryToRegister(from: number, toRegister: RegisterKey){
-        this.insert8(Instructions.MOV_MEM_REG);
+        this.insert8(Instructions.MOVE);
+        this.insert8(moveType.MOV_MEM_REG);
         this.insert32(from);
         this.insert32(this._regKeyToIndex(toRegister));
         return this;
     }
+
     /**
      * Copies the value in the supplied register to memory.
      * @param from the register to copy from
      * @param memoryLocation the memory location to put the value in (use flags to help keep track)
      * @param safeCopy defines wether to ensure that the VM always skips this value. If no skipping is applied it is possible to corrupt (or change) the memory of instructions that are in the supplied memory location. (skipping takes up more memory, ~5bytes)
      */
-    MoveRegisterToMemory(from: RegisterIndexOf, memoryLocation: number, safeCopy = true){
+    MoveRegisterToMemory(from: RegisterKey, to: number, safeCopy = true){
         if(safeCopy === true){
-            this._skip([Instructions.MOV_REG_MEM])
+            this._skip([Instructions.MOVE])
         }
-        this.insert8(Instructions.MOV_REG_MEM);
-        this.insert32(from);
-        this.insert32(memoryLocation);
-        return this;
+        this.insert8(Instructions.MOVE);
+        this.insert8(moveType.MOV_REG_MEM);
+        this.insert32(this._regKeyToIndex(from));
+        this.insert32(to);
     }
 
     /**
@@ -178,24 +181,38 @@ export default class IDGBuilder {
         }
         const location = memoryLocation || this.instructionIndex;
 
-        this.insert8(Instructions.MOV_LIT_MEM);
+        this.insert8(Instructions.MOVE);
+        this.insert8(moveType.MOV_LIT_MEM);
         this.insert32(value);
         this.insert32(location);
         return location;
     }
 
+    // get required instruction size for this operation
+    private _getInstructionSize(operation: ParameterFetchType){
+        switch(operation){
+            case ParameterFetchType.unsignedINT8: return 1;
+            case ParameterFetchType.unsignedINT16: return 2;
+            case ParameterFetchType.unsignedINT32: return 4;
+            case ParameterFetchType.signedINT8: return 1;
+            case ParameterFetchType.signedINT16: return 2;
+            case ParameterFetchType.signedINT32: return 4;
+            default: throw new Error("Unsupported parameter fetch type");
+        }
+    }
+
+
     private _skip(instructionsToSkip: Instructions[], extraBytes = 0){
-        const skipTo = instructionsToSkip.reduce((prev, curr)=> prev + InstructionInformation[curr].size, 0);
+        const skipTo = instructionsToSkip
+        .reduce(
+            (prev, curr)=> prev + InstructionParams[curr].reduce((p, c)=>p + this._getInstructionSize(c),0)
+        , 0) + 1;
         this.insert8(Instructions.SKIP)
         this.insert32(skipTo + extraBytes);
     }
 
-    private _sizeOf(ins: Instructions){
-        return InstructionInformation[ins].size;
-    }
-
     private _regKeyToIndex(x: RegisterKey){
-        return RegisterIndexOf[x];
+        return RegisterIndexOf[x] * 4;
     }
 
     /**
@@ -206,11 +223,13 @@ export default class IDGBuilder {
      */
     addValues(lhs: RegisterKey | number, rhs: RegisterKey){
         if(typeof lhs === "string" && typeof rhs === "string"){ // ADD_REG_REG
-            this.insert8(Instructions.ADD_REG_REG);
+            this.insert8(Instructions.ADD);
+            this.insert8(additionType.ADD_REG_REG);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(this._regKeyToIndex(rhs));
         }else if(typeof lhs === "number" && typeof rhs === "string"){ // ADD_LIT_REG
-            this.insert8(Instructions.ADD_LIT_REG);
+            this.insert8(Instructions.ADD);
+            this.insert8(additionType.ADD_LIT_REG);
             this.insert32(lhs)
             this.insert32(this._regKeyToIndex(rhs));
         }
@@ -226,15 +245,18 @@ export default class IDGBuilder {
      */
     subtractValues(lhs: RegisterKey | number, rhs: RegisterKey | number){
         if(typeof lhs === "string" && typeof rhs === "string"){ //SUB_REG_REG
-            this.insert8(Instructions.SUB_REG_REG);
+            this.insert8(Instructions.SUBTRACT);
+            this.insert8(subtractionType.SUB_REG_REG);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(this._regKeyToIndex(rhs));
         }else if(typeof lhs === "number" && typeof rhs === "string"){ //SUB_LIT_REG
-            this.insert8(Instructions.SUB_LIT_REG);
+            this.insert8(Instructions.SUBTRACT);
+            this.insert8(subtractionType.SUB_LIT_REG);
             this.insert32(lhs);
             this.insert32(this._regKeyToIndex(rhs));
         }else if(typeof lhs === "string" && typeof rhs === "number"){ //SUB_REG_LIT
-            this.insert8(Instructions.SUB_LIT_REG);
+            this.insert8(Instructions.SUBTRACT);
+            this.insert8(subtractionType.SUB_REG_LIT);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(rhs);
         }
@@ -247,17 +269,50 @@ export default class IDGBuilder {
      * @param lhs the register to take the value from or a literal number
      * @param rhs the register to take the value from
      */
-    multiplyValues(lhs: RegisterKey | number, rhs: RegisterKey){
+    multiplyValues(lhs: RegisterKey | number, rhs: RegisterKey | number){
        if(typeof lhs === "string" && typeof rhs === "string"){ // MUL_REG_REG
-            this.insert8(Instructions.MUL_REG_REG);
+            this.insert8(Instructions.MULTIPLY);
+            this.insert8(multiplicationType.MUL_REG_REG);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(this._regKeyToIndex(rhs));
        }else if(typeof lhs === "number" && typeof rhs === "string"){ // MUL_LIT_REG
-            this.insert8(Instructions.MUL_LIT_REG);
+            this.insert8(Instructions.MULTIPLY);
+            this.insert8(multiplicationType.MUL_LIT_REG);
             this.insert32(lhs);
             this.insert32(this._regKeyToIndex(rhs));
+       } else if(typeof lhs === "string" && typeof rhs === "number"){ // MUL_REG_LIT
+            this.insert8(Instructions.MULTIPLY);
+            this.insert8(multiplicationType.MUL_REG_LIT);
+            this.insert32(this._regKeyToIndex(lhs));
+            this.insert32(rhs);
+       } else if(typeof lhs === "number" && typeof rhs === "number"){ // MUL_LIT_LIT
+            this.insert8(Instructions.MULTIPLY);
+            this.insert8(multiplicationType.MUL_LIT_LIT);
+            this.insert32(lhs);
+            this.insert32(rhs);
        }
        return this;
+    }
+
+    // multiply memory to register
+    multiplyMemoryToRegister(lhs: number | RegisterKey, rhs: RegisterKey | number){
+        if(typeof lhs === "number" && typeof rhs === "string"){ // MUL_MEM_REG
+            this.insert8(Instructions.MULTIPLY);
+            this.insert8(multiplicationType.MUL_MEM_REG);
+            this.insert32(lhs);
+            this.insert32(this._regKeyToIndex(rhs));
+        } else if(typeof lhs === "string" && typeof rhs === "number"){ // MUL_REG_MEM
+            this.insert8(Instructions.MULTIPLY);
+            this.insert8(multiplicationType.MUL_REG_MEM);
+            this.insert32(this._regKeyToIndex(lhs));
+            this.insert32(rhs);
+        } else if(typeof lhs === "number" && typeof rhs === "number"){ // MUL_MEM_MEM
+            this.insert8(Instructions.MULTIPLY);
+            this.insert8(multiplicationType.MUL_MEM_MEM);
+            this.insert32(lhs);
+            this.insert32(rhs);
+        }
+        return this;
     }
 
     /**
@@ -268,11 +323,13 @@ export default class IDGBuilder {
      */
     leftShiftValues(lhs: RegisterKey, rhs: RegisterKey | number){
         if(typeof lhs === "string" && typeof rhs === "string"){ // LSF_REG_REG
-            this.insert8(Instructions.LSF_REG_REG);
+            this.insert8(Instructions.BITWISE_SHIFT);
+            this.insert8(shiftType.LSF_REG_REG);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(this._regKeyToIndex(rhs));
         }else if(typeof lhs === "string" && typeof rhs === "number"){ // LSF_REG_LIT
-            this.insert8(Instructions.LSF_REG_LIT);
+            this.insert8(Instructions.BITWISE_SHIFT);
+            this.insert8(shiftType.LSF_REG_LIT);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(rhs);
         }
@@ -287,11 +344,13 @@ export default class IDGBuilder {
      */
     rightShiftValues(lhs: RegisterKey, rhs: RegisterKey | number){
         if(typeof lhs === "string" && typeof rhs === "string"){ // RSF_REG_REG
-            this.insert8(Instructions.RSF_REG_REG);
+            this.insert8(Instructions.BITWISE_SHIFT);
+            this.insert8(shiftType.RSF_REG_REG);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(this._regKeyToIndex(rhs));
         }else if(typeof lhs === "string" && typeof rhs === "number"){ // RSF_REG_LIT
-            this.insert8(Instructions.RSF_REG_LIT);
+            this.insert8(Instructions.BITWISE_SHIFT);
+            this.insert8(shiftType.RSF_REG_LIT);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(rhs);
         }
@@ -306,11 +365,13 @@ export default class IDGBuilder {
      */
     bitwiseAND(lhs: RegisterKey, rhs: RegisterKey | number){
         if(typeof lhs === "string" && typeof rhs === "string"){ // AND_REG_REG
-            this.insert8(Instructions.AND_REG_REG);
+            this.insert8(Instructions.BITWISE_AND);
+            this.insert8(andType.AND_REG_REG);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(this._regKeyToIndex(rhs));
         }else if(typeof lhs === "string" && typeof rhs === "number"){ // AND_REG_LIT
-            this.insert8(Instructions.AND_REG_LIT);
+            this.insert8(Instructions.BITWISE_AND);
+            this.insert8(andType.AND_REG_LIT);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(rhs);
         }
@@ -325,11 +386,13 @@ export default class IDGBuilder {
      */
     bitwiseOR(lhs: RegisterKey, rhs: RegisterKey | number){
         if(typeof lhs === "string" && typeof rhs === "string"){ // OR_REG_REG
-            this.insert8(Instructions.OR_REG_REG);
+            this.insert8(Instructions.BITWISE_OR);
+            this.insert8(orType.OR_REG_REG);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(this._regKeyToIndex(rhs));
         }else if(typeof lhs === "string" && typeof rhs === "number"){ // OR_REG_LIT
-            this.insert8(Instructions.OR_REG_LIT);
+            this.insert8(Instructions.BITWISE_OR);
+            this.insert8(orType.OR_REG_LIT);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(rhs);
         }
@@ -344,11 +407,13 @@ export default class IDGBuilder {
      */
      bitwiseXOR(lhs: RegisterKey, rhs: RegisterKey | number){
         if(typeof lhs === "string" && typeof rhs === "string"){ // XOR_REG_REG
-            this.insert8(Instructions.XOR_REG_REG);
+            this.insert8(Instructions.BITWISE_OR);
+            this.insert8(orType.XOR_REG_REG);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(this._regKeyToIndex(rhs));
         }else if(typeof lhs === "string" && typeof rhs === "number"){ // XOR_REG_LIT
-            this.insert8(Instructions.XOR_REG_LIT);
+            this.insert8(Instructions.BITWISE_OR);
+            this.insert8(orType.XOR_REG_LIT);
             this.insert32(this._regKeyToIndex(lhs));
             this.insert32(rhs);
         }
@@ -375,11 +440,13 @@ export default class IDGBuilder {
     JumpIfNotEquals(jumpTo: number | string, val: RegisterKey | number){
         if(typeof jumpTo === "string") jumpTo = this.getFlag(jumpTo);
         if(typeof val === "string"){ // JNE_REG
-            this.insert8(Instructions.JNE_REG)
+            this.insert8(Instructions.JMP_ACC);
+            this.insert8(AccJumpType.JNE_REG)
             this.insert32(this._regKeyToIndex(val));
             this.insert32(jumpTo);
         }else{ //JMP_NOT_EQ
-            this.insert8(Instructions.JMP_NOT_EQ)
+            this.insert8(Instructions.JMP_ACC);
+            this.insert8(AccJumpType.JNE_LIT)
             this.insert32(val);
             this.insert32(jumpTo);
         }
@@ -400,11 +467,13 @@ export default class IDGBuilder {
             jumpTo = jumpTo.__currentFunctionDetail.start;
         }
         if(typeof val === "string"){ // JEQ_REG
-            this.insert8(Instructions.JEQ_REG)
+            this.insert8(Instructions.JMP_ACC);
+            this.insert8(AccJumpType.JEQ_REG)
             this.insert32(this._regKeyToIndex(val));
             this.insert32(jumpTo);
         }else{ // JEQ_LIT
-            this.insert8(Instructions.JEQ_LIT)
+            this.insert8(Instructions.JMP_ACC);
+            this.insert8(AccJumpType.JEQ_LIT)
             this.insert32(val);
             this.insert32(jumpTo);
         }
@@ -425,11 +494,13 @@ export default class IDGBuilder {
             jumpTo = jumpTo.__currentFunctionDetail.start;
         }
         if(typeof val === "string"){ // JLT_REG
-            this.insert8(Instructions.JLT_REG)
+            this.insert8(Instructions.JMP_ACC);
+            this.insert8(AccJumpType.JLT_REG)
             this.insert32(this._regKeyToIndex(val));
             this.insert32(jumpTo);
         }else{ // JLT_LIT
-            this.insert8(Instructions.JLT_LIT)
+            this.insert8(Instructions.JMP_ACC);
+            this.insert8(AccJumpType.JLT_LIT)
             this.insert32(val);
             this.insert32(jumpTo);
         }
@@ -449,11 +520,13 @@ export default class IDGBuilder {
             jumpTo = jumpTo.__currentFunctionDetail.start;
         }
         if(typeof val === "string"){ // JGT_REG
-            this.insert8(Instructions.JGT_REG)
+            this.insert8(Instructions.JMP_ACC);
+            this.insert8(AccJumpType.JGT_REG)
             this.insert32(this._regKeyToIndex(val));
             this.insert32(jumpTo);
         }else{ // JGT_LIT
-            this.insert8(Instructions.JGT_LIT)
+            this.insert8(Instructions.JMP_ACC);
+            this.insert8(AccJumpType.JGT_LIT)
             this.insert32(val);
             this.insert32(jumpTo);
         }
@@ -469,11 +542,13 @@ export default class IDGBuilder {
     JumpIfLessThanOrEqual(jumpTo: number | string, val: RegisterKey | number){
         if(typeof jumpTo === "string") jumpTo = this.getFlag(jumpTo);
         if(typeof val === "string"){ // JLE_REG
-            this.insert8(Instructions.JLE_REG)
+            this.insert8(Instructions.JMP_ACC);
+            this.insert8(AccJumpType.JLE_REG)
             this.insert32(this._regKeyToIndex(val));
             this.insert32(jumpTo);
         }else{ // JLE_LIT
-            this.insert8(Instructions.JLE_LIT)
+            this.insert8(Instructions.JMP_ACC);
+            this.insert8(AccJumpType.JLE_LIT)
             this.insert32(val);
             this.insert32(jumpTo);
         }
@@ -489,11 +564,13 @@ export default class IDGBuilder {
     JumpIfGreaterThanOrEqual(jumpTo: number | string, val: RegisterKey | number){
         if(typeof jumpTo === "string") jumpTo = this.getFlag(jumpTo);
         if(typeof val === "string"){ // JGE_REG
-            this.insert8(Instructions.JGE_REG)
+            this.insert8(Instructions.JMP_ACC);
+            this.insert8(AccJumpType.JGE_REG)
             this.insert32(this._regKeyToIndex(val));
             this.insert32(jumpTo);
         }else{ // JGE_LIT
-            this.insert8(Instructions.JGE_LIT)
+            this.insert8(Instructions.JMP_ACC);
+            this.insert8(AccJumpType.JGE_LIT)
             this.insert32(val);
             this.insert32(jumpTo);
         }
@@ -541,7 +618,9 @@ export default class IDGBuilder {
      * @param name used to store a "flag" in a temporary helper table that can be used to call this skipped instruction later. @see {callFunction}
      */
     skipInstructions(name: string, instructionsToSkip: Instructions[]): IDGBuilder {
-        const skipTo = instructionsToSkip.reduce((prev, curr)=> prev + InstructionInformation[curr].size, 0);
+        const skipTo = instructionsToSkip.reduce(
+            (prev, curr)=> prev + InstructionParams[curr].reduce((p, c)=>p + this._getInstructionSize(c),0)
+        , 0) + 1;
         this.insert8(Instructions.SKIP)
         this.setFlag(name);
         this.insert32(skipTo);
@@ -584,15 +663,15 @@ export default class IDGBuilder {
     modifyPixel(color?: number | RGB){
         if(color && typeof color === "number"){
             this.StoreNumberToRegister(color, "COL");
-            this.insert8(Instructions.MODIFY_PIXEL);
+            this.insert8(Instructions.MODIFY_PIXEL_REG);
         }else if(color && Array.isArray(color)){ // array [r,g,b]
-            this.insert8(Instructions.RGB_LIT_TO_COLOR);
+            this.insert8(RGBConversionType.RGB_TO_COLOR_LIT_LIT_LIT);
             this.insert8(color[0]);
             this.insert8(color[1]);
             this.insert8(color[2]);
-            this.insert8(Instructions.MODIFY_PIXEL);
+            this.insert8(Instructions.MODIFY_PIXEL_REG);
         }else{
-            this.insert8(Instructions.MODIFY_PIXEL);
+            this.insert8(Instructions.MODIFY_PIXEL_REG);
         }
         return this;
     }
@@ -602,15 +681,15 @@ export default class IDGBuilder {
         this.StoreNumberToRegister(y, "y");
         if(color && typeof color === "number"){
             this.StoreNumberToRegister(color, "COL");
-            this.insert8(Instructions.MODIFY_PIXEL);
+            this.insert8(Instructions.MODIFY_PIXEL_REG);
         }else if(color && Array.isArray(color)){ // array [r,g,b]
-            this.insert8(Instructions.RGB_LIT_TO_COLOR);
+            this.insert8(RGBConversionType.RGB_TO_COLOR_LIT_LIT_LIT);
             this.insert8(color[0]);
             this.insert8(color[1]);
             this.insert8(color[2]);
-            this.insert8(Instructions.MODIFY_PIXEL);
+            this.insert8(Instructions.MODIFY_PIXEL_REG);
         }else{
-            this.insert8(Instructions.MODIFY_PIXEL);
+            this.insert8(Instructions.MODIFY_PIXEL_REG);
         }
         return this;
     }
@@ -627,7 +706,7 @@ export default class IDGBuilder {
      */
     RGBToColor(val?: RGB){
         if(val){
-            this.insert8(Instructions.RGB_LIT_TO_COLOR);
+            this.insert8(RGBConversionType.RGB_TO_COLOR_LIT_LIT_LIT);
             this.insert8(val[0]);
             this.insert8(val[1]);
             this.insert8(val[2]);
@@ -661,7 +740,8 @@ export default class IDGBuilder {
     }
 
     drawLineReg(point1: [RegisterKey, RegisterKey], point2: [RegisterKey, RegisterKey]){
-        this.insert8(Instructions.DRAW_LINE_P1REG_P2REG);
+        this.insert8(Instructions.DRAW_LINE_POINTS);
+        this.insert8(DrawLineType.DRAW_LINE_P1REG_P2REG);
         this.insert32(this._regKeyToIndex(point1[0]));
         this.insert32(this._regKeyToIndex(point1[1]));
 
@@ -669,7 +749,8 @@ export default class IDGBuilder {
         this.insert32(this._regKeyToIndex(point2[1]));
     }
     drawLineLit(point1: [number, number], point2: [number, number]){
-        this.insert8(Instructions.DRAW_LINE_P1LIT_P2LIT);
+        this.insert8(Instructions.DRAW_LINE_POINTS);
+        this.insert8(DrawLineType.DRAW_LINE_P1LIT_P2LIT);
         this.insert32(point1[0]);
         this.insert32(point1[1]);
 
@@ -689,15 +770,19 @@ export default class IDGBuilder {
         this.insert32(radius);
         return this;
     }
-    ModifyPixelLuminosity(by: RegisterKey, increase = true, x?: number, y?:number,){
+    ModifyPixelLuminosity(by: RegisterKey | number, x?: number, y?:number,){
         if(x) this.StoreNumberToRegister(x, "x");
         if(y) this.StoreNumberToRegister(y, "y");
-        this.insert8(increase == true ? Instructions.INCREASE_PIXEL_LUMINOSITY_REG : Instructions.DECREASE_PIXEL_LUMINOSITY_REG)
-        this.insert32(this._regKeyToIndex(by));
+        //LuminosityModificationType
+        this.insert8(Instructions.MODIFY_LUMINOSITY);
+        this.insert8(typeof by === "string" ? LuminosityModificationType.MODIFY_PIXEL_LUMINOSITY_REG : LuminosityModificationType.MODIFY_PIXEL_LUMINOSITY_LIT);
+        this.insert32(typeof by === "string" ? this._regKeyToIndex(by) : by);
     }
-    modifyImageLuminosity(by: RegisterKey, increase = true){
-        this.insert8(increase == true ? Instructions.INCREASE_IMAGE_LUMINOSITY_REG : Instructions.DECREASE_IMAGE_LUMINOSITY_REG)
-        this.insert32(this._regKeyToIndex(by));
+
+    modifyImageLuminosity(by: RegisterKey | number){
+        this.insert8(Instructions.MODIFY_LUMINOSITY);
+        this.insert8(typeof by === "string" ? LuminosityModificationType.MODIFY_IMAGE_LUMINOSITY_REG : LuminosityModificationType.MODIFY_IMAGE_LUMINOSITY_LIT);
+        this.insert32(typeof by === "string" ? this._regKeyToIndex(by) : by);
     }
     shiftPixel(direction: Direction){
         this.insert8(Instructions.SHIFT_PIXEL_LIT);
@@ -726,7 +811,9 @@ export default class IDGBuilder {
             if(currentFunctionDetail.start === -1 || currentFunctionDetail.end === -1){
                 throw new Error(`function not constructed properly`)
             }
-            this.insert8(Instructions.CAL_LIT);
+            // this.insert8(Instructions.CAL_LIT);
+            this.insert8(Instructions.CALL);
+            this.insert8(CallType.CAL_LIT);
             this.insert32(currentFunctionDetail.start);
         }
         return {
@@ -776,23 +863,23 @@ export default class IDGBuilder {
     }
     private $_endLoop(details: {start:number, end:number, condition: conditionalJump, value: RegisterKey | number}){
         switch(details.condition){
-            case Instructions.JMP_NOT_EQ:
-            case Instructions.JNE_REG:
+            case AccJumpType.JNE_LIT:
+            case AccJumpType.JNE_REG:
                     this.JumpIfNotEquals(details.start, details.value); break;
-            case Instructions.JEQ_REG:
-            case Instructions.JEQ_LIT:
+            case AccJumpType.JEQ_REG:
+            case AccJumpType.JEQ_LIT:
                     this.JumpIfEquals(details.start, details.value); break;
-            case Instructions.JLT_REG:
-            case Instructions.JLT_LIT:
+            case AccJumpType.JLT_REG:
+            case AccJumpType.JLT_LIT:
                     this.JumpIfLessThan(details.start, details.value); break;
-            case Instructions.JGT_REG:
-            case Instructions.JGT_LIT:
+            case AccJumpType.JGT_REG:
+            case AccJumpType.JGT_LIT:
                     this.JumpIfGreaterThan(details.start, details.value); break;
-            case Instructions.JLE_REG:
-            case Instructions.JLE_LIT:
+            case AccJumpType.JLE_REG:
+            case AccJumpType.JLE_LIT:
                     this.JumpIfLessThanOrEqual(details.start, details.value); break;
-            case Instructions.JGE_REG:
-            case Instructions.JGE_LIT:
+            case AccJumpType.JGE_REG:
+            case AccJumpType.JGE_LIT:
                     this.JumpIfGreaterThanOrEqual(details.start, details.value); break;
         }
     }
@@ -884,12 +971,14 @@ export default class IDGBuilder {
     getNeighboringPixelIndex(direction: Direction, fromPixel: number | [number, number] | RegisterKey, RegisterToStoreIn: RegisterKey){
         if(Array.isArray(fromPixel)) fromPixel = indexByCoordinates(fromPixel[0], fromPixel[1], this.imageData.width);
         if(typeof fromPixel === "string"){
-            this.insert8(Instructions.NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG);
+            this.insert8(Instructions.FETCH_PIXEL_NEIGHBOR);
+            this.insert8(NeighborRetrievalType.NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG);
             this.insert8(direction);
             this.insert32(this._regKeyToIndex(fromPixel));
             this.insert32(this._regKeyToIndex(RegisterToStoreIn));
         }else{
-            this.insert8(Instructions.NEIGHBORING_PIXEL_INDEX_TO_REG);
+            this.insert8(Instructions.FETCH_PIXEL_NEIGHBOR);
+            this.insert8(NeighborRetrievalType.NEIGHBORING_PIXEL_INDEX_TO_REG);
             this.insert8(direction);
             this.insert32(fromPixel);
             this.insert32(this._regKeyToIndex(RegisterToStoreIn));
@@ -905,11 +994,13 @@ export default class IDGBuilder {
         
         if(Array.isArray(atLocation)) atLocation = indexByCoordinates(atLocation[0], atLocation[1], this.imageData.width)
         else if(typeof atLocation === "string"){
-            this.insert8(Instructions.FETCH_PIXEL_COLOR_BY_REGISTER_INDEX);
+            this.insert8(Instructions.FETCH_PIXEL_COLOR_BY_INDEX);
+            this.insert8(PixelColorByIndexType.FETCH_PIXEL_COLOR_REG);
             atLocation = this._regKeyToIndex(atLocation);
             
         }else{
             this.insert8(Instructions.FETCH_PIXEL_COLOR_BY_INDEX);
+            this.insert8(PixelColorByIndexType.FETCH_PIXEL_COLOR_LIT);
         }
         this.insert32(atLocation);
         return this;
