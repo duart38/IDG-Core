@@ -191,10 +191,7 @@ export default class IDGBuilder {
      * @param memoryLocation the memory location to put the value in (use flags to help keep track)
      * @param safeCopy defines wether to ensure that the VM always skips this value. If no skipping is applied it is possible to corrupt (or change) the memory of instructions that are in the supplied memory location. (skipping takes up more memory, ~5bytes)
      */
-  MoveRegisterToMemory(from: RegisterKey, to: number, safeCopy = true) {
-    if (safeCopy === true) {
-      this._skip([Instructions.MOVE]);
-    }
+  MoveRegisterToMemory(from: RegisterKey, to: number) {
     this.insert8(Instructions.MOVE);
     this.insert8(moveType.MOV_REG_MEM);
     this.insert32(this._regKeyToIndex(from));
