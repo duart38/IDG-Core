@@ -218,6 +218,7 @@ export enum ParameterFetchType {
  * NOTE: Does not include the instruction itself as that has already been fetched at the time of querying this object
  */
 export const InstructionParams: Record<Instructions, ParameterFetchType[]> = {
+  // TODO: fetch number from network instruction (this does not seem that problematic)
   [Instructions.PSH_IP]: [],
   [Instructions.PSH_IP_OFFSETTED]: [ParameterFetchType.unsignedINT32],
   [Instructions.DEBUG]: [ParameterFetchType.unsignedINT8],
@@ -267,4 +268,6 @@ export const InstructionParams: Record<Instructions, ParameterFetchType[]> = {
   [Instructions.SLEEP]: [ParameterFetchType.unsignedINT32],
   [Instructions.LANGTONS_ANT]: [ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
   [Instructions.SEEDS]: [ParameterFetchType.unsignedINT32, ParameterFetchType.unsignedINT32],
+
+  // TODO: SHAPE: [type, amountOfPointsToFetch].. the points need to be fetched dynamically so we can decide to do it with the fetch ins or inside our generator based on the amountOfPointsToFetch value
 }
