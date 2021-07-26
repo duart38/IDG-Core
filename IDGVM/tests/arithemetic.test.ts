@@ -8,7 +8,7 @@ import { Instructions } from "../Registers.ts";
  * Just a little to build a basic builder to ensure we instructions don't collide.
  **/
 function makeBuilder(): Builder {
-    return new Builder({width: 1, height: 1, imageData: [0]}, 54288000);
+    return new Builder({width: 1, height: 1, imageData: [0]}, 100000);
 }
 function makeLoader(builder: Builder, autoStart = false){
     const loader = new IDGLoader(builder.compile());
