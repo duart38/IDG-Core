@@ -39,6 +39,8 @@ export enum CallType {
     CAL_MEM
 }
 
+// TODO: JMP based on comparison of 2 locations (instead of acc)
+
 export function jumpBasedOnAcc(_this: IDGVM, param: number[]){
     switch(param[1]){
         case AccJumpType.JNE_LIT: {
