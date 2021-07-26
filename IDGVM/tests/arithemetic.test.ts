@@ -36,3 +36,12 @@ Deno.test("ADD_LIT_REG", function (): void {
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals(makeLoader(b, true).getVM().getRegister("acc"), 6);
 });
+
+Deno.test("ADD_REG_LIT", function (): void {
+    const b = makeBuilder();
+    b.insert8(Instructions.ADD);
+    b.insert8(additionType.ADD_REG_LIT);
+    b.insert32(b._regKeyToIndex("r1"));
+    b.insert32(5);
+    assertEquals(makeLoader(b, true).getVM().getRegister("acc"), 6);
+});
