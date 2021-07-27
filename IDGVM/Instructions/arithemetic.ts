@@ -17,6 +17,7 @@ export enum subtractionType {
   SUB_REG_MEM,
   SUB_MEM_REG,
   SUB_MEM_LIT,
+  SUB_MEM_MEM,
   // TODO: in-place instructions
 }
 
@@ -86,6 +87,15 @@ export function subtraction(_this: IDGVM, param: number[]) {
       const literal = param[3];
       const memV = _this.getMemoryAt(mem);
       _this.setRegister("acc", memV - literal);
+      break;
+    }
+    case subtractionType.SUB_MEM_MEM: {
+      // sub [mem], [mem2]
+      const mem1 = param[2];
+      const mem2 = param[3];
+      const mem1V = _this.getMemoryAt(mem1);
+      const mem2V = _this.getMemoryAt(mem2);
+      _this.setRegister("acc", mem1V - mem2V);
       break;
     }
   }
