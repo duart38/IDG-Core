@@ -70,6 +70,21 @@ Deno.test("ADD_REG_MEM", async function () {
     assertEquals(vm.getRegister("acc"), 5);
 });
 
+
+Deno.test("ADD_MEM_MEM", async function () {
+    const b = makeBuilder();
+    const storeAt1 = b.instructionIndex + 30;
+    const storeAt2 = b.instructionIndex + 38;
+    b.MoveRegisterToMemory("r2", storeAt1);
+    b.MoveRegisterToMemory("r3", storeAt2);
+    b.insert8(Instructions.ADD);
+    b.insert8(additionType.ADD_MEM_MEM);
+    b.insert32(storeAt1);
+    b.insert32(storeAt2);
+    const vm = (await makeLoader(b, true)).getVM();
+    assertEquals(vm.getRegister("acc"), 5);
+});
+
 Deno.test("SUB_REG_REG", async function () {
     const b = makeBuilder();
     b.insert8(Instructions.SUBTRACT);
