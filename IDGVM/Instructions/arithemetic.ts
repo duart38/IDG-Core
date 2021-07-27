@@ -6,6 +6,7 @@ export enum additionType {
   ADD_REG_LIT,
   ADD_LIT_MEM,
   ADD_REG_MEM,
+  ADD_MEM_MEM,
   // TODO: in-place instructions
 }
 
@@ -151,6 +152,15 @@ export function addition(_this: IDGVM, param: number[]) {
       const literal = param[3];
       const r1V = _this.getRegisterAt(r1);
       _this.setRegister("acc", literal + r1V);
+      break;
+    }
+    case additionType.ADD_MEM_MEM: {
+      // add [mem], [mem2]
+      const mem1 = param[2];
+      const mem2 = param[3];
+      const mem1V = _this.getMemoryAt(mem1);
+      const mem2V = _this.getMemoryAt(mem2);
+      _this.setRegister("acc", mem1V + mem2V);
       break;
     }
   }
