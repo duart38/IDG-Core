@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.102.0/testing/asserts.ts";
 import Builder from "../Builder/Builder.ts";
-import { additionType, subtractionType } from "../Instructions/arithemetic.ts";
+import { additionType, multiplicationType, subtractionType } from "../Instructions/arithemetic.ts";
 import IDGLoader from "../Loader.ts";
 import { Instructions } from "../Registers.ts";
 
@@ -152,4 +152,13 @@ Deno.test("SUB_MEM_MEM", async function () {
     b.insert32(storeAt1);
     b.insert32(storeAt2);
     assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 2);
+});
+
+Deno.test("MUL_REG_REG", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.MULTIPLY);
+    b.insert8(multiplicationType.MUL_REG_REG);
+    b.insert32(b._regKeyToIndex("r2"));
+    b.insert32(b._regKeyToIndex("r3"));
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 6);
 });
