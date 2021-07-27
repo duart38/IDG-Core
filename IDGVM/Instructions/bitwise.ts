@@ -3,7 +3,7 @@ import IDGVM from "../Machine.ts";
 export enum shiftType {
   LSF_REG_LIT,
   LSF_REG_REG,
-  // TODO: LSF_REG_MEM
+  LSF_REG_MEM,
   // TODO: LSF_MEM_LIT
   // TODO: LSF_MEM_REG
   RSF_REG_LIT,
@@ -46,6 +46,13 @@ export function bitwiseShift(_this: IDGVM, param: number[]) {
       const r2 = param[3];
       const oldValue = _this.getRegisterAt(r1);
       _this.setRegisterAt(r1, oldValue << _this.getRegisterAt(r2));
+      break;
+    }
+    case shiftType.LSF_REG_MEM: {
+      const r1 = param[2];
+      const mem = param[3];
+      const oldValue = _this.getRegisterAt(r1);
+      _this.setRegisterAt(r1, oldValue << _this.getMemoryAt(mem));
       break;
     }
     case shiftType.RSF_REG_LIT: {
