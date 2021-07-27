@@ -1,5 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.102.0/testing/asserts.ts";
 import Builder from "../Builder/Builder.ts";
+import { shiftType } from "../Instructions/bitwise.ts";
 import IDGLoader from "../Loader.ts";
 import { Instructions } from "../Registers.ts";
 
@@ -18,3 +19,12 @@ async function makeLoader(builder: Builder, autoStart = false){
     if(autoStart) await loader.startVM();
     return loader;
 }
+
+Deno.test("LSF_REG_LIT", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.BITWISE_SHIFT);
+    b.insert8(shiftType.LSF_REG_LIT);
+    b.insert32(b._regKeyToIndex("r2"));
+    b.insert32(1);
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r2"), 4);
+});
