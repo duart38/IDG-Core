@@ -3,8 +3,14 @@ import IDGVM from "../Machine.ts";
 export enum shiftType {
   LSF_REG_LIT,
   LSF_REG_REG,
+  // TODO: LSF_REG_MEM
+  // TODO: LSF_MEM_LIT
+  // TODO: LSF_MEM_REG
   RSF_REG_LIT,
   RSF_REG_REG,
+  // TODO: RSF_REG_MEM
+  // TODO: RSF_MEM_LIT
+  // TODO: RSF_MEM_REG
 }
 export enum andType {
   AND_REG_LIT,
