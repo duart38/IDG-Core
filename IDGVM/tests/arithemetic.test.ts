@@ -233,3 +233,16 @@ Deno.test("MUL_LIT_LIT", async function () {
     b.insert32(2);
     assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 6);
 });
+
+Deno.test("MUL_MEM_MEM", async function () {
+    const b = makeBuilder();
+    const storeAt1 = b.instructionIndex + 30;
+    const storeAt2 = b.instructionIndex + 38;
+    b.MoveRegisterToMemory("r3", storeAt1);
+    b.MoveRegisterToMemory("r2", storeAt2);
+    b.insert8(Instructions.MULTIPLY);
+    b.insert8(multiplicationType.MUL_MEM_MEM);
+    b.insert32(storeAt1);
+    b.insert32(storeAt2);
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 6);
+});
