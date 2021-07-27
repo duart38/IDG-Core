@@ -162,3 +162,12 @@ Deno.test("MUL_REG_REG", async function () {
     b.insert32(b._regKeyToIndex("r3"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 6);
 });
+
+Deno.test("MUL_LIT_REG", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.MULTIPLY);
+    b.insert8(multiplicationType.MUL_LIT_REG);
+    b.insert32(2);
+    b.insert32(b._regKeyToIndex("r3"));
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 6);
+});
