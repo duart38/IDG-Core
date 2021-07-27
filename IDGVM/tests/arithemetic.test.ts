@@ -87,3 +87,12 @@ Deno.test("SUB_LIT_REG", async function () {
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 2);
 });
+
+Deno.test("SUB_REG_LIT", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.SUBTRACT);
+    b.insert8(subtractionType.SUB_REG_LIT);
+    b.insert32(b._regKeyToIndex("r3"));
+    b.insert32(1);
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 2);
+});
