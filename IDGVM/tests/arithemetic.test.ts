@@ -70,6 +70,15 @@ Deno.test("ADD_REG_MEM", async function () {
     assertEquals(vm.getRegister("acc"), 5);
 });
 
+Deno.test("ADD_LIT_LIT", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.ADD);
+    b.insert8(additionType.ADD_LIT_LIT);
+    b.insert32(2);
+    b.insert32(3);
+    const vm = (await makeLoader(b, true)).getVM();
+    assertEquals(vm.getRegister("acc"), 5);
+});
 
 Deno.test("ADD_MEM_MEM", async function () {
     const b = makeBuilder();
