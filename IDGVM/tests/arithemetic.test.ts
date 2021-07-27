@@ -129,3 +129,14 @@ Deno.test("SUB_MEM_REG", async function () {
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 2);
 });
+
+Deno.test("SUB_MEM_LIT", async function () {
+    const b = makeBuilder();
+    const storeAt = b.instructionIndex + 30;
+    b.MoveRegisterToMemory("r3", storeAt);
+    b.insert8(Instructions.SUBTRACT);
+    b.insert8(subtractionType.SUB_MEM_LIT);
+    b.insert32(storeAt);
+    b.insert32(1);
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 2);
+});
