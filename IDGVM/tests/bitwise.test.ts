@@ -128,7 +128,7 @@ Deno.test("AND_REG_LIT", async function () {
     b.insert8(andType.AND_REG_LIT);
     b.insert32(b._regKeyToIndex("r2"));
     b.insert32(3);
-    assertEquals((await makeLoader(b,true)).getVM().getRegister("r2"), 2);
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 2);
 });
 
 Deno.test("AND_REG_REG", async function () {
@@ -137,7 +137,7 @@ Deno.test("AND_REG_REG", async function () {
     b.insert8(andType.AND_REG_REG);
     b.insert32(b._regKeyToIndex("r2"));
     b.insert32(b._regKeyToIndex("r3"));
-    assertEquals((await makeLoader(b,true)).getVM().getRegister("r2"), 2);
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 2);
 });
 
 Deno.test("AND_REG_MEM", async function () {
@@ -148,7 +148,7 @@ Deno.test("AND_REG_MEM", async function () {
     b.insert8(andType.AND_REG_MEM);
     b.insert32(b._regKeyToIndex("r2"));
     b.insert32(storeAt);
-    assertEquals((await makeLoader(b,true)).getVM().getRegister("r2"), 2);
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 2);
 });
 
 Deno.test("AND_MEM_REG", async function () {
@@ -159,5 +159,16 @@ Deno.test("AND_MEM_REG", async function () {
     b.insert8(andType.AND_MEM_REG);
     b.insert32(storeAt);
     b.insert32(b._regKeyToIndex("r3"));
-    assertEquals((await makeLoader(b,true)).getVM().getMemoryAt(storeAt), 2);
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 2);
+});
+
+Deno.test("AND_LIT_MEM", async function () {
+    const b = makeBuilder();
+    const storeAt = b.instructionIndex + 30;
+    b.MoveRegisterToMemory("r3", storeAt);
+    b.insert8(Instructions.BITWISE_AND);
+    b.insert8(andType.AND_LIT_MEM);
+    b.insert32(2);
+    b.insert32(storeAt);
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 2);
 });
