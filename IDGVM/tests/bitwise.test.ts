@@ -245,3 +245,12 @@ Deno.test("OR_MEM_REG", async function () {
     b.insert32(b._regKeyToIndex("r3"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 3);
 });
+
+Deno.test("XOR_REG_LIT", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.BITWISE_OR);
+    b.insert8(orType.XOR_REG_LIT);
+    b.insert32(b._regKeyToIndex("r2"));
+    b.insert32(3);
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 1);
+});
