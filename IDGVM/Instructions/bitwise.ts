@@ -9,7 +9,7 @@ export enum shiftType {
 
   RSF_REG_LIT,
   RSF_REG_REG,
-  // TODO: RSF_REG_MEM
+  RSF_REG_MEM,
   // TODO: RSF_MEM_LIT
   // TODO: RSF_MEM_REG
 }
@@ -82,6 +82,13 @@ export function bitwiseShift(_this: IDGVM, param: number[]) {
       const r2 = param[3];
       const oldValue = _this.getRegisterAt(r1);
       _this.setRegisterAt(r1, oldValue >> _this.getRegisterAt(r2));
+      break;
+    }
+    case shiftType.RSF_REG_MEM: {
+      const r1 = param[2];
+      const mem = param[3];
+      const oldValue = _this.getRegisterAt(r1);
+      _this.setRegisterAt(r1, oldValue >> _this.getMemoryAt(mem));
       break;
     }
   }
