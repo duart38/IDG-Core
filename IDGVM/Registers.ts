@@ -326,7 +326,7 @@ export const InstructionParams: Record<Instructions, ParameterFetchType[]> = {
     ParameterFetchType.unsignedINT32,
   ],
   [Instructions.RGB_FROMREG_TO_COLOR]: [],
-  [Instructions.RGB_TO_COLOR]: [
+  [Instructions.RGB_TO_COLOR]: [ // TODO: make a literal version that takes 8bit vals instead
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32, // TODO: this is wasteful as the RGB depth is only 8bits per channel.
     ParameterFetchType.unsignedINT32,
