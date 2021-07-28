@@ -79,3 +79,12 @@ Deno.test("RSF_REG_LIT", async function () {
     b.insert32(1);
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r2"), 1);
 });
+
+Deno.test("RSF_REG_REG", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.BITWISE_SHIFT);
+    b.insert8(shiftType.RSF_REG_REG);
+    b.insert32(b._regKeyToIndex("r2"));
+    b.insert32(b._regKeyToIndex("r1"));
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r2"), 1);
+});
