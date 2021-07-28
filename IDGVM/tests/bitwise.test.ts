@@ -201,3 +201,14 @@ Deno.test("OR_REG_REG", async function () {
     b.insert32(b._regKeyToIndex("r3"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 3);
 });
+
+Deno.test("OR_LIT_MEM", async function () {
+    const b = makeBuilder();
+    const storeAt = b.instructionIndex + 30;
+    b.MoveRegisterToMemory("r3", storeAt);
+    b.insert8(Instructions.BITWISE_OR);
+    b.insert8(orType.OR_LIT_MEM);
+    b.insert32(2);
+    b.insert32(storeAt);
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 3);
+});
