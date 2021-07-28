@@ -1,7 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.102.0/testing/asserts.ts";
 import { combineRGB } from "../../utils/color.ts";
 import Builder from "../Builder/Builder.ts";
-import { additionType, multiplicationType, subtractionType } from "../Instructions/arithemetic.ts";
 import { RGBConversionType } from "../Instructions/color.ts";
 import IDGLoader from "../Loader.ts";
 import { Instructions } from "../Registers.ts";
