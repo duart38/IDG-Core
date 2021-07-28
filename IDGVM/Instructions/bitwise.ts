@@ -24,7 +24,7 @@ export enum andType {
 export enum orType {
   OR_REG_LIT,
   OR_REG_REG,
-  // TODO: OR_LIT_MEM
+  OR_LIT_MEM,
   // TODO: OR_REG_MEM
   // TODO: OR_MEM_LIT
   XOR_REG_LIT,
@@ -175,6 +175,16 @@ export function bitwiseOR(_this: IDGVM, param: number[]) {
       _this.setRegister("acc", r1V | r2V);
       break;
     }
+    case orType.OR_LIT_MEM: {
+      const literal = param[2];
+      const mem = param[3];
+      const memV = _this.getMemoryAt(mem);
+      _this.setRegister("acc", memV | literal);
+      break;
+    }
+
+
+    
     case orType.XOR_REG_LIT: {
       const r1 = param[2];
       const literal = param[3];
