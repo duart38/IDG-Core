@@ -110,3 +110,14 @@ Deno.test("RSF_MEM_LIT", async function () {
     b.insert32(1);
     assertEquals((await makeLoader(b,true)).getVM().getMemoryAt(storeAt), 1);
 });
+
+Deno.test("RSF_MEM_REG", async function () {
+    const b = makeBuilder();
+    const storeAt = b.instructionIndex + 30;
+    b.MoveRegisterToMemory("r2", storeAt);
+    b.insert8(Instructions.BITWISE_SHIFT);
+    b.insert8(shiftType.RSF_MEM_REG);
+    b.insert32(storeAt);
+    b.insert32(b._regKeyToIndex("r1"));
+    assertEquals((await makeLoader(b,true)).getVM().getMemoryAt(storeAt), 1);
+});
