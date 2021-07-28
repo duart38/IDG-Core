@@ -24,11 +24,11 @@ export enum andType {
 export enum orType {
   OR_REG_LIT,
   OR_REG_REG,
-  XOR_REG_LIT,
-  XOR_REG_REG,
   // TODO: OR_LIT_MEM
   // TODO: OR_REG_MEM
   // TODO: OR_MEM_LIT
+  XOR_REG_LIT,
+  XOR_REG_REG,
   // TODO: XOR_LIT_MEM
   // TODO: XOR_REG_MEM
 }
