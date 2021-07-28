@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.102.0/testing/asserts.ts";
 import Builder from "../Builder/Builder.ts";
-import { shiftType } from "../Instructions/bitwise.ts";
+import { andType, shiftType } from "../Instructions/bitwise.ts";
 import IDGLoader from "../Loader.ts";
 import { Instructions } from "../Registers.ts";
 
@@ -120,4 +120,13 @@ Deno.test("RSF_MEM_REG", async function () {
     b.insert32(storeAt);
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals((await makeLoader(b,true)).getVM().getMemoryAt(storeAt), 1);
+});
+
+Deno.test("AND_REG_LIT", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.BITWISE_AND);
+    b.insert8(andType.AND_REG_LIT);
+    b.insert32(b._regKeyToIndex("r2"));
+    b.insert32(3);
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r2"), 2);
 });
