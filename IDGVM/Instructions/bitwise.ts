@@ -18,7 +18,7 @@ export enum andType {
   AND_REG_REG,
   AND_REG_MEM,
   AND_MEM_REG,
-  // TODO: AND_LIT_MEM
+  AND_LIT_MEM,
   // TODO: AND_MEM_LIT
 }
 export enum orType {
@@ -139,6 +139,13 @@ export function bitwiseAND(_this: IDGVM, param: number[]) {
       const r2V = _this.getRegisterAt(r2);
       const memV = _this.getMemoryAt(mem);
       _this.setRegister("acc", memV & r2V);
+      break;
+    }
+    case andType.AND_LIT_MEM: {
+      const literal = param[2];
+      const mem = param[3];
+      const memV = _this.getMemoryAt(mem);
+      _this.setRegister("acc", memV & literal); 
       break;
     }
   }
