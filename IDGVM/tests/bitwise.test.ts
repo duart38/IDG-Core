@@ -150,3 +150,14 @@ Deno.test("AND_REG_MEM", async function () {
     b.insert32(storeAt);
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r2"), 2);
 });
+
+Deno.test("AND_MEM_REG", async function () {
+    const b = makeBuilder();
+    const storeAt = b.instructionIndex + 30;
+    b.MoveRegisterToMemory("r2", storeAt);
+    b.insert8(Instructions.BITWISE_AND);
+    b.insert8(andType.AND_MEM_REG);
+    b.insert32(storeAt);
+    b.insert32(b._regKeyToIndex("r3"));
+    assertEquals((await makeLoader(b,true)).getVM().getMemoryAt(storeAt), 2);
+});
