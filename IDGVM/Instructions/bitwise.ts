@@ -16,7 +16,7 @@ export enum shiftType {
 export enum andType {
   AND_REG_LIT,
   AND_REG_REG,
-  // TODO: AND_REG_MEM
+  AND_REG_MEM,
   // TODO: AND_MEM_REG
   // TODO: AND_LIT_MEM
   // TODO: AND_MEM_LIT
@@ -122,6 +122,14 @@ export function bitwiseAND(_this: IDGVM, param: number[]) {
       const r2 = param[3];
       const r1V = _this.getRegisterAt(r1);
       const r2V = _this.getRegisterAt(r2);
+      _this.setRegister("acc", r1V & r2V);
+      break;
+    }
+    case andType.AND_REG_MEM: {
+      const r1 = param[2];
+      const mem = param[3];
+      const r1V = _this.getRegisterAt(r1);
+      const r2V = _this.getMemoryAt(mem);
       _this.setRegister("acc", r1V & r2V);
       break;
     }
