@@ -55,8 +55,8 @@ Deno.test("RGB_TO_COLOR_REG_REG_REG", async function () {
     const b = makeBuilder();
     b.insert8(Instructions.RGB_TO_COLOR);
     b.insert8(RGBConversionType.RGB_TO_COLOR_REG_REG_REG);
-    b.insert8(255);
-    b.insert8(255);
-    b.insert8(255);
+    b.insert32(b._regKeyToIndex("R"));
+    b.insert32(b._regKeyToIndex("G"));
+    b.insert32(b._regKeyToIndex("B"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("COL"), combineRGB([255, 255, 255]));
 });
