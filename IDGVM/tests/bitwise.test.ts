@@ -224,27 +224,6 @@ Deno.test("OR_REG_MEM", async function () {
     assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 3);
 });
 
-Deno.test("OR_MEM_LIT", async function () {
-    const b = makeBuilder();
-    const storeAt = b.instructionIndex + 30;
-    b.MoveRegisterToMemory("r2", storeAt);
-    b.insert8(Instructions.BITWISE_OR);
-    b.insert8(orType.OR_MEM_LIT);
-    b.insert32(storeAt);
-    b.insert32(3);
-    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 3);
-});
-
-Deno.test("OR_MEM_REG", async function () {
-    const b = makeBuilder();
-    const storeAt = b.instructionIndex + 30;
-    b.MoveRegisterToMemory("r2", storeAt);
-    b.insert8(Instructions.BITWISE_OR);
-    b.insert8(orType.OR_MEM_REG);
-    b.insert32(storeAt);
-    b.insert32(b._regKeyToIndex("r3"));
-    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 3);
-});
 
 Deno.test("XOR_REG_LIT", async function () {
     const b = makeBuilder();
