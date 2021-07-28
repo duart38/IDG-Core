@@ -31,8 +31,8 @@ export enum orType {
 
   XOR_REG_LIT,
   XOR_REG_REG,
-  // TODO: XOR_LIT_MEM
-  // TODO: XOR_REG_MEM
+  XOR_LIT_MEM,
+  // TODO: XOR_REG_MEM,
 }
 
 export function bitwiseShift(_this: IDGVM, param: number[]) {
@@ -223,6 +223,13 @@ export function bitwiseOR(_this: IDGVM, param: number[]) {
       const r1V = _this.getRegisterAt(r1);
       const r2V = _this.getRegisterAt(r2);
       _this.setRegister("acc", r1V ^ r2V);
+      break;
+    }
+    case orType.XOR_LIT_MEM: {
+      const literal = param[2];
+      const mem = param[3];
+      const memV = _this.getMemoryAt(mem);
+      _this.setRegister("acc", memV ^ literal);
       break;
     }
   }
