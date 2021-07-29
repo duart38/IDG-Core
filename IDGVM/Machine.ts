@@ -110,10 +110,10 @@ export default class IDGVM extends InstructionParser {
     const nextNBytes = Array.from(
       { length: n },
       (_, i) => this.memory.getUint8(address + i),
-    ).map((v) => `0x${v.toString(16).padStart(2, "0")}`);
+    ).map((v) => v);
 
     console.log(
-      `0x${address.toString(16).padStart(4, "0")}: ${nextNBytes.join(" ")}`,
+      `[${address}]: ${nextNBytes.join(" ")}`,
     );
   }
 
@@ -542,7 +542,8 @@ export default class IDGVM extends InstructionParser {
 
   async run() {
     for (const inst of this.fetch()) {
-      await this.execute(inst);
+      const htl = await this.execute(inst);
+      if (htl) return;
     }
   }
 }
