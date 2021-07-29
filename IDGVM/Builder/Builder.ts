@@ -678,9 +678,10 @@ export default class IDGBuilder {
       (prev, curr) =>
         prev +
         InstructionParams[curr].reduce((p, c) =>
-          p + this._getInstructionSize(c), 0),
+          p + this._getInstructionSize(c), 1),
       0,
-    ) + 1;
+    );
+    console.log("skipping", skipTo);
     this.insert8(Instructions.SKIP);
     this.setFlag(name);
     this.insert32(skipTo);
