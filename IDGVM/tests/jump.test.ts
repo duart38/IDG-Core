@@ -72,21 +72,21 @@ Deno.test("JNE_REG (false)", async function () {
     assertNotEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
 });
 
-// Deno.test("IMAGE_WIDTH_REG", async function () {
-//     const b = makeBuilder();
 
-//     b.insert8(Instructions.JMP_ACC);
-//     b.insert8(AccJumpType.JNE_LIT);
-//     b.insert32(1);
-//     b.insert32(1);
-//     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 1);
-// });
+Deno.test("JEQ_REG (true)", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.JMP_ACC);
+    b.insert8(AccJumpType.JEQ_REG);
+    b.insert32(b._regKeyToIndex("r1")); // lit
+    b.insert32(b.getFlag("call")); // addr to jump to
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
+});
 
-// Deno.test("IMAGE_WIDTH_MEM", async function () {
-//     const b = makeBuilder();
-//     const memStorage = b.instructionIndex + 40;
-//     b.insert8(Instructions.JMP_ACC);
-//     b.insert8(AccJumpType.JNE_LIT);
-//     b.insert32(memStorage);
-//     assertEquals((await makeLoader(b,true)).getVM().getMemoryAt(memStorage), 1);
-// });
+Deno.test("JEQ_REG (false)", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.JMP_ACC);
+    b.insert8(AccJumpType.JEQ_REG);
+    b.insert32(b._regKeyToIndex("r2"));
+    b.insert32(b.getFlag("call")); // addr to jump to
+    assertNotEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
+});
