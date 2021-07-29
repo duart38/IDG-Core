@@ -221,7 +221,7 @@ export default class IDGBuilder {
   }
 
   // get required instruction size for this operation
-  private _getInstructionSize(operation: ParameterFetchType) {
+  public _getInstructionSize(operation: ParameterFetchType) {
     switch (operation) {
       case ParameterFetchType.unsignedINT8:
         return 1;
