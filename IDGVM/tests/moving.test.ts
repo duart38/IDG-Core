@@ -1,7 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.102.0/testing/asserts.ts";
 import Builder from "../Builder/Builder.ts";
-import { additionType, multiplicationType, subtractionType } from "../Instructions/arithemetic.ts";
-import { moveType } from "../Instructions/moving.ts";
+import { moveType, SMoveType } from "../Instructions/moving.ts";
 import IDGLoader from "../Loader.ts";
 import { Instructions } from "../Registers.ts";
 
@@ -17,6 +16,7 @@ async function makeLoader(builder: Builder, autoStart = false){
     loader.getVM().setRegister("r1", 1);
     loader.getVM().setRegister("r2", 2);
     loader.getVM().setRegister("r3", 50);
+    loader.getVM().setSignedRegister("r4", -50);
     if(autoStart) await loader.startVM();
     return loader;
 }
@@ -81,14 +81,11 @@ Deno.test("MOV_MEM_MEM", async function () {
     assertEquals((await makeLoader(b,true)).getVM().getMemoryAt(storeAt + 5), 50);
 });
 
-// Deno.test("ADD_LIT_MEM", async function () {
-//     const b = makeBuilder();
-//     const storeAt = b.instructionIndex + 30;
-//     b.MoveRegisterToMemory("r1", storeAt);
-//     b.insert8(Instructions.ADD);
-//     b.insert8(additionType.ADD_LIT_MEM);
-//     b.insert32(5);
-//     b.insert32(storeAt);
-//     const vm = (await makeLoader(b, true)).getVM();
-//     assertEquals(vm.getRegister("acc"), 6);
-// });
+Deno.test("MOV_SLIT_REG", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.MOVE_S);
+    b.insert8(SMoveType.MOV_SLIT_REG);
+    b.insert32(-50);
+    b.insert32(b._regKeyToIndex("r1"));
+    assertEquals((await makeLoader(b,true)).getVM().getSignedRegister("r1"), -50);
+});
