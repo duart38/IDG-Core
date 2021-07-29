@@ -236,3 +236,32 @@ Deno.test("JLE_LIT (false)", async function () {
     b.insert32(b.getFlag("call")); // addr to jump to
     assertNotEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
 });
+
+
+
+Deno.test("JGE_REG (true)", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.JMP_ACC);
+    b.insert8(AccJumpType.JGE_REG);
+    b.insert32(b._regKeyToIndex("r2")); // lit
+    b.insert32(b.getFlag("call")); // addr to jump to
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
+});
+
+Deno.test("JGE_REG (true) 2", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.JMP_ACC);
+    b.insert8(AccJumpType.JGE_REG);
+    b.insert32(b._regKeyToIndex("r1")); // lit (exactly 0)
+    b.insert32(b.getFlag("call")); // addr to jump to
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
+});
+Deno.test("JGE_REG (false)", async function () {
+    const b = makeBuilder();
+    b.addValues(3, "acc");
+    b.insert8(Instructions.JMP_ACC);
+    b.insert8(AccJumpType.JGE_REG);
+    b.insert32(b._regKeyToIndex("r2"));
+    b.insert32(b.getFlag("call")); // addr to jump to
+    assertNotEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
+});
