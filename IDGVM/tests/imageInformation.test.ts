@@ -61,3 +61,12 @@ Deno.test("IMAGE_TOTAL_PIXELS_REG", async function () {
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 2);
 });
+
+Deno.test("IMAGE_TOTAL_PIXELS_MEM", async function () {
+    const b = makeBuilder();
+    const memStorage = b.instructionIndex + 40;
+    b.insert8(Instructions.FETCH_IMAGE_INFO);
+    b.insert8(ImageInfoFetchType.IMAGE_TOTAL_PIXELS_MEM);
+    b.insert32(memStorage);
+    assertEquals((await makeLoader(b,true)).getVM().getMemoryAt(memStorage), 2);
+});
