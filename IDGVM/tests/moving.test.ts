@@ -89,3 +89,12 @@ Deno.test("MOV_SLIT_REG", async function () {
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals((await makeLoader(b,true)).getVM().getSignedRegister("r1"), -50);
 });
+
+Deno.test("MOV_SREG_REG", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.MOVE_S);
+    b.insert8(SMoveType.MOV_SREG_REG);
+    b.insert32(b._regKeyToIndex("r4"));
+    b.insert32(b._regKeyToIndex("r1"));
+    assertEquals((await makeLoader(b,true)).getVM().getSignedRegister("r1"), -50);
+});
