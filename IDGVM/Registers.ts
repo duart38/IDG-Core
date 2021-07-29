@@ -217,6 +217,8 @@ export enum ParameterFetchType {
   unsignedINT32,
   signedINT32,
   registerIndex,
+  // TODO: add ignore types here so that the generator will skip the fetching of params and allow the individual instructions to fetch it themselves
+  //      the above solves the signed value problem that causes some memory to not be addressable
 }
 
 /**
@@ -235,7 +237,7 @@ export const InstructionParams: Record<Instructions, ParameterFetchType[]> = {
   ],
   [Instructions.MOVE_S]: [
     ParameterFetchType.unsignedINT8,
-    ParameterFetchType.unsignedINT32,
+    ParameterFetchType.signedINT32, // TODO: consequence-> we can't fully address the entire memory space
     ParameterFetchType.unsignedINT32,
   ], // TODO: test this by providing signed values and see if it retains its precision
   [Instructions.ADD]: [
