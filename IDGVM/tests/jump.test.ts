@@ -310,3 +310,13 @@ Deno.test("CAL_LIT", async function () {
     b.insert32(b.getFlag("call")); // addr to jump to
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
 });
+
+
+Deno.test("CAL_REG", async function () {
+    const b = makeBuilder();
+    b.StoreNumberToRegister(b.getFlag("call"), "r1");
+    b.insert8(Instructions.CALL);
+    b.insert8(CallType.CAL_REG);
+    b.insert32(b._regKeyToIndex("r1")); // addr to jump to
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
+});
