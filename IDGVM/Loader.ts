@@ -19,7 +19,7 @@ export default class IDGLoader {
     writableBytes.set(loaded.memorySection);
 
     this.vm = new IDGVM(this.memoryMapper, loaded);
-    this.vm.viewMemoryAt(0, 20);
+    this.vm.viewMemoryAt(0, 30);
     if (autoStart) this.startVM();
   }
 
@@ -79,7 +79,7 @@ export default class IDGLoader {
     return this.vm.run();
   }
   stopVM() {
-    this.vm.execute([Instructions.HLT]);
+    this.vm.execute([Instructions.HLT]); // TODO: this won't work.
   }
   /**
    * Gets the constructed machine. should be used for debugging purposes only.
