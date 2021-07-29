@@ -9,7 +9,7 @@ import { U255 } from "../interfaces/RGBA.ts";
 import { DecodedFile } from "../interfaces/FileShape.ts";
 import { sleep } from "../utils/timing.ts";
 import { seeds } from "../utils/misc.ts";
-import { executeMove } from "./Instructions/moving.ts";
+import { executeMove, executeSignedMove } from "./Instructions/moving.ts";
 import {
   addition,
   multiplication,
@@ -185,6 +185,7 @@ export default class IDGVM extends InstructionParser {
       case Instructions.MOVE:
         executeMove(this, instruction);
         break;
+      case Instructions.MOVE_S: executeSignedMove(this, instruction); break;
 
         // Add a registers value to another registers value and puts the results in the accumulator
 
