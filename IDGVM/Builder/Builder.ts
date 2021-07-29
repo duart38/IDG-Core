@@ -204,13 +204,7 @@ export default class IDGBuilder {
      * @param safeCopy defines wether to ensure that the VM always skips this value. If no skipping is applied it is possible to corrupt (or change) the memory of instructions that are in the supplied memory location. (skipping takes up more memory, ~5bytes)
      * @returns the location where the value has been stored
      */
-  StoreValueInMemory(value: number, memoryLocation?: number, safeCopy = true) {
-    if (safeCopy === true) {
-      this._skip([], !memoryLocation ? 4 : 0);
-    }
-    if (!memoryLocation) {
-      this.insert32(this.instructionIndex);
-    }
+  StoreValueInMemory(value: number, memoryLocation?: number) {
     const location = memoryLocation || this.instructionIndex;
 
     this.insert8(Instructions.MOVE);
