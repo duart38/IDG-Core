@@ -9,7 +9,7 @@ import { Instructions } from "../Registers.ts";
  * Just a little to build a basic builder to ensure we instructions don't collide.
  **/
 function makeBuilder(): Builder {
-    let b = new Builder({width: 1, height: 1, imageData: [0]}, 100000);
+    const b = new Builder({width: 1, height: 1, imageData: [0]}, 100000);
     // skip over a modification and jump to it for testing
     b.skipInstructions("skipped", [Instructions.MOVE, Instructions.RET_TO_NEXT]);
     b.setFlag("call");
