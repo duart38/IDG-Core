@@ -60,6 +60,16 @@ Deno.test("MOV_MEM_REG", async function () {
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 50);
 });
 
+Deno.test("MOV_LIT_MEM", async function () {
+    const b = makeBuilder();
+    const storeAt = b.instructionIndex + 30;
+    b.insert8(Instructions.MOVE);
+    b.insert8(moveType.MOV_LIT_MEM);
+    b.insert32(50);
+    b.insert32(storeAt);
+    assertEquals((await makeLoader(b,true)).getVM().getMemoryAt(storeAt), 50);
+});
+
 // Deno.test("ADD_LIT_MEM", async function () {
 //     const b = makeBuilder();
 //     const storeAt = b.instructionIndex + 30;
