@@ -109,3 +109,23 @@ Deno.test("JEQ_LIT (false)", async function () {
     b.insert32(b.getFlag("call")); // addr to jump to
     assertNotEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
 });
+
+
+Deno.test("JLT_REG (true)", async function () {
+    const b = makeBuilder();
+    b.addValues(2, "r2");
+    b.insert8(Instructions.JMP_ACC);
+    b.insert8(AccJumpType.JLT_REG);
+    b.insert32(b._regKeyToIndex("r1")); // lit
+    b.insert32(b.getFlag("call")); // addr to jump to
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
+});
+
+Deno.test("JLT_REG (false)", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.JMP_ACC);
+    b.insert8(AccJumpType.JLT_REG);
+    b.insert32(b._regKeyToIndex("r1")); // exactly equal to the acc (0), LT = less than
+    b.insert32(b.getFlag("call")); // addr to jump to
+    assertNotEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
+});
