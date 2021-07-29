@@ -80,16 +80,17 @@ export function executeMove(_this: IDGVM, param: number[]) {
 export function executeSignedMove(_this: IDGVM, param: number[]) {
   switch (param[1]) {
     // Move literal value into register
-    case moveType.MOV_LIT_REG: {
+    case SMoveType.MOV_SLIT_REG: {
       const literal = param[2];
       const register = param[3];
+      console.log(literal, register);
       _this.setSignedRegisterAt(register, literal);
       break;
     }
 
     // Move a registers value to another registers value
 
-    case moveType.MOV_REG_REG: {
+    case SMoveType.MOV_SREG_REG: {
       const registerFrom = param[2];
       const registerTo = param[3];
       const value = _this.getSignedRegisterAt(registerFrom);
@@ -99,7 +100,7 @@ export function executeSignedMove(_this: IDGVM, param: number[]) {
 
     // Move a registers value to a location in memory
 
-    case moveType.MOV_REG_MEM: {
+    case SMoveType.MOV_SREG_MEM: {
       const registerFrom = param[2];
       const address = param[3];
       const value = _this.getSignedRegisterAt(registerFrom);
@@ -109,7 +110,7 @@ export function executeSignedMove(_this: IDGVM, param: number[]) {
 
     // Move the value of a memory location to a register
 
-    case moveType.MOV_MEM_REG: {
+    case SMoveType.MOV_SMEM_REG: {
       const address = param[2];
       const registerTo = param[3];
       const value = _this.getSignedMemoryAt(address);
@@ -119,7 +120,7 @@ export function executeSignedMove(_this: IDGVM, param: number[]) {
 
     // Move a literal value to a memory location
 
-    case moveType.MOV_LIT_MEM: {
+    case SMoveType.MOV_SLIT_MEM: {
       const value = param[2];
       const address = param[3];
       _this.setSignedMemoryAt(address, value);
