@@ -28,22 +28,13 @@ Deno.test("IMAGE_WIDTH_REG", async function () {
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 1);
 });
 
-// Deno.test("RGB_TO_COLOR_MEM_MEM_MEM", async function () {
-//     const b = makeBuilder();
 
-//     const R = b.instructionIndex + 45;
-//     b.MoveRegisterToMemory("R", R);
+Deno.test("IMAGE_WIDTH_MEM", async function () {
+    const b = makeBuilder();
+    const memStorage = b.instructionIndex + 40;
+    b.insert8(Instructions.FETCH_IMAGE_INFO);
+    b.insert8(ImageInfoFetchType.IMAGE_WIDTH_MEM);
+    b.insert32(memStorage);
+    assertEquals((await makeLoader(b,true)).getVM().getMemoryAt(memStorage), 1);
+});
 
-//     const G = b.instructionIndex;
-//     b.MoveRegisterToMemory("G", G);
-
-//     const B = b.instructionIndex;
-//     b.MoveRegisterToMemory("B", B);
-
-//     b.insert8(Instructions.RGB_TO_COLOR);
-//     b.insert8(RGBConversionType.RGB_TO_COLOR_MEM_MEM_MEM);
-//     b.insert32(R);
-//     b.insert32(G);
-//     b.insert32(B);
-//     assertEquals((await makeLoader(b,true)).getVM().getRegister("COL"), combineRGB([255, 255, 255]));
-// });
