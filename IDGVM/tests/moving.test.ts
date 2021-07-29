@@ -123,3 +123,12 @@ Deno.test("MOV_SMEM_REG", async function () {
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals((await makeLoader(b,true)).getVM().getSignedRegister("r1"), -50);
 });
+
+Deno.test("MOV_SLIT_MEM", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.MOVE_S);
+    b.insert8(SMoveType.MOV_SLIT_MEM);
+    b.insert32(-50);
+    b.insert32(30);
+    assertEquals((await makeLoader(b,true)).getVM().getSignedMemoryAt(30), -50);
+});
