@@ -45,6 +45,15 @@ Deno.test("JNE_LIT (true)", async function () {
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
 });
 
+Deno.test("JNE_LIT (false)", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.JMP_ACC);
+    b.insert8(AccJumpType.JNE_LIT);
+    b.insert32(0); // lit
+    b.insert32(b.getFlag("call")); // addr to jump to
+    assertNotEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
+});
+
 // Deno.test("IMAGE_WIDTH_REG", async function () {
 //     const b = makeBuilder();
 
