@@ -39,14 +39,16 @@ Deno.test("MOV_REG_REG", async function () {
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 50);
 });
 
-// Deno.test("ADD_REG_REG", async function () {
-//     const b = makeBuilder();
-//     b.insert8(Instructions.ADD);
-//     b.insert8(additionType.ADD_REG_REG);
-//     b.insert32(b._regKeyToIndex("r1"));
-//     b.insert32(b._regKeyToIndex("r2"));
-//     assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 3);
-// });
+Deno.test("MOV_REG_MEM", async function () {
+    const b = makeBuilder();
+    const storeAt = b.instructionIndex + 30;
+    b.insert8(Instructions.MOVE);
+    b.insert8(moveType.MOV_REG_MEM);
+    b.insert32(b._regKeyToIndex("r3"));
+    b.insert32(storeAt);
+    assertEquals((await makeLoader(b,true)).getVM().getMemoryAt(storeAt), 50);
+});
+
 
 // Deno.test("ADD_LIT_MEM", async function () {
 //     const b = makeBuilder();
