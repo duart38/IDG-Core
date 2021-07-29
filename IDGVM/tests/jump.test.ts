@@ -24,7 +24,7 @@ function makeBuilder(): Builder {
 async function makeLoader(builder: Builder, autoStart = false){
     const loader = new IDGLoader(builder.compile());
     // Some pre-population.
-    loader.getVM().setRegister("r1", 1);
+    loader.getVM().setRegister("r1", 0);
     loader.getVM().setRegister("r2", 2);
     loader.getVM().setRegister("r3", 3); // update this
     if(autoStart) await loader.startVM();
@@ -50,6 +50,24 @@ Deno.test("JNE_LIT (false)", async function () {
     b.insert8(Instructions.JMP_ACC);
     b.insert8(AccJumpType.JNE_LIT);
     b.insert32(0); // lit
+    b.insert32(b.getFlag("call")); // addr to jump to
+    assertNotEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
+});
+
+Deno.test("JNE_REG (true)", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.JMP_ACC);
+    b.insert8(AccJumpType.JNE_REG);
+    b.insert32(b._regKeyToIndex("r2")); // lit
+    b.insert32(b.getFlag("call")); // addr to jump to
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
+});
+
+Deno.test("JNE_REG (false)", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.JMP_ACC);
+    b.insert8(AccJumpType.JNE_REG);
+    b.insert32(b._regKeyToIndex("r1")); // r1 is 0 so equals to acc
     b.insert32(b.getFlag("call")); // addr to jump to
     assertNotEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
 });
