@@ -39,7 +39,6 @@ Deno.test("IMAGE_WIDTH_MEM", async function () {
 
 Deno.test("IMAGE_HEIGHT_REG", async function () {
     const b = makeBuilder();
-    const memStorage = b.instructionIndex + 40;
     b.insert8(Instructions.FETCH_IMAGE_INFO);
     b.insert8(ImageInfoFetchType.IMAGE_HEIGHT_REG);
     b.insert32(b._regKeyToIndex("r1"));
@@ -53,4 +52,12 @@ Deno.test("IMAGE_HEIGHT_MEM", async function () {
     b.insert8(ImageInfoFetchType.IMAGE_HEIGHT_MEM);
     b.insert32(memStorage);
     assertEquals((await makeLoader(b,true)).getVM().getMemoryAt(memStorage), 2);
+});
+
+Deno.test("IMAGE_TOTAL_PIXELS_REG", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.FETCH_IMAGE_INFO);
+    b.insert8(ImageInfoFetchType.IMAGE_TOTAL_PIXELS_REG);
+    b.insert32(b._regKeyToIndex("r1"));
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 2);
 });
