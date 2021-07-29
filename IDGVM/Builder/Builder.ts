@@ -139,7 +139,12 @@ export default class IDGBuilder {
      * Insert a 32-bit instruction at the current index and then increment to point to an empty spot for the next insert
      */
   public insert32(n: number) {
-    this.instructions.set(chunkUp32(n), this.instructionIndex);
+    if(n < 0) { // signed val
+      const dv = new DataView(this.instructions.buffer)
+      dv.setInt32(this.instructionIndex, n);
+    }else{
+      this.instructions.set(chunkUp32(n), this.instructionIndex);
+    }
     this.instructionIndex += 4;
   }
   public insert16(n: number) {
