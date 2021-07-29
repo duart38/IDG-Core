@@ -107,3 +107,19 @@ Deno.test("MOV_SREG_MEM", async function () {
     b.insert32(30);
     assertEquals((await makeLoader(b,true)).getVM().getSignedMemoryAt(30), -50);
 });
+
+Deno.test("MOV_SMEM_REG", async function () {
+    const b = makeBuilder();
+
+    // this is tested above, if the above fails this one will fail too.
+    b.insert8(Instructions.MOVE_S);
+    b.insert8(SMoveType.MOV_SREG_MEM);
+    b.insert32(b._regKeyToIndex("r4"));
+    b.insert32(30);
+    
+    b.insert8(Instructions.MOVE_S);
+    b.insert8(SMoveType.MOV_SMEM_REG);
+    b.insert32(30);
+    b.insert32(b._regKeyToIndex("r1"));
+    assertEquals((await makeLoader(b,true)).getVM().getSignedRegister("r1"), -50);
+});
