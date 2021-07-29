@@ -100,6 +100,9 @@ export class MemoryMapper {
     const finalAddress = region.remap ? address - region.start : address;
     return region.device.setInt32(finalAddress, value);
   }
+  getDataView(ofAddress: number): DataView {
+    return this.findRegion(ofAddress).device;
+  }
 
   setUint16(address: number, value: number): void {
     const region = this.findRegion(address);
