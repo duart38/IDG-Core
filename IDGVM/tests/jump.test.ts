@@ -33,13 +33,13 @@ async function makeLoader(builder: Builder, autoStart = false){
 
 Deno.test("Testing SKIP (jump depends on this)", async function () {
     const b = makeBuilder();
-    assertNotEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
+    assertNotEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69, "SKIP instruction does not work.. all tests in this file are invalid before this instruction is fixed");
 });
 
 Deno.test("Testing addValues (this file depends on this)", async function () {
     const b = makeBuilder();
     b.addValues(3, "acc");
-    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 3);
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 3, "addValue builder method does not work.. all tests in this file are invalid before this instruction is fixed");
 });
 
 
