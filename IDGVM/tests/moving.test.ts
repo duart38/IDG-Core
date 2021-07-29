@@ -16,7 +16,7 @@ async function makeLoader(builder: Builder, autoStart = false){
     // Some pre-population.
     loader.getVM().setRegister("r1", 1);
     loader.getVM().setRegister("r2", 2);
-    loader.getVM().setRegister("r3", 3);
+    loader.getVM().setRegister("r3", 50);
     if(autoStart) await loader.startVM();
     return loader;
 }
@@ -30,7 +30,14 @@ Deno.test("MOV_LIT_REG", async function () {
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 50);
 });
 
-
+Deno.test("MOV_REG_REG", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.MOVE);
+    b.insert8(moveType.MOV_REG_REG);
+    b.insert32(b._regKeyToIndex("r3"));
+    b.insert32(b._regKeyToIndex("r1"));
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 50);
+});
 
 // Deno.test("ADD_REG_REG", async function () {
 //     const b = makeBuilder();
