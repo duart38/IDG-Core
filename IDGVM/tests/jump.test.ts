@@ -1,6 +1,6 @@
 import { assertEquals, assertNotEquals } from "https://deno.land/std@0.102.0/testing/asserts.ts";
 import Builder from "../Builder/Builder.ts";
-import { AccJumpType } from "../Instructions/jump.ts";
+import { AccJumpType, CallType } from "../Instructions/jump.ts";
 import { moveType } from "../Instructions/moving.ts";
 import IDGLoader from "../Loader.ts";
 import { Instructions } from "../Registers.ts";
@@ -300,4 +300,13 @@ Deno.test("JGE_LIT (false)", async function () {
     b.insert32(2);
     b.insert32(b.getFlag("call")); // addr to jump to
     assertNotEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
+});
+
+
+Deno.test("CAL_LIT", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.CALL);
+    b.insert8(CallType.CAL_LIT);
+    b.insert32(b.getFlag("call")); // addr to jump to
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
 });
