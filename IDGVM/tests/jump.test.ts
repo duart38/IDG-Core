@@ -36,6 +36,13 @@ Deno.test("Testing SKIP (jump depends on this)", async function () {
     assertNotEquals((await makeLoader(b,true)).getVM().getRegister("r3"), 69);
 });
 
+Deno.test("Testing addValues (this file depends on this)", async function () {
+    const b = makeBuilder();
+    b.addValues(3, "acc");
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("acc"), 3);
+});
+
+
 Deno.test("JNE_LIT (true)", async function () {
     const b = makeBuilder();
     b.insert8(Instructions.JMP_ACC);
