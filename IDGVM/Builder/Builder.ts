@@ -188,7 +188,6 @@ export default class IDGBuilder {
      * Copies the value in the supplied register to memory.
      * @param from the register to copy from
      * @param memoryLocation the memory location to put the value in (use flags to help keep track)
-     * @param safeCopy defines wether to ensure that the VM always skips this value. If no skipping is applied it is possible to corrupt (or change) the memory of instructions that are in the supplied memory location. (skipping takes up more memory, ~5bytes)
      */
   MoveRegisterToMemory(from: RegisterKey, to: number) {
     this.insert8(Instructions.MOVE);
@@ -201,7 +200,6 @@ export default class IDGBuilder {
      * Stores a number into memory.
      * @param value the value to put in the location.
      * @param memoryLocation the location to put the value in (places it). places at the current instruction index if omitted
-     * @param safeCopy defines wether to ensure that the VM always skips this value. If no skipping is applied it is possible to corrupt (or change) the memory of instructions that are in the supplied memory location. (skipping takes up more memory, ~5bytes)
      * @returns the location where the value has been stored
      */
   StoreValueInMemory(value: number, memoryLocation?: number) {
