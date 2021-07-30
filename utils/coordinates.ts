@@ -87,6 +87,7 @@ function plotLineLow(
 
   for (let x = x0; x < x1 + 1; x++) {
     //plot(x, y)
+    // TODO: separate method that essentially does the same thing but sends back a drawnline instruction when rendered
     _this.setPixelColor(indexByCoordinates(x, y, _this.image.width), color);
     if (D > 0) {
       y = y + yi;
