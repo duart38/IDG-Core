@@ -184,8 +184,6 @@ export enum Instructions {
 
   DRAW_LINE_POINTS,
 
-  SHIFT_PIXEL_LIT,
-
   // TODO: also make sure to include a zone mode (it cant introduce another parameter so figure out something else)
   MODIFY_LUMINOSITY,
   // TODO: adjust R
@@ -309,7 +307,6 @@ export const InstructionParams: Record<Instructions, ParameterFetchType[]> = {
     ParameterFetchType.unsignedINT32,
   ],
   [Instructions.RENDER]: [],
-  [Instructions.SHIFT_PIXEL_LIT]: [], // TODO: not implemented yet (see Machine.ts)
   [Instructions.FETCH_PIXEL_NEIGHBOR]: [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT8,
