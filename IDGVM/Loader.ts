@@ -34,12 +34,13 @@ export default class IDGLoader {
      * @param shouldSpreadImage indicates if we should supply the image back with the combined RGB color (faster) or split each color into individual R,G,B sections
      */
   onImageUpdate(
-    cb: (dat: number[]) => void,
+    cb: (dat: number[][]) => void,
     alpha = false,
     shouldSpreadImage = false,
   ) {
     this.vm.onImageRenderRequest((x) => {
-      cb(shouldSpreadImage ? spreadImage(x, alpha) : x);
+      //cb(shouldSpreadImage ? spreadImage(x, alpha) : x);
+      cb(x);
     });
   }
   /**
