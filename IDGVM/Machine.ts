@@ -35,6 +35,7 @@ import {
   drawCircleA,
   drawLineP,
 } from "./Instructions/shapes.ts";
+import { RenderInstructionSet } from "../interfaces/RenderInstructionSet.ts";
 
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
 //const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
@@ -47,10 +48,12 @@ export default class IDGVM extends InstructionParser {
   public imageCopy: number[];
   /** The image itself */
   public image: ImageData;
+  private imageModificationStack: Array<Array<number>> = new Array();
+
   /**
    * Callback that is executed when a render request has been made
    */
-  private imageRenderCB: (newImage: number[]) => void;
+  private imageRenderCB: (newImage: number[][]) => void;
 
   private IPStack: number[] = [];
 
@@ -93,7 +96,7 @@ export default class IDGVM extends InstructionParser {
     console.log();
   }
 
-  onImageRenderRequest(cb: (newImageData: number[]) => void) {
+  onImageRenderRequest(cb: (newImageData: number[][]) => void) {
     this.imageRenderCB = cb;
   }
 
@@ -102,7 +105,8 @@ export default class IDGVM extends InstructionParser {
    */
   private render() {
     this.image.imageData = this.imageCopy.slice();
-    this.imageRenderCB(this.image.imageData);
+    const t = this.imageModificationStack.splice(0); // TODO: could be made for efficient with us pre-calculating the amount of pushes before a render in the builder and including the size requirements in the header
+    this.imageRenderCB(t);
   }
 
   viewMemoryAt(address: number, n = 8) {
@@ -156,6 +160,7 @@ export default class IDGVM extends InstructionParser {
   setPixelColor(n: number, value: number) {
     if (n > 0 && n < this.imageCopy.length) {
       this.imageCopy[n] = value;
+      this.imageModificationStack.push([RenderInstructionSet.MODIFY_PIXEL, n, value]); // TODO: outward-facing API
     }
   }
   pushIp() {
@@ -335,7 +340,7 @@ export default class IDGVM extends InstructionParser {
         const y = this.getRegister("y");
         const color = this.getRegister("COL");
         const index = indexByCoordinates(x, y, this.image.width);
-        this.imageCopy[index] = color;
+        this.setPixelColor(index, color);
         return;
       }
       case Instructions.MODIFY_PIXEL:
@@ -425,7 +430,7 @@ export default class IDGVM extends InstructionParser {
           direction++;
           if (direction > 4) direction = 1;
           // flip the color of the square,
-          this.imageCopy[thisIndex] = color2;
+          this.setPixelColor(thisIndex, color2);
           // move forward one unit
           moveForward(direction);
           saveBack(direction, currentX, currentY);
@@ -440,7 +445,7 @@ export default class IDGVM extends InstructionParser {
           direction--;
           if (direction < 1) direction = 4;
           // flip the color of the square
-          this.imageCopy[thisIndex] = color1;
+          this.setPixelColor(thisIndex, color1);
           // move forward one unit
           moveForward(direction);
           saveBack(direction, currentX, currentY);
