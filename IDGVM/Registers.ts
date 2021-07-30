@@ -131,6 +131,9 @@ export enum Instructions {
    * Modifies the pixel data by taking values from the registers (x,y,COL)
    */
   MODIFY_PIXEL_REG,
+  /**
+   * Modifies the pixel data, taking all values from the user (parameters)
+   * */
   MODIFY_PIXEL,
 
   /**
