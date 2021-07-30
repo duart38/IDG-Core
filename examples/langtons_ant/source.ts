@@ -33,8 +33,8 @@ const builder = new IDGBuilder({
 // 3 -> left
 // 4 -> top
 
-builder.StoreNumberToRegister(25, "x");
-builder.StoreNumberToRegister(25, "y");
+builder.StoreNumberToRegister(100, "x");
+builder.StoreNumberToRegister(100, "y");
 builder.RENDER();
 const afterInit = builder.setFlag("afterInit");
 
