@@ -41,7 +41,7 @@ export function drawBox(_this: IDGVM, params: number[]) {
           if (Math.min(nX, nY) < 1 || nX > imageWidth || nY > imageHeight) {
             continue;
           }
-          _this.setPixelColor(indexByCoordinates(nX, nY, imageWidth), color); //this.imageCopy[indexByCoordinates(nX, nY, imageWidth)] = color;
+          _this.setPixelColor(indexByCoordinates(nX, nY, imageWidth), color);
         }
       }
       break;
@@ -82,7 +82,7 @@ export function drawBoxManual(_this: IDGVM, params: number[]) {
           if (Math.min(nX, nY) < 1 || nX > imageWidth || nY > imageHeight) {
             continue;
           }
-          _this.setPixelColor(indexByCoordinates(nX, nY, imageWidth), color); //this.imageCopy[indexByCoordinates(nX, nY, imageWidth)] = color;
+          _this.setPixelColor(indexByCoordinates(nX, nY, imageWidth), color);
         }
       }
       break;
@@ -140,7 +140,7 @@ export function drawCircleA(_this: IDGVM, params: number[]) {
             _this.setPixelColor(
               indexByCoordinates(currentX, currentY, imageWidth),
               color,
-            ); // this.imageCopy[indexByCoordinates(currentX, currentY, imageWidth)] = color;
+            );
           }
         }
       }
@@ -167,7 +167,7 @@ export function drawCircleA(_this: IDGVM, params: number[]) {
             _this.setPixelColor(
               indexByCoordinates(currentX, currentY, imageWidth),
               color,
-            ); // this.imageCopy[indexByCoordinates(currentX, currentY, imageWidth)] = color;
+            );
           }
         }
       }
@@ -194,7 +194,7 @@ export function drawCircleA(_this: IDGVM, params: number[]) {
             _this.setPixelColor(
               indexByCoordinates(currentX, currentY, imageWidth),
               color,
-            ); // this.imageCopy[indexByCoordinates(currentX, currentY, imageWidth)] = color;
+            );
           }
         }
       }

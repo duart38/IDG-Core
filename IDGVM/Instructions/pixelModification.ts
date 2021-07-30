@@ -56,7 +56,7 @@ export function modifyLuminosityIns(_this: IDGVM, params: number[]) {
       const index = indexByCoordinates(x, y, _this.image.width);
       _this.setPixelColor(
         index,
-        modifyLuminosity(luminosity, _this.imageCopy[index]),
+        modifyLuminosity(luminosity, _this.getPixelColor(index)),
       );
       break;
     }
@@ -67,7 +67,7 @@ export function modifyLuminosityIns(_this: IDGVM, params: number[]) {
       const index = indexByCoordinates(x, y, _this.image.width);
       _this.setPixelColor(
         index,
-        modifyLuminosity(luminosity, _this.imageCopy[index]),
+        modifyLuminosity(luminosity, _this.getPixelColor(index)),
       );
       break;
     }
@@ -78,7 +78,7 @@ export function modifyLuminosityIns(_this: IDGVM, params: number[]) {
       const index = indexByCoordinates(x, y, _this.image.width);
       _this.setPixelColor(
         index,
-        modifyLuminosity(luminosity, _this.imageCopy[index]),
+        modifyLuminosity(luminosity, _this.getPixelColor(index)),
       );
       break;
     }
@@ -87,7 +87,7 @@ export function modifyLuminosityIns(_this: IDGVM, params: number[]) {
       for (let i = 0; i < _this.imageCopy.length; i++) {
         _this.setPixelColor(
           i,
-          modifyLuminosity(luminosity, _this.imageCopy[i]),
+          modifyLuminosity(luminosity, _this.getPixelColor(i)),
         );
       }
       break;
@@ -97,7 +97,7 @@ export function modifyLuminosityIns(_this: IDGVM, params: number[]) {
       for (let i = 0; i < _this.imageCopy.length; i++) {
         _this.setPixelColor(
           i,
-          modifyLuminosity(luminosity, _this.imageCopy[i]),
+          modifyLuminosity(luminosity, _this.getPixelColor(i)),
         );
       }
       break;
@@ -107,7 +107,7 @@ export function modifyLuminosityIns(_this: IDGVM, params: number[]) {
       for (let i = 0; i < _this.imageCopy.length; i++) {
         _this.setPixelColor(
           i,
-          modifyLuminosity(luminosity, _this.imageCopy[i]),
+          modifyLuminosity(luminosity, _this.getPixelColor(i)),
         );
       }
       break;
