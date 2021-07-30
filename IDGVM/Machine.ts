@@ -70,7 +70,7 @@ export default class IDGVM extends InstructionParser {
       width: loadedFile.imageWidth,
       height: loadedFile.imageHeight,
     };
-    this.imageCopy = [...this.image.imageData];
+    this.imageCopy = this.image.imageData.slice();
     this.imageRenderCB = () => {};
   }
 
