@@ -722,10 +722,12 @@ export default class IDGBuilder {
       this.StoreNumberToRegister(color, "COL");
       this.insert8(Instructions.MODIFY_PIXEL_REG);
     } else if (color && Array.isArray(color)) { // array [r,g,b]
+      this.insert8(Instructions.RGB_TO_COLOR);
       this.insert8(RGBConversionType.RGB_TO_COLOR_LIT_LIT_LIT);
-      this.insert8(color[0]);
-      this.insert8(color[1]);
-      this.insert8(color[2]);
+      this.insert32(color[0]);
+      this.insert32(color[1]);
+      this.insert32(color[2]);
+      
       this.insert8(Instructions.MODIFY_PIXEL_REG);
     } else {
       this.insert8(Instructions.MODIFY_PIXEL_REG);
