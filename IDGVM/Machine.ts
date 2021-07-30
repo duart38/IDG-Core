@@ -525,6 +525,7 @@ export default class IDGVM extends InstructionParser {
       // Halt all computation
 
       case Instructions.HLT: {
+        this.halt = true;
         return true;
       }
       case Instructions.DEBUG: {
@@ -549,7 +550,7 @@ export default class IDGVM extends InstructionParser {
   async run() {
     for (const inst of this.fetch()) {
       const htl = await this.execute(inst);
-      if (htl) return;
+      if (htl || this.halt) return;
     }
   }
 }
