@@ -101,7 +101,7 @@ export default class IDGVM extends InstructionParser {
    * Replace the active image with the image copy and then execute the callback method
    */
   private render() {
-    this.image.imageData = [...this.imageCopy];
+    this.image.imageData = this.imageCopy.slice();
     this.imageRenderCB(this.image.imageData);
   }
 
