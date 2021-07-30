@@ -34,11 +34,8 @@ export default class IDGLoader {
      */
   onImageUpdate(
     cb: (dat: number[][]) => void,
-    alpha = false,
-    shouldSpreadImage = false,
   ) {
     this.vm.onImageRenderRequest((x) => {
-      //cb(shouldSpreadImage ? spreadImage(x, alpha) : x);
       cb(x);
     });
   }
