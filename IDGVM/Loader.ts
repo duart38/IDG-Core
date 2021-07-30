@@ -1,6 +1,5 @@
 import { DecodedFile } from "../interfaces/FileShape.ts";
 import { deCompress } from "../utils/bits.ts";
-import { spreadImage } from "../utils/color.ts";
 import IDGVM from "./Machine.ts";
 import { createMemory, MemoryMapper } from "./Memory.ts";
 import { Instructions } from "./Registers.ts";
