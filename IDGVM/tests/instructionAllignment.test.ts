@@ -12,6 +12,7 @@
 import { additionType, multiplicationType, subtractionType } from "../Instructions/arithemetic.ts";
 import { andType, orType, shiftType } from "../Instructions/bitwise.ts";
 import { RGBConversionType } from "../Instructions/color.ts";
+import { RandomType } from "../Instructions/helper.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -182,4 +183,13 @@ const RGB_CONVERSION_TYPE = [
 ]
 Deno.test("RGBConversionType instruction alignment", function () {
     assert(checkIfMatch(RGBConversionType, RGB_CONVERSION_TYPE), "All instructions are aligned");
+});
+
+const RANDOM_TYPE = [
+    "RAND_LIT_LIT",
+    "RAND_REG_REG",
+    "RAND_MEM_MEM",
+]
+Deno.test("RandomType instruction alignment", function () {
+    assert(checkIfMatch(RandomType, RANDOM_TYPE), "All instructions are aligned");
 });
