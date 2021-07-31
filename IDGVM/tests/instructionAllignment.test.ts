@@ -15,6 +15,7 @@ import { RGBConversionType } from "../Instructions/color.ts";
 import { RandomType } from "../Instructions/helper.ts";
 import { ImageInfoFetchType } from "../Instructions/imageInformation.ts";
 import { AccJumpType, CallType } from "../Instructions/jump.ts";
+import { moveType } from "../Instructions/moving.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -233,4 +234,16 @@ const CALL_TYPE = [
 ];
 Deno.test("CallType instruction alignment", function () {
     assert(checkIfMatch(CallType, CALL_TYPE), "All instructions are aligned");
+});
+
+const MOVE_TYPE = [
+    "MOV_LIT_REG",
+    "MOV_REG_REG",
+    "MOV_REG_MEM",
+    "MOV_MEM_REG",
+    "MOV_LIT_MEM",
+    "MOV_MEM_MEM",
+];
+Deno.test("moveType instruction alignment", function () {
+    assert(checkIfMatch(moveType, MOVE_TYPE), "All instructions are aligned");
 });
