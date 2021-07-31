@@ -9,6 +9,7 @@
  * */
 
  import { assert } from "https://deno.land/std@0.102.0/testing/asserts.ts";
+import { additionType } from "../Instructions/arithemetic.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -66,7 +67,7 @@ function readEnum<T>(value: T){
     return Object.entries(value).filter(v=>typeof v[1] === "number");
 }
 
-function checkIfMatch<T>(enumBase: T, expected: string[]){
+function checkIfMatch<T>(enumBase: T, expected: string[], offset = 0){
     const actualIns = readEnum(enumBase);
     return expected.every((v, staticIdx)=>{
         const foundIdx = actualIns.find(([actualKey, _actualV])=>actualKey === v);
@@ -74,8 +75,9 @@ function checkIfMatch<T>(enumBase: T, expected: string[]){
             console.error(`\ninstruction ${v} not found in:`, actualIns);
             return false;
         }
-        if(Instructions[foundIdx[0] as keyof typeof Instructions] !== staticIdx+1){
-            console.error(`\ninstruction ${v} is misaligned Actual:${foundIdx}, Expected:${staticIdx+1}`);
+        // @ts-ignore 
+        if(enumBase[foundIdx[0]] !== staticIdx+offset){
+            console.error(`\ninstruction ${v} is misaligned Actual:${foundIdx}, Expected:${staticIdx+offset}`);
             return false;
         }
         return true;
@@ -83,9 +85,18 @@ function checkIfMatch<T>(enumBase: T, expected: string[]){
 }
 
 Deno.test("Base instruction alignment", function () {
-    assert(checkIfMatch(Instructions, BASE_INS), "All instructions are aligned");
+    assert(checkIfMatch(Instructions, BASE_INS, 1), "All instructions are aligned");
 });
 
-Deno.test("Base instruction alignment", function () {
-    assert(checkIfMatch(Instructions, BASE_INS), "All instructions are aligned");
+const ADDITION_TYPE = [
+    "ADD_REG_REG",
+    "ADD_LIT_REG",
+    "ADD_REG_LIT",
+    "ADD_LIT_MEM",
+    "ADD_REG_MEM",
+    "ADD_LIT_LIT",
+    "ADD_MEM_MEM",
+]
+Deno.test("additionType instruction alignment", function () {
+    assert(checkIfMatch(additionType, ADDITION_TYPE), "All instructions are aligned");
 });
