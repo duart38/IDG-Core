@@ -8,4 +8,5 @@ export enum RenderInstructionSet {
      * For performance reasons, we should use this instruction instead of modifying each pixel of the image
      * */
     FILL,
+    // TODO: specific instruction for big shapes (rectangle, circle, also lines, etc). something like the canvas API can take advantage of this.
 }
