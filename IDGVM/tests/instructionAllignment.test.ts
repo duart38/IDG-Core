@@ -16,6 +16,7 @@ import { RandomType } from "../Instructions/helper.ts";
 import { ImageInfoFetchType } from "../Instructions/imageInformation.ts";
 import { AccJumpType, CallType } from "../Instructions/jump.ts";
 import { moveType, SMoveType } from "../Instructions/moving.ts";
+import { PixelModificationType } from "../Instructions/pixelModification.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -257,4 +258,13 @@ const SMOVE_TYPE = [
 ];
 Deno.test("SMoveType instruction alignment", function () {
     assert(checkIfMatch(SMoveType, SMOVE_TYPE), "All instructions are aligned");
+});
+
+const PIXEL_MODIFICATION_TYPE = [
+    "MODIFY_PIXEL_REG_REG_REG",
+    "MODIFY_PIXEL_LIT_LIT_LIT",
+    "MODIFY_PIXEL_MEM_MEM_MEM",
+];
+Deno.test("SMoveType instruction alignment", function () {
+    assert(checkIfMatch(PixelModificationType, PIXEL_MODIFICATION_TYPE), "All instructions are aligned");
 });
