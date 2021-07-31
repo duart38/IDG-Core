@@ -8,11 +8,10 @@
  * 
  * */
 
- import { assert, assertEquals } from "https://deno.land/std@0.102.0/testing/asserts.ts";
+ import { assert } from "https://deno.land/std@0.102.0/testing/asserts.ts";
  import { Instructions } from "../Registers.ts";
 
-
-const staticInstructions = [
+const BASE_INS = [
     "MOVE",
     "MOVE_S",
     "ADD",
@@ -63,10 +62,13 @@ const staticInstructions = [
     "DEBUG",
 ]
 
+function readEnum<T>(value: T){
+    return Object.entries(value).filter(v=>typeof v[1] === "number");
+}
 
-Deno.test("Base instruction alignment", function () {
-    const actualIns = Object.entries(Instructions).filter(v=>typeof v[1] === "number");
-    const match = staticInstructions.every((v, staticIdx)=>{
+function checkIfMatch<T>(enumBase: T, expected: string[]){
+    const actualIns = readEnum(enumBase);
+    return expected.every((v, staticIdx)=>{
         const foundIdx = actualIns.find(([actualKey, _actualV])=>actualKey === v);
         if(!foundIdx){
             console.error(`\ninstruction ${v} not found in:`, actualIns);
@@ -78,6 +80,8 @@ Deno.test("Base instruction alignment", function () {
         }
         return true;
     });
-    assert(match, "All instructions are aligned");
+}
 
+Deno.test("Base instruction alignment", function () {
+    assert(checkIfMatch(Instructions, BASE_INS), "All instructions are aligned");
 });
