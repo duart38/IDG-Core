@@ -14,7 +14,7 @@ import { andType, orType, shiftType } from "../Instructions/bitwise.ts";
 import { RGBConversionType } from "../Instructions/color.ts";
 import { RandomType } from "../Instructions/helper.ts";
 import { ImageInfoFetchType } from "../Instructions/imageInformation.ts";
-import { AccJumpType } from "../Instructions/jump.ts";
+import { AccJumpType, CallType } from "../Instructions/jump.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -224,4 +224,13 @@ const ACC_JUMP_TYPE = [
 ];
 Deno.test("AccJumpType instruction alignment", function () {
     assert(checkIfMatch(AccJumpType, ACC_JUMP_TYPE), "All instructions are aligned");
+});
+
+const CALL_TYPE = [
+    "CAL_LIT",
+    "CAL_REG",
+    "CAL_MEM",
+];
+Deno.test("CallType instruction alignment", function () {
+    assert(checkIfMatch(CallType, CALL_TYPE), "All instructions are aligned");
 });
