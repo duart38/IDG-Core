@@ -63,7 +63,6 @@ export enum RegisterIndexOf {
  * Indicates all the states that will be pushed when we request to save the machine state
  */
 export const PUSHABLE_STATE = REGISTERS.slice(0, RegisterIndexOf.y + 1);
-console.log("pushable state", PUSHABLE_STATE);
 
 export enum Instructions {
   // movement instructions
