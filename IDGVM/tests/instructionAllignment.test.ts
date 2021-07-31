@@ -13,6 +13,7 @@ import { additionType, multiplicationType, subtractionType } from "../Instructio
 import { andType, orType, shiftType } from "../Instructions/bitwise.ts";
 import { RGBConversionType } from "../Instructions/color.ts";
 import { RandomType } from "../Instructions/helper.ts";
+import { ImageInfoFetchType } from "../Instructions/imageInformation.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -192,4 +193,16 @@ const RANDOM_TYPE = [
 ]
 Deno.test("RandomType instruction alignment", function () {
     assert(checkIfMatch(RandomType, RANDOM_TYPE), "All instructions are aligned");
+});
+
+const IMAGE_INFO_FETCH_TYPE = [
+    "IMAGE_WIDTH_REG",
+    "IMAGE_WIDTH_MEM",
+    "IMAGE_HEIGHT_REG",
+    "IMAGE_HEIGHT_MEM",
+    "IMAGE_TOTAL_PIXELS_REG",
+    "IMAGE_TOTAL_PIXELS_MEM",
+]
+Deno.test("ImageInfoFetchType instruction alignment", function () {
+    assert(checkIfMatch(ImageInfoFetchType, IMAGE_INFO_FETCH_TYPE), "All instructions are aligned");
 });
