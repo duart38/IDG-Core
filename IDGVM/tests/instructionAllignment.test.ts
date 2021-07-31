@@ -9,7 +9,7 @@
  * */
 
  import { assert } from "https://deno.land/std@0.102.0/testing/asserts.ts";
-import { additionType, subtractionType } from "../Instructions/arithemetic.ts";
+import { additionType, multiplicationType, subtractionType } from "../Instructions/arithemetic.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -113,4 +113,19 @@ const SUBTRACTION_TYPE = [
 ]
 Deno.test("subtractionType instruction alignment", function () {
     assert(checkIfMatch(subtractionType, SUBTRACTION_TYPE), "All instructions are aligned");
+});
+
+const MULTIPLICATION_TYPE = [
+    "MUL_REG_REG",
+    "MUL_LIT_REG",
+    "MUL_LIT_MEM",
+    "MUL_REG_MEM",
+    "MUL_MEM_REG",
+    "MUL_MEM_LIT",
+    "MUL_REG_LIT",
+    "MUL_LIT_LIT",
+    "MUL_MEM_MEM",
+]
+Deno.test("multiplicationType instruction alignment", function () {
+    assert(checkIfMatch(multiplicationType, MULTIPLICATION_TYPE), "All instructions are aligned");
 });
