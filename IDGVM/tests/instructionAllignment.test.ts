@@ -5,7 +5,7 @@
  * where it shifted to and what other instructions are affected, to add insult to
  * injury, if the issue was not immediately discovered and people start using the
  * instruction then it will even be hard to change it back without breaking production code.
- * 
+ * NOTE: if you encounter the above issue you can always re-compile your code.. it should adapt all instruction numbers.
  * */
 
  import { assert } from "https://deno.land/std@0.102.0/testing/asserts.ts";
@@ -81,6 +81,10 @@ function checkIfMatch<T>(enumBase: T, expected: string[]){
         return true;
     });
 }
+
+Deno.test("Base instruction alignment", function () {
+    assert(checkIfMatch(Instructions, BASE_INS), "All instructions are aligned");
+});
 
 Deno.test("Base instruction alignment", function () {
     assert(checkIfMatch(Instructions, BASE_INS), "All instructions are aligned");
