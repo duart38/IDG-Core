@@ -11,6 +11,7 @@
  import { assert } from "https://deno.land/std@0.102.0/testing/asserts.ts";
 import { additionType, multiplicationType, subtractionType } from "../Instructions/arithemetic.ts";
 import { andType, orType, shiftType } from "../Instructions/bitwise.ts";
+import { RGBConversionType } from "../Instructions/color.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -171,4 +172,14 @@ const OR_TYPE = [
 ]
 Deno.test("orType instruction alignment", function () {
     assert(checkIfMatch(orType, OR_TYPE), "All instructions are aligned");
+});
+
+
+const RGB_CONVERSION_TYPE = [
+    "RGB_TO_COLOR_LIT_LIT_LIT",
+    "RGB_TO_COLOR_MEM_MEM_MEM",
+    "RGB_TO_COLOR_REG_REG_REG",
+]
+Deno.test("RGBConversionType instruction alignment", function () {
+    assert(checkIfMatch(RGBConversionType, RGB_CONVERSION_TYPE), "All instructions are aligned");
 });
