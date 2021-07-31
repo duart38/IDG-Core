@@ -10,7 +10,7 @@
 
  import { assert } from "https://deno.land/std@0.102.0/testing/asserts.ts";
 import { additionType, multiplicationType, subtractionType } from "../Instructions/arithemetic.ts";
-import { shiftType } from "../Instructions/bitwise.ts";
+import { andType, shiftType } from "../Instructions/bitwise.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -145,4 +145,16 @@ const SHIFT_TYPE = [
 ]
 Deno.test("shiftType instruction alignment", function () {
     assert(checkIfMatch(shiftType, SHIFT_TYPE), "All instructions are aligned");
+});
+
+const AND_TYPE = [
+    "AND_REG_LIT",
+    "AND_REG_REG",
+    "AND_REG_MEM",
+    "AND_MEM_REG",
+    "AND_LIT_MEM",
+    "AND_MEM_LIT",
+]
+Deno.test("andType instruction alignment", function () {
+    assert(checkIfMatch(andType, AND_TYPE), "All instructions are aligned");
 });
