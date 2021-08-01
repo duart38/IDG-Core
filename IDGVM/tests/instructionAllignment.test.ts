@@ -18,7 +18,7 @@ import { AccJumpType, CallType } from "../Instructions/jump.ts";
 import { moveType, SMoveType } from "../Instructions/moving.ts";
 import { LuminosityModificationType, PixelModificationType } from "../Instructions/pixelModification.ts";
 import { NeighborRetrievalType, PixelColorByIndexType, PixelIndexFetchType } from "../Instructions/pixelRetrieval.ts";
-import { ManualRectangleDrawingType, RectangleDrawingType } from "../Instructions/shapes.ts";
+import { DrawLineType, ManualRectangleDrawingType, RectangleDrawingType } from "../Instructions/shapes.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -323,4 +323,12 @@ const MANUAL_RECTANGLE_DRAWING_TYPE = [
 ]
 Deno.test("ManualRectangleDrawingType instruction alignment", function () {
     assert(checkIfMatch(ManualRectangleDrawingType, MANUAL_RECTANGLE_DRAWING_TYPE), "All instructions are aligned");
+});
+
+const DRAW_LINE_TYPE = [
+    "DRAW_LINE_P1REG_P2REG",
+    "DRAW_LINE_P1LIT_P2LIT",
+]
+Deno.test("DrawLineType instruction alignment", function () {
+    assert(checkIfMatch(DrawLineType, DRAW_LINE_TYPE), "All instructions are aligned");
 });
