@@ -18,7 +18,7 @@ import { AccJumpType, CallType } from "../Instructions/jump.ts";
 import { moveType, SMoveType } from "../Instructions/moving.ts";
 import { LuminosityModificationType, PixelModificationType } from "../Instructions/pixelModification.ts";
 import { NeighborRetrievalType, PixelColorByIndexType, PixelIndexFetchType } from "../Instructions/pixelRetrieval.ts";
-import { DrawLineType, ManualRectangleDrawingType, RectangleDrawingType } from "../Instructions/shapes.ts";
+import { DrawCircleType, DrawLineType, ManualRectangleDrawingType, RectangleDrawingType } from "../Instructions/shapes.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -331,4 +331,13 @@ const DRAW_LINE_TYPE = [
 ]
 Deno.test("DrawLineType instruction alignment", function () {
     assert(checkIfMatch(DrawLineType, DRAW_LINE_TYPE), "All instructions are aligned");
+});
+
+const DRAW_CIRCLE_TYPE = [
+    "DRAW_CIRCLE_LIT",
+    "DRAW_CIRCLE_REG",
+    "DRAW_CIRCLE_MEM",
+]
+Deno.test("DrawCircleType instruction alignment", function () {
+    assert(checkIfMatch(DrawCircleType, DRAW_CIRCLE_TYPE), "All instructions are aligned");
 });
