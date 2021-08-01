@@ -17,6 +17,7 @@ import { ImageInfoFetchType } from "../Instructions/imageInformation.ts";
 import { AccJumpType, CallType } from "../Instructions/jump.ts";
 import { moveType, SMoveType } from "../Instructions/moving.ts";
 import { LuminosityModificationType, PixelModificationType } from "../Instructions/pixelModification.ts";
+import { NeighborRetrievalType } from "../Instructions/pixelRetrieval.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -279,4 +280,12 @@ const LUMINOSITY_MODIFICATION_TYPE = [
 ];
 Deno.test("LuminosityModificationType instruction alignment", function () {
     assert(checkIfMatch(LuminosityModificationType, LUMINOSITY_MODIFICATION_TYPE), "All instructions are aligned");
+});
+
+const NEIGHBOR_RETRIEVAL_TYPE = [
+    "NEIGHBORING_PIXEL_INDEX_TO_REG",
+    "NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG",
+]
+Deno.test("NeighborRetrievalType instruction alignment", function () {
+    assert(checkIfMatch(NeighborRetrievalType, NEIGHBOR_RETRIEVAL_TYPE), "All instructions are aligned");
 });
