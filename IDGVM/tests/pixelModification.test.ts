@@ -26,7 +26,7 @@ Deno.test("MODIFY_PIXEL_REG", async function () {
 
 Deno.test("MODIFY_PIXEL_REG_REG_REG", async function () {
     const b = makeBuilder();
-    b.insert8(Instructions.MODIFY_PIXEL_REG);
+    b.insert8(Instructions.MODIFY_PIXEL);
     b.insert8(PixelModificationType.MODIFY_PIXEL_REG_REG_REG);
     b.insert32(b._regKeyToIndex("x"));
     b.insert32(b._regKeyToIndex("y"));
@@ -34,14 +34,15 @@ Deno.test("MODIFY_PIXEL_REG_REG_REG", async function () {
     assertEquals((await makeLoader(b,true)).getVM().imageCopy[0], combineRGB([255,0,0]));
 });
 
-// Deno.test("MOV_LIT_REG", async function () {
-//     const b = makeBuilder();
-//     b.insert8(Instructions.MOVE);
-//     b.insert8(moveType.MOV_LIT_REG);
-//     b.insert32(50);
-//     b.insert32(b._regKeyToIndex("r1"));
-//     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 50);
-// });
+Deno.test("MODIFY_PIXEL_LIT_LIT_LIT", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.MODIFY_PIXEL);
+    b.insert8(PixelModificationType.MODIFY_PIXEL_LIT_LIT_LIT);
+    b.insert32(0);
+    b.insert32(0);
+    b.insert32(69);
+    assertEquals((await makeLoader(b,true)).getVM().imageCopy[0], 69);
+});
 
 // Deno.test("MOV_REG_MEM", async function () {
 //     const b = makeBuilder();
