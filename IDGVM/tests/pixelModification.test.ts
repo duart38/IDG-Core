@@ -44,12 +44,21 @@ Deno.test("MODIFY_PIXEL_LIT_LIT_LIT", async function () {
     assertEquals((await makeLoader(b,true)).getVM().imageCopy[0], 69);
 });
 
-// Deno.test("MOV_REG_MEM", async function () {
-//     const b = makeBuilder();
-//     const storeAt = b.instructionIndex + 30;
-//     b.insert8(Instructions.MOVE);
-//     b.insert8(moveType.MOV_REG_MEM);
-//     b.insert32(b._regKeyToIndex("r3"));
-//     b.insert32(storeAt);
-//     assertEquals((await makeLoader(b,true)).getVM().getMemoryAt(storeAt), 50);
-// });
+Deno.test("MODIFY_PIXEL_MEM_MEM_MEM", async function () {
+    const b = makeBuilder();
+    const x = b.instructionIndex + 45;
+    b.MoveRegisterToMemory("x", x);
+
+    const y = b.instructionIndex;
+    b.MoveRegisterToMemory("y", y);
+
+    const col = b.instructionIndex;
+    b.MoveRegisterToMemory("COL", col);
+    
+    b.insert8(Instructions.MODIFY_PIXEL);
+    b.insert8(PixelModificationType.MODIFY_PIXEL_MEM_MEM_MEM);
+    b.insert32(x);
+    b.insert32(y);
+    b.insert32(col);
+    assertEquals((await makeLoader(b,true)).getVM().imageCopy[0], combineRGB([255,0,0]));
+});
