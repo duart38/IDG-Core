@@ -18,6 +18,7 @@ import { AccJumpType, CallType } from "../Instructions/jump.ts";
 import { moveType, SMoveType } from "../Instructions/moving.ts";
 import { LuminosityModificationType, PixelModificationType } from "../Instructions/pixelModification.ts";
 import { NeighborRetrievalType, PixelColorByIndexType, PixelIndexFetchType } from "../Instructions/pixelRetrieval.ts";
+import { RectangleDrawingType } from "../Instructions/shapes.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -307,4 +308,12 @@ const PIXEL_INDEX_FETCH_TYPE = [
 
 Deno.test("PixelIndexFetchType instruction alignment", function () {
     assert(checkIfMatch(PixelIndexFetchType, PIXEL_INDEX_FETCH_TYPE), "All instructions are aligned");
+});
+
+const RECTANGLE_DRAWING_TYPE = [
+    "DRAW_BOX_WLIT_HLIT",
+    "DRAW_BOX_WREG_HREG",
+]
+Deno.test("RectangleDrawingType instruction alignment", function () {
+    assert(checkIfMatch(RectangleDrawingType, RECTANGLE_DRAWING_TYPE), "All instructions are aligned");
 });
