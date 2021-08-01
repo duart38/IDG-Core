@@ -17,7 +17,7 @@ import { ImageInfoFetchType } from "../Instructions/imageInformation.ts";
 import { AccJumpType, CallType } from "../Instructions/jump.ts";
 import { moveType, SMoveType } from "../Instructions/moving.ts";
 import { LuminosityModificationType, PixelModificationType } from "../Instructions/pixelModification.ts";
-import { NeighborRetrievalType, PixelColorByIndexType } from "../Instructions/pixelRetrieval.ts";
+import { NeighborRetrievalType, PixelColorByIndexType, PixelIndexFetchType } from "../Instructions/pixelRetrieval.ts";
  import { Instructions } from "../Registers.ts";
 
 const BASE_INS = [
@@ -297,4 +297,14 @@ const PIXEL_COLOR_BY_INDEX_TYPE = [
 ]
 Deno.test("PixelColorByIndexType instruction alignment", function () {
     assert(checkIfMatch(PixelColorByIndexType, PIXEL_COLOR_BY_INDEX_TYPE), "All instructions are aligned");
+});
+
+const PIXEL_INDEX_FETCH_TYPE = [
+    "FETCH_PIXEL_INDEX_REG_REG",
+    "FETCH_PIXEL_INDEX_LIT_LIT",
+    "FETCH_PIXEL_INDEX_MEM_MEM",
+]
+
+Deno.test("PixelIndexFetchType instruction alignment", function () {
+    assert(checkIfMatch(PixelIndexFetchType, PIXEL_INDEX_FETCH_TYPE), "All instructions are aligned");
 });
