@@ -1,8 +1,5 @@
 import IDGBuilder from "../../IDGVM/Builder/Builder.ts";
-import IDGLoader from "../../IDGVM/Loader.ts";
-import { encode } from "https://deno.land/x/pngs/mod.ts";
 import { combineRGB } from "../../utils/color.ts";
-
 
 const size = 500;
 const builder = new IDGBuilder({
@@ -33,6 +30,11 @@ builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, midd
 builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
 builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
 builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
+builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
+builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
+builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
+builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
+builder.modifyPixelAt(randomB(middle - 5, middle + 5), randomB(middle - 10, middle + 10), liveColor);
 
 builder.RENDER();
 
@@ -45,14 +47,14 @@ builder.GOTO(afterInit);
 
 const compiled = builder.compile();
 
-Deno.writeFile("./example.idg", compiled);
+Deno.writeFile("./seeds.idg", compiled);
 
 // // test loading compiled code
-const loader = new IDGLoader(compiled);
-loader.onImageUpdate((data)=>{
-    const png = encode(new Uint8Array(data), size, size);
-    Deno.writeFile("image.png", png).catch((x)=>{
-        console.log("image encoding error: ", x);
-    })
-}, true, true);
-loader.startVM();
+// const loader = new IDGLoader(compiled);
+// loader.onImageUpdate((data)=>{
+//     const png = encode(new Uint8Array(data), size, size);
+//     Deno.writeFile("image.png", png).catch((x)=>{
+//         console.log("image encoding error: ", x);
+//     })
+// }, true, true);
+// loader.startVM();
