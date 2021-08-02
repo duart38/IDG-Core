@@ -1,24 +1,3 @@
-class DenoStdInternalError extends Error {
-    constructor(message){
-        super(message);
-        this.name = "DenoStdInternalError";
-    }
-}
-function assert(expr, msg = "") {
-    if (!expr) {
-        throw new DenoStdInternalError(msg);
-    }
-}
-const MIN_READ = 32 * 1024;
-const MAX_SIZE = 2 ** 32 - 2;
-function copyBytes(src, dst, off = 0) {
-    const r = dst.byteLength - off;
-    if (src.byteLength > r) {
-        src = src.subarray(0, r);
-    }
-    dst.set(src, off);
-    return src.byteLength;
-}
 var FileTypes;
 (function(FileTypes1) {
     FileTypes1[FileTypes1["file"] = 0] = "file";
@@ -38,304 +17,6 @@ var DiffType;
     DiffType1["added"] = "added";
 })(DiffType || (DiffType = {
 }));
-function validateIntegerRange(value, name, min = -2147483648, max = 2147483647) {
-    if (!Number.isInteger(value)) {
-        throw new Error(`${name} must be 'an integer' but was ${value}`);
-    }
-    if (value < min || value > max) {
-        throw new Error(`${name} must be >= ${min} && <= ${max}. Value was ${value}`);
-    }
-}
-function createIterResult(value, done) {
-    return {
-        value,
-        done
-    };
-}
-let defaultMaxListeners = 10;
-class EventEmitter {
-    static captureRejectionSymbol = Symbol.for("nodejs.rejection");
-    static errorMonitor = Symbol("events.errorMonitor");
-    static get defaultMaxListeners() {
-        return defaultMaxListeners;
-    }
-    static set defaultMaxListeners(value) {
-        defaultMaxListeners = value;
-    }
-    maxListeners;
-    _events;
-    constructor(){
-        this._events = new Map();
-    }
-    _addListener(eventName, listener, prepend) {
-        this.emit("newListener", eventName, listener);
-        if (this._events.has(eventName)) {
-            const listeners = this._events.get(eventName);
-            if (prepend) {
-                listeners.unshift(listener);
-            } else {
-                listeners.push(listener);
-            }
-        } else {
-            this._events.set(eventName, [
-                listener
-            ]);
-        }
-        const max = this.getMaxListeners();
-        if (max > 0 && this.listenerCount(eventName) > max) {
-            const warning = new Error(`Possible EventEmitter memory leak detected.\n         ${this.listenerCount(eventName)} ${eventName.toString()} listeners.\n         Use emitter.setMaxListeners() to increase limit`);
-            warning.name = "MaxListenersExceededWarning";
-            console.warn(warning);
-        }
-        return this;
-    }
-    addListener(eventName, listener) {
-        return this._addListener(eventName, listener, false);
-    }
-    emit(eventName, ...args) {
-        if (this._events.has(eventName)) {
-            if (eventName === "error" && this._events.get(EventEmitter.errorMonitor)) {
-                this.emit(EventEmitter.errorMonitor, ...args);
-            }
-            const listeners = this._events.get(eventName).slice();
-            for (const listener of listeners){
-                try {
-                    listener.apply(this, args);
-                } catch (err) {
-                    this.emit("error", err);
-                }
-            }
-            return true;
-        } else if (eventName === "error") {
-            if (this._events.get(EventEmitter.errorMonitor)) {
-                this.emit(EventEmitter.errorMonitor, ...args);
-            }
-            const errMsg = args.length > 0 ? args[0] : Error("Unhandled error.");
-            throw errMsg;
-        }
-        return false;
-    }
-    eventNames() {
-        return Array.from(this._events.keys());
-    }
-    getMaxListeners() {
-        return this.maxListeners || EventEmitter.defaultMaxListeners;
-    }
-    listenerCount(eventName) {
-        if (this._events.has(eventName)) {
-            return this._events.get(eventName).length;
-        } else {
-            return 0;
-        }
-    }
-    static listenerCount(emitter, eventName) {
-        return emitter.listenerCount(eventName);
-    }
-    _listeners(target, eventName, unwrap) {
-        if (!target._events.has(eventName)) {
-            return [];
-        }
-        const eventListeners = target._events.get(eventName);
-        return unwrap ? this.unwrapListeners(eventListeners) : eventListeners.slice(0);
-    }
-    unwrapListeners(arr) {
-        const unwrappedListeners = new Array(arr.length);
-        for(let i = 0; i < arr.length; i++){
-            unwrappedListeners[i] = arr[i]["listener"] || arr[i];
-        }
-        return unwrappedListeners;
-    }
-    listeners(eventName) {
-        return this._listeners(this, eventName, true);
-    }
-    rawListeners(eventName) {
-        return this._listeners(this, eventName, false);
-    }
-    off(eventName, listener) {
-        return this.removeListener(eventName, listener);
-    }
-    on(eventName, listener) {
-        return this._addListener(eventName, listener, false);
-    }
-    once(eventName, listener) {
-        const wrapped = this.onceWrap(eventName, listener);
-        this.on(eventName, wrapped);
-        return this;
-    }
-    onceWrap(eventName, listener) {
-        const wrapper = function(...args) {
-            this.context.removeListener(this.eventName, this.rawListener);
-            this.listener.apply(this.context, args);
-        };
-        const wrapperContext = {
-            eventName: eventName,
-            listener: listener,
-            rawListener: wrapper,
-            context: this
-        };
-        const wrapped = wrapper.bind(wrapperContext);
-        wrapperContext.rawListener = wrapped;
-        wrapped.listener = listener;
-        return wrapped;
-    }
-    prependListener(eventName, listener) {
-        return this._addListener(eventName, listener, true);
-    }
-    prependOnceListener(eventName, listener) {
-        const wrapped = this.onceWrap(eventName, listener);
-        this.prependListener(eventName, wrapped);
-        return this;
-    }
-    removeAllListeners(eventName) {
-        if (this._events === undefined) {
-            return this;
-        }
-        if (eventName) {
-            if (this._events.has(eventName)) {
-                const listeners = this._events.get(eventName).slice();
-                this._events.delete(eventName);
-                for (const listener of listeners){
-                    this.emit("removeListener", eventName, listener);
-                }
-            }
-        } else {
-            const eventList = this.eventNames();
-            eventList.map((value)=>{
-                this.removeAllListeners(value);
-            });
-        }
-        return this;
-    }
-    removeListener(eventName, listener) {
-        if (this._events.has(eventName)) {
-            const arr = this._events.get(eventName);
-            assert(arr);
-            let listenerIndex = -1;
-            for(let i = arr.length - 1; i >= 0; i--){
-                if (arr[i] == listener || arr[i] && arr[i]["listener"] == listener) {
-                    listenerIndex = i;
-                    break;
-                }
-            }
-            if (listenerIndex >= 0) {
-                arr.splice(listenerIndex, 1);
-                this.emit("removeListener", eventName, listener);
-                if (arr.length === 0) {
-                    this._events.delete(eventName);
-                }
-            }
-        }
-        return this;
-    }
-    setMaxListeners(n) {
-        if (n !== Infinity) {
-            if (n === 0) {
-                n = Infinity;
-            } else {
-                validateIntegerRange(n, "maxListeners", 0);
-            }
-        }
-        this.maxListeners = n;
-        return this;
-    }
-    static once(emitter, name) {
-        return new Promise((resolve, reject)=>{
-            if (emitter instanceof EventTarget) {
-                emitter.addEventListener(name, (...args)=>{
-                    resolve(args);
-                }, {
-                    once: true,
-                    passive: false,
-                    capture: false
-                });
-                return;
-            } else if (emitter instanceof EventEmitter) {
-                const eventListener = (...args)=>{
-                    if (errorListener !== undefined) {
-                        emitter.removeListener("error", errorListener);
-                    }
-                    resolve(args);
-                };
-                let errorListener;
-                if (name !== "error") {
-                    errorListener = (err)=>{
-                        emitter.removeListener(name, eventListener);
-                        reject(err);
-                    };
-                    emitter.once("error", errorListener);
-                }
-                emitter.once(name, eventListener);
-                return;
-            }
-        });
-    }
-    static on(emitter, event) {
-        const unconsumedEventValues = [];
-        const unconsumedPromises = [];
-        let error = null;
-        let finished = false;
-        const iterator = {
-            next () {
-                const value = unconsumedEventValues.shift();
-                if (value) {
-                    return Promise.resolve(createIterResult(value, false));
-                }
-                if (error) {
-                    const p = Promise.reject(error);
-                    error = null;
-                    return p;
-                }
-                if (finished) {
-                    return Promise.resolve(createIterResult(undefined, true));
-                }
-                return new Promise(function(resolve, reject) {
-                    unconsumedPromises.push({
-                        resolve,
-                        reject
-                    });
-                });
-            },
-            return () {
-                emitter.removeListener(event, eventHandler);
-                emitter.removeListener("error", errorHandler);
-                finished = true;
-                for (const promise of unconsumedPromises){
-                    promise.resolve(createIterResult(undefined, true));
-                }
-                return Promise.resolve(createIterResult(undefined, true));
-            },
-            throw (err) {
-                error = err;
-                emitter.removeListener(event, eventHandler);
-                emitter.removeListener("error", errorHandler);
-            },
-            [Symbol.asyncIterator] () {
-                return this;
-            }
-        };
-        emitter.on(event, eventHandler);
-        emitter.on("error", errorHandler);
-        return iterator;
-        function eventHandler(...args) {
-            const promise = unconsumedPromises.shift();
-            if (promise) {
-                promise.resolve(createIterResult(args, false));
-            } else {
-                unconsumedEventValues.push(args);
-            }
-        }
-        function errorHandler(err) {
-            finished = true;
-            const toError = unconsumedPromises.shift();
-            if (toError) {
-                toError.reject(err);
-            } else {
-                error = err;
-            }
-            iterator.return();
-        }
-    }
-}
 const message2 = {
     2: "need dictionary",
     1: "stream end",
@@ -350,14 +31,10 @@ const message2 = {
 function zero(buf) {
     buf.fill(0, 0, buf.length);
 }
-const LITERALS = 256;
 const L_CODES = 256 + 1 + 29;
-const D_CODES = 30;
 const BL_CODES = 19;
 const HEAP_SIZE = 2 * L_CODES + 1;
-const MAX_BITS = 15;
 const Buf_size = 16;
-const MAX_BL_BITS = 7;
 const END_BLOCK = 256;
 const extra_lbits = [
     0,
@@ -422,27 +99,6 @@ const extra_dbits = [
     13,
     13, 
 ];
-const extra_blbits = [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    2,
-    3,
-    7
-];
 const bl_order = [
     16,
     17,
@@ -476,35 +132,6 @@ const base_length = new Array(29);
 zero(base_length);
 const base_dist = new Array(30);
 zero(base_dist);
-class StaticTreeDesc {
-    static_tree;
-    extra_bits;
-    extra_base;
-    elems;
-    max_length;
-    has_stree;
-    constructor(static_tree, extra_bits, extra_base, elems, max_length){
-        this.static_tree = static_tree;
-        this.extra_bits = extra_bits;
-        this.extra_base = extra_base;
-        this.elems = elems;
-        this.max_length = max_length;
-        this.has_stree = static_tree && static_tree.length;
-    }
-}
-let static_l_desc;
-let static_d_desc;
-let static_bl_desc;
-class TreeDesc {
-    dyn_tree;
-    max_code;
-    stat_desc;
-    constructor(dyn_tree, stat_desc){
-        this.dyn_tree = dyn_tree;
-        this.max_code = 0;
-        this.stat_desc = stat_desc;
-    }
-}
 function d_code(dist) {
     return dist < 256 ? _dist_code[dist] : _dist_code[256 + (dist >>> 7)];
 }
@@ -534,17 +161,6 @@ function bi_reverse(code, len) {
         res <<= 1;
     }while ((--len) > 0)
     return res >>> 1;
-}
-function bi_flush(s1) {
-    if (s1.bi_valid === 16) {
-        put_short(s1, s1.bi_buf);
-        s1.bi_buf = 0;
-        s1.bi_valid = 0;
-    } else if (s1.bi_valid >= 8) {
-        s1.pending_buf[s1.pending++] = s1.bi_buf & 255;
-        s1.bi_buf >>= 8;
-        s1.bi_valid -= 8;
-    }
 }
 function gen_bitlen(s1, desc) {
     let tree = desc.dyn_tree;
@@ -619,68 +235,6 @@ function gen_codes(tree, max_code, bl_count) {
         if (len === 0) continue;
         tree[n * 2] = bi_reverse(next_code[len]++, len);
     }
-}
-function tr_static_init() {
-    let n;
-    let bits;
-    let length;
-    let code;
-    let dist;
-    let bl_count = new Array(15 + 1);
-    length = 0;
-    for(code = 0; code < 29 - 1; code++){
-        base_length[code] = length;
-        for(n = 0; n < 1 << extra_lbits[code]; n++){
-            _length_code[length++] = code;
-        }
-    }
-    _length_code[length - 1] = code;
-    dist = 0;
-    for(code = 0; code < 16; code++){
-        base_dist[code] = dist;
-        for(n = 0; n < 1 << extra_dbits[code]; n++){
-            _dist_code[dist++] = code;
-        }
-    }
-    dist >>= 7;
-    for(; code < 30; code++){
-        base_dist[code] = dist << 7;
-        for(n = 0; n < 1 << extra_dbits[code] - 7; n++){
-            _dist_code[256 + dist++] = code;
-        }
-    }
-    for(bits = 0; bits <= 15; bits++){
-        bl_count[bits] = 0;
-    }
-    n = 0;
-    while(n <= 143){
-        static_ltree[n * 2 + 1] = 8;
-        n++;
-        bl_count[8]++;
-    }
-    while(n <= 255){
-        static_ltree[n * 2 + 1] = 9;
-        n++;
-        bl_count[9]++;
-    }
-    while(n <= 279){
-        static_ltree[n * 2 + 1] = 7;
-        n++;
-        bl_count[7]++;
-    }
-    while(n <= 287){
-        static_ltree[n * 2 + 1] = 8;
-        n++;
-        bl_count[8]++;
-    }
-    gen_codes(static_ltree, L_CODES + 1, bl_count);
-    for(n = 0; n < 30; n++){
-        static_dtree[n * 2 + 1] = 5;
-        static_dtree[n * 2] = bi_reverse(n, 5);
-    }
-    static_l_desc = new StaticTreeDesc(static_ltree, extra_lbits, LITERALS + 1, L_CODES, MAX_BITS);
-    static_d_desc = new StaticTreeDesc(static_dtree, extra_dbits, 0, D_CODES, MAX_BITS);
-    static_bl_desc = new StaticTreeDesc(new Array(0), extra_blbits, 0, BL_CODES, MAX_BL_BITS);
 }
 function init_block(s1) {
     let n;
@@ -942,27 +496,9 @@ function detect_data_type(s1) {
     }
     return 0;
 }
-let static_init_done = false;
-function _tr_init(s1) {
-    if (!static_init_done) {
-        tr_static_init();
-        static_init_done = true;
-    }
-    s1.l_desc = new TreeDesc(s1.dyn_ltree, static_l_desc);
-    s1.d_desc = new TreeDesc(s1.dyn_dtree, static_d_desc);
-    s1.bl_desc = new TreeDesc(s1.bl_tree, static_bl_desc);
-    s1.bi_buf = 0;
-    s1.bi_valid = 0;
-    init_block(s1);
-}
 function _tr_stored_block(s1, buf, stored_len, last) {
     send_bits(s1, (0 << 1) + (last ? 1 : 0), 3);
     copy_block(s1, buf, stored_len, true);
-}
-function _tr_align(s1) {
-    send_bits(s1, 1 << 1, 3);
-    send_code(s1, 256, static_ltree);
-    bi_flush(s1);
 }
 function _tr_flush_block(s1, buf, stored_len, last) {
     let opt_lenb, static_lenb;
@@ -1081,32 +617,9 @@ var STATUS;
     STATUS1[STATUS1["Z_DEFLATED"] = 8] = "Z_DEFLATED";
 })(STATUS || (STATUS = {
 }));
-const Z_STREAM_ERROR = -2;
-const Z_DEFAULT_COMPRESSION = -1;
-const Z_UNKNOWN = 2;
-const L_CODES1 = 256 + 1 + 29;
-const HEAP_SIZE1 = 2 * L_CODES1 + 1;
 const MIN_MATCH = 3;
 const MAX_MATCH = 258;
 const MIN_LOOKAHEAD = 258 + 3 + 1;
-const PRESET_DICT = 32;
-const INIT_STATE = 42;
-const EXTRA_STATE = 69;
-const NAME_STATE = 73;
-const COMMENT_STATE = 91;
-const HCRC_STATE = 103;
-const BUSY_STATE = 113;
-const FINISH_STATE = 666;
-function err1(strm, errorCode) {
-    strm.msg = message2[errorCode];
-    return errorCode;
-}
-function rank(f) {
-    return (f << 1) - (f > 4 ? 9 : 0);
-}
-function zero1(buf) {
-    buf.fill(0, 0, buf.length);
-}
 function flush_pending(strm) {
     let s1 = strm.state;
     let len = s1.pending;
@@ -1128,13 +641,6 @@ function flush_block_only(s1, last) {
     _tr_flush_block(s1, s1.block_start >= 0 ? s1.block_start : -1, s1.strstart - s1.block_start, last);
     s1.block_start = s1.strstart;
     flush_pending(s1.strm);
-}
-function put_byte(s1, b) {
-    s1.pending_buf[s1.pending++] = b;
-}
-function putShortMSB(s1, b) {
-    s1.pending_buf[s1.pending++] = b >>> 8 & 255;
-    s1.pending_buf[s1.pending++] = b & 255;
 }
 function read_buf(strm, buf, start, size4) {
     let len = strm.avail_in;
@@ -1442,105 +948,6 @@ function deflate_slow(s1, flush) {
     }
     return 2;
 }
-function deflate_rle(s1, flush) {
-    let bflush;
-    let prev;
-    let scan, strend;
-    let _win = s1.window;
-    for(;;){
-        if (s1.lookahead <= 258) {
-            fill_window(s1);
-            if (s1.lookahead <= 258 && flush === STATUS.Z_NO_FLUSH) {
-                return 1;
-            }
-            if (s1.lookahead === 0) break;
-        }
-        s1.match_length = 0;
-        if (s1.lookahead >= 3 && s1.strstart > 0) {
-            scan = s1.strstart - 1;
-            prev = _win[scan];
-            if (prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan]) {
-                strend = s1.strstart + MAX_MATCH;
-                do {
-                }while (prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan] && prev === _win[++scan] && scan < strend)
-                s1.match_length = MAX_MATCH - (strend - scan);
-                if (s1.match_length > s1.lookahead) {
-                    s1.match_length = s1.lookahead;
-                }
-            }
-        }
-        if (s1.match_length >= 3) {
-            bflush = _tr_tally(s1, 1, s1.match_length - MIN_MATCH);
-            s1.lookahead -= s1.match_length;
-            s1.strstart += s1.match_length;
-            s1.match_length = 0;
-        } else {
-            bflush = _tr_tally(s1, 0, s1.window[s1.strstart]);
-            s1.lookahead--;
-            s1.strstart++;
-        }
-        if (bflush) {
-            flush_block_only(s1, false);
-            if (s1.strm.avail_out === 0) {
-                return 1;
-            }
-        }
-    }
-    s1.insert = 0;
-    if (flush === STATUS.Z_FINISH) {
-        flush_block_only(s1, true);
-        if (s1.strm.avail_out === 0) {
-            return 3;
-        }
-        return 4;
-    }
-    if (s1.last_lit) {
-        flush_block_only(s1, false);
-        if (s1.strm.avail_out === 0) {
-            return 1;
-        }
-    }
-    return 2;
-}
-function deflate_huff(s1, flush) {
-    let bflush;
-    for(;;){
-        if (s1.lookahead === 0) {
-            fill_window(s1);
-            if (s1.lookahead === 0) {
-                if (flush === STATUS.Z_NO_FLUSH) {
-                    return 1;
-                }
-                break;
-            }
-        }
-        s1.match_length = 0;
-        bflush = _tr_tally(s1, 0, s1.window[s1.strstart]);
-        s1.lookahead--;
-        s1.strstart++;
-        if (bflush) {
-            flush_block_only(s1, false);
-            if (s1.strm.avail_out === 0) {
-                return 1;
-            }
-        }
-    }
-    s1.insert = 0;
-    if (flush === STATUS.Z_FINISH) {
-        flush_block_only(s1, true);
-        if (s1.strm.avail_out === 0) {
-            return 3;
-        }
-        return 4;
-    }
-    if (s1.last_lit) {
-        flush_block_only(s1, false);
-        if (s1.strm.avail_out === 0) {
-            return 1;
-        }
-    }
-    return 2;
-}
 class Config {
     good_length;
     max_lazy;
@@ -1554,127 +961,6 @@ class Config {
         this.max_chain = max_chain;
         this.func = func;
     }
-}
-let configuration_table;
-configuration_table = [
-    new Config(0, 0, 0, 0, deflate_stored),
-    new Config(4, 4, 8, 4, deflate_fast),
-    new Config(4, 5, 16, 8, deflate_fast),
-    new Config(4, 6, 32, 32, deflate_fast),
-    new Config(4, 4, 16, 16, deflate_slow),
-    new Config(8, 16, 32, 32, deflate_slow),
-    new Config(8, 16, 128, 128, deflate_slow),
-    new Config(8, 32, 128, 256, deflate_slow),
-    new Config(32, 128, 258, 1024, deflate_slow),
-    new Config(32, 258, 258, 4096, deflate_slow)
-];
-function lm_init(s1) {
-    s1.window_size = 2 * s1.w_size;
-    zero1(s1.head);
-    s1.max_lazy_match = configuration_table[s1.level].max_lazy;
-    s1.good_match = configuration_table[s1.level].good_length;
-    s1.nice_match = configuration_table[s1.level].nice_length;
-    s1.max_chain_length = configuration_table[s1.level].max_chain;
-    s1.strstart = 0;
-    s1.block_start = 0;
-    s1.lookahead = 0;
-    s1.insert = 0;
-    s1.match_length = s1.prev_length = MIN_MATCH - 1;
-    s1.match_available = 0;
-    s1.ins_h = 0;
-}
-class DeflateState {
-    strm = null;
-    status = 0;
-    pending_buf = null;
-    pending_buf_size = 0;
-    pending_out = 0;
-    pending = 0;
-    wrap = 0;
-    gzhead = null;
-    gzindex = 0;
-    method = 8;
-    last_flush = -1;
-    w_size = 0;
-    w_bits = 0;
-    w_mask = 0;
-    window = null;
-    window_size = 0;
-    prev = null;
-    head = null;
-    ins_h = 0;
-    hash_size = 0;
-    hash_bits = 0;
-    hash_mask = 0;
-    hash_shift = 0;
-    block_start = 0;
-    match_length = 0;
-    prev_match = 0;
-    match_available = 0;
-    strstart = 0;
-    match_start = 0;
-    lookahead = 0;
-    prev_length = 0;
-    max_chain_length = 0;
-    max_lazy_match = 0;
-    level = 0;
-    strategy = 0;
-    good_match = 0;
-    nice_match = 0;
-    dyn_ltree = new Uint16Array(HEAP_SIZE1 * 2);
-    dyn_dtree = new Uint16Array((2 * 30 + 1) * 2);
-    bl_tree = new Uint16Array((2 * 19 + 1) * 2);
-    l_desc = null;
-    d_desc = null;
-    bl_desc = null;
-    bl_count = new Uint16Array(15 + 1);
-    heap = new Uint16Array(2 * L_CODES1 + 1);
-    heap_len = 0;
-    heap_max = 0;
-    depth = new Uint16Array(2 * L_CODES1 + 1);
-    l_buf = 0;
-    lit_bufsize = 0;
-    last_lit = 0;
-    d_buf = 0;
-    opt_len = 0;
-    static_len = 0;
-    matches = 0;
-    insert = 0;
-    bi_buf = 0;
-    bi_valid = 0;
-    constructor(){
-        zero1(this.dyn_ltree);
-        zero1(this.dyn_dtree);
-        zero1(this.bl_tree);
-        zero1(this.heap);
-        zero1(this.depth);
-    }
-}
-function deflateResetKeep(strm) {
-    let s1;
-    if (!strm || !strm.state) {
-        return err1(strm, STATUS.Z_STREAM_ERROR.toString());
-    }
-    strm.total_in = strm.total_out = 0;
-    strm.data_type = Z_UNKNOWN;
-    s1 = strm.state;
-    s1.pending = 0;
-    s1.pending_out = 0;
-    if (s1.wrap < 0) {
-        s1.wrap = -s1.wrap;
-    }
-    s1.status = s1.wrap ? INIT_STATE : BUSY_STATE;
-    strm.adler = s1.wrap === 2 ? 0 : 1;
-    s1.last_flush = STATUS.Z_NO_FLUSH;
-    _tr_init(s1);
-    return 0;
-}
-function deflateReset(strm) {
-    let ret = deflateResetKeep(strm);
-    if (ret === 0) {
-        lm_init(strm.state);
-    }
-    return ret;
 }
 function concatUint8Array(arr) {
     const length = arr.reduce((pre, next)=>pre + next.length
@@ -3406,16 +2692,6 @@ function inflate1(input, options3 = {
     return result;
 }
 const gunzip = inflate1;
-function putByte(n, arr) {
-    arr.push(n & 255);
-}
-function putShort(n, arr) {
-    arr.push(n & 255);
-    arr.push(n >>> 8);
-}
-function readShort(arr) {
-    return arr.shift() | arr.shift() << 8;
-}
 function deCompress(rawData) {
     return gunzip(rawData);
 }
@@ -3470,7 +2746,6 @@ var RegisterIndexOf;
 })(RegisterIndexOf || (RegisterIndexOf = {
 }));
 const PUSHABLE_STATE = REGISTERS.slice(0, RegisterIndexOf.y + 1);
-console.log("pushable state", PUSHABLE_STATE);
 var Instructions;
 (function(Instructions1) {
     Instructions1[Instructions1["MOVE"] = 1] = "MOVE";
@@ -5532,7 +4807,7 @@ class IDGVM extends InstructionParser {
         return this.image.imageData[n];
     }
     setPixelColor(n, value) {
-        if (n > 0 && n < this.imageCopy.length) {
+        if (n >= 0 && n < this.imageCopy.length && this.image.imageData[n] !== value) {
             this.imageCopy[n] = value;
             this.imageModificationStack.push([
                 RenderInstructionSet.MODIFY_PIXEL,
@@ -5824,6 +5099,7 @@ class IDGVM extends InstructionParser {
                 }
             case Instructions.HLT:
                 {
+                    this.halt = true;
                     return true;
                 }
             case Instructions.DEBUG:
@@ -5844,7 +5120,7 @@ class IDGVM extends InstructionParser {
     async run() {
         for (const inst of this.fetch()){
             const htl = await this.execute(inst);
-            if (htl) return;
+            if (htl || this.halt) return;
         }
     }
 }
@@ -5862,7 +5138,7 @@ class IDGLoader {
         this.vm.viewMemoryAt(0, 30);
         if (autoStart) this.startVM();
     }
-    onImageUpdate(cb, alpha = false, shouldSpreadImage = false) {
+    onImageUpdate(cb) {
         this.vm.onImageRenderRequest((x)=>{
             cb(x);
         });
@@ -5891,10 +5167,11 @@ class IDGLoader {
         };
     }
     startVM() {
+        this.vm.halt = false;
         return this.vm.run();
     }
     stopVM() {
-        this.vm.execute([
+        return this.vm.execute([
             Instructions.HLT
         ]);
     }
