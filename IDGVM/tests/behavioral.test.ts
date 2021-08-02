@@ -12,21 +12,12 @@ function makeBuilder(): Builder {
 }
 async function makeLoader(builder: Builder, autoStart = false){
     const loader = new IDGLoader(builder.compile());
-    // Some pre-population.
-    loader.getVM().setRegister("r1", 1);
-    loader.getVM().setRegister("r2", 2);
-    loader.getVM().setRegister("r3", 3);
     if(autoStart) await loader.startVM();
     return loader;
 }
 
 Deno.test("Pause and continue test", async function () {
     const b = makeBuilder();
-    b.insert8(Instructions.MOVE);
-    b.insert8(moveType.MOV_LIT_REG);
-    b.insert32(2);
-    b.insert32(b._regKeyToIndex("r1"));
-
     b.insert8(Instructions.HLT);
 
     b.insert8(Instructions.MOVE);
@@ -35,7 +26,27 @@ Deno.test("Pause and continue test", async function () {
     b.insert32(b._regKeyToIndex("r1"));
 
 
-    const loader = await makeLoader(b,true); // start 1.. till halt.
+    const loader = await makeLoader(b,true);
+    await loader.startVM();
+    assertEquals(loader.getVM().getRegister("r1"), 69);
+});
+
+Deno.test("External Pause and continue test", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.MOVE);
+    b.insert8(moveType.MOV_LIT_REG);
+    b.insert32(2);
+    b.insert32(b._regKeyToIndex("r1"));
+
+    b.insert8(Instructions.MOVE);
+    b.insert8(moveType.MOV_LIT_REG);
+    b.insert32(69);
+    b.insert32(b._regKeyToIndex("r1"));
+
+
+    const loader = await makeLoader(b,false); // start 1.. till halt.
     loader.startVM(); // start again after halt.
+    await loader.stopVM(); // start again after halt.
+    await loader.startVM();
     assertEquals(loader.getVM().getRegister("r1"), 69);
 });
