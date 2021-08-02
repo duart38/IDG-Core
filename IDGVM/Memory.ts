@@ -129,7 +129,7 @@ export class InstructionParser {
   protected stackFrameSize: number;
 
   protected allocatedAmount: number;
-  protected halt = false;
+  public halt = false;
 
   /**
    * Indicates how many empty instructions we saw after each other..
