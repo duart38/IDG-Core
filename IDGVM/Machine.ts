@@ -158,7 +158,7 @@ export default class IDGVM extends InstructionParser {
     return this.image.imageData[n];
   }
   setPixelColor(n: number, value: number) {
-    if (n >= 0 && n < this.imageCopy.length) {
+    if (n >= 0 && n < this.imageCopy.length && this.image.imageData[n] !== value) {
       this.imageCopy[n] = value;
       this.imageModificationStack.push([RenderInstructionSet.MODIFY_PIXEL, n, value]); // TODO: outward-facing API
     }
