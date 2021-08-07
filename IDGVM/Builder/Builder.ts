@@ -1,5 +1,6 @@
 import { Direction } from "../../interfaces/Actions.ts";
 import { ImageData } from "../../interfaces/Image.ts";
+import {RandomType} from "../Instructions/helper.ts";
 import { RGB } from "../../interfaces/RGBA.ts";
 import { chunkUp16, chunkUp32, compress, Uint8Constructor } from "../../utils/bits.ts";
 import { combineRGB } from "../../utils/color.ts";
@@ -707,6 +708,7 @@ export default class IDGBuilder {
      */
   getRandomValue(min: number, max: number) {
     this.insert8(Instructions.RAND);
+    this.insert8(RandomType.RAND_LIT_LIT);
     this.insert32(min);
     this.insert32(max);
     return this;
