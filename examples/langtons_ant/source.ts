@@ -32,9 +32,12 @@ const builder = new IDGBuilder({
 // 2 -> bottom
 // 3 -> left
 // 4 -> top
+builder.getRandomValue(10, sizeW);
+builder.MoveRegisterValueToAnother("acc", "x");
 
-builder.StoreNumberToRegister(100, "x");
-builder.StoreNumberToRegister(100, "y");
+builder.getRandomValue(10, sizeH);
+builder.MoveRegisterValueToAnother("acc", "y");
+
 builder.RENDER();
 const afterInit = builder.setFlag("afterInit");
 
