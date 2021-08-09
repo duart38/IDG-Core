@@ -1,3 +1,4 @@
+// deno-lint-ignore-file
 var FileTypes;
 (function(FileTypes1) {
     FileTypes1[FileTypes1["file"] = 0] = "file";
