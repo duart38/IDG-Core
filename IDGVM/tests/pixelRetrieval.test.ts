@@ -10,7 +10,10 @@ import { Instructions } from "../Registers.ts";
  * Just a little to build a basic builder to ensure we instructions don't collide.
  **/
  function makeBuilder(): Builder {
-    return new Builder({width: 2, height: 2, imageData: [1,2,3,4]}, 100000);
+    return new Builder({width: 2, height: 2, imageData: [
+        1,2,
+        3,4
+    ]}, 100000);
 }
 async function makeLoader(builder: Builder, autoStart = false){
     const loader = new IDGLoader(builder.compile());
@@ -24,7 +27,7 @@ Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG LEFT", async function () {
     b.insert8(Instructions.FETCH_PIXEL_NEIGHBOR);
     b.insert8(NeighborRetrievalType.NEIGHBORING_PIXEL_INDEX_TO_REG);
     b.insert8(Direction.left);
-    b.insert32(1); // pixel index 0
+    b.insert32(1); 
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 0); // pixel index 1
 });
@@ -33,9 +36,18 @@ Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG topLeft", async function () {
     b.insert8(Instructions.FETCH_PIXEL_NEIGHBOR);
     b.insert8(NeighborRetrievalType.NEIGHBORING_PIXEL_INDEX_TO_REG);
     b.insert8(Direction.topLeft);
-    b.insert32(3); // pixel index 0
+    b.insert32(3); 
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 0); // pixel index 1
+});
+Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG top", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.FETCH_PIXEL_NEIGHBOR);
+    b.insert8(NeighborRetrievalType.NEIGHBORING_PIXEL_INDEX_TO_REG);
+    b.insert8(Direction.top);
+    b.insert32(3); 
+    b.insert32(b._regKeyToIndex("r1"));
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 1); // pixel index 1
 });
 
 Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG 1", async function () {
@@ -43,7 +55,7 @@ Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG 1", async function () {
     b.insert8(Instructions.FETCH_PIXEL_NEIGHBOR);
     b.insert8(NeighborRetrievalType.NEIGHBORING_PIXEL_INDEX_TO_REG);
     b.insert8(Direction.right);
-    b.insert32(0); // pixel index 0
+    b.insert32(0); 
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 1); // pixel index 1
 });
@@ -54,7 +66,7 @@ Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG 2 (vertical)", async function () {
     b.insert8(Instructions.FETCH_PIXEL_NEIGHBOR);
     b.insert8(NeighborRetrievalType.NEIGHBORING_PIXEL_INDEX_TO_REG);
     b.insert8(Direction.bottom);
-    b.insert32(0); // pixel index 0
+    b.insert32(0); 
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 2); // pixel index 1
 });
@@ -63,7 +75,7 @@ Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG 3 (vertical)", async function () {
     b.insert8(Instructions.FETCH_PIXEL_NEIGHBOR);
     b.insert8(NeighborRetrievalType.NEIGHBORING_PIXEL_INDEX_TO_REG);
     b.insert8(Direction.bottomRight);
-    b.insert32(0); // pixel index 0
+    b.insert32(0); 
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 3); // pixel index 1
 });
