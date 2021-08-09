@@ -48,6 +48,7 @@ export default class IDGVM extends InstructionParser {
   public imageCopy: number[];
   /** The image itself */
   public image: ImageData;
+  // deno-lint-ignore no-array-constructor
   private imageModificationStack: Array<Array<number>> = new Array();
 
   /**

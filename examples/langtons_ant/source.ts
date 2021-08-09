@@ -1,6 +1,4 @@
 import IDGBuilder from "../../IDGVM/Builder/Builder.ts";
-import IDGLoader from "../../IDGVM/Loader.ts";
-import { encode } from "https://deno.land/x/pngs@0.1.1/mod.ts";
 import { combineRGB } from "../../utils/color.ts";
 
 const sizeW = 274;

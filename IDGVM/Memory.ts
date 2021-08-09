@@ -21,7 +21,7 @@ interface Region {
   remap: boolean;
 }
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
-const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
+// const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
 export class MemoryMapper {
   private regions: Region[]; // TODO: change me
   constructor() {
@@ -51,7 +51,7 @@ export class MemoryMapper {
   }
 
   findRegion(address: number) {
-    let region = this.regions.find(
+    const region = this.regions.find(
       (r: { start: number; end: number }) =>
         address >= r.start && address <= r.end,
     );
