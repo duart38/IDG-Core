@@ -28,6 +28,15 @@ Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG LEFT", async function () {
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 0); // pixel index 1
 });
+Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG topLeft", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.FETCH_PIXEL_NEIGHBOR);
+    b.insert8(NeighborRetrievalType.NEIGHBORING_PIXEL_INDEX_TO_REG);
+    b.insert8(Direction.topLeft);
+    b.insert32(3); // pixel index 0
+    b.insert32(b._regKeyToIndex("r1"));
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 0); // pixel index 1
+});
 
 Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG 1", async function () {
     const b = makeBuilder();
