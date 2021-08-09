@@ -18,6 +18,17 @@ async function makeLoader(builder: Builder, autoStart = false){
     if(autoStart) await loader.startVM();
     return loader;
 }
+
+Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG LEFT", async function () {
+    const b = makeBuilder();
+    b.insert8(Instructions.FETCH_PIXEL_NEIGHBOR);
+    b.insert8(NeighborRetrievalType.NEIGHBORING_PIXEL_INDEX_TO_REG);
+    b.insert8(Direction.left);
+    b.insert32(1); // pixel index 0
+    b.insert32(b._regKeyToIndex("r1"));
+    assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 0); // pixel index 1
+});
+
 Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG 1", async function () {
     const b = makeBuilder();
     b.insert8(Instructions.FETCH_PIXEL_NEIGHBOR);
@@ -27,6 +38,7 @@ Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG 1", async function () {
     b.insert32(b._regKeyToIndex("r1"));
     assertEquals((await makeLoader(b,true)).getVM().getRegister("r1"), 1); // pixel index 1
 });
+
 
 Deno.test("NEIGHBORING_PIXEL_INDEX_TO_REG 2 (vertical)", async function () {
     const b = makeBuilder();
