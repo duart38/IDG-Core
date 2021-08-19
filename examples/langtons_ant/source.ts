@@ -1,12 +1,11 @@
 import IDGBuilder from "../../IDGVM/Builder/Builder.ts";
-import IDGLoader from "../../IDGVM/Loader.ts";
-import { encode } from "https://deno.land/x/pngs@0.1.1/mod.ts";
 import { combineRGB } from "../../utils/color.ts";
 
-const size = 50;
+const sizeW = 274;
+const sizeH = 200;
 const builder = new IDGBuilder({
-    imageData: new Array(size*size).fill(combineRGB([255,255,255])),
-    width: size, height: size
+    imageData: new Array(sizeW*sizeH).fill(combineRGB([255,255,255])),
+    width: sizeW, height: sizeH
 });
 
 
@@ -31,9 +30,13 @@ const builder = new IDGBuilder({
 // 2 -> bottom
 // 3 -> left
 // 4 -> top
+builder.getRandomValue(10, sizeW);
+builder.MoveRegisterValueToAnother("acc", "x");
 
-builder.StoreNumberToRegister(25, "x");
-builder.StoreNumberToRegister(25, "y");
+builder.getRandomValue(10, sizeH);
+builder.MoveRegisterValueToAnother("acc", "y");
+
+builder.RENDER();
 const afterInit = builder.setFlag("afterInit");
 
 
@@ -97,7 +100,6 @@ turn90ClockWise.markEnd();
 // At a black square, turn 90° counter-clockwise, flip the color of the square, move forward one unit
 const turn90ANTIClockWise = builder.functionBuilder(); // jump here if white.
 turn90ANTIClockWise.markStart();
-    builder.debug(0);
     builder.decrementRegister("r1");
     builder.MoveRegisterValueToAnother("r1", "acc");
     builder.JumpIfGreaterThan(setTo4, 1); // clamping action
@@ -108,7 +110,7 @@ turn90ANTIClockWise.markEnd();
 
 
 builder.fetchPixelIndexByRegisterCoordinates("r4");
-builder.fetchPixelColor("r4"); // this puts the result in "COL" register
+builder.fetchPixelColor("r4", "COL"); // this puts the result in "COL" register
 builder.MoveRegisterValueToAnother("COL", "acc"); // jumps below need acc value. so move.
 
 
@@ -127,13 +129,12 @@ const compiled = builder.compile();
 
 Deno.writeFile("./langtons_ant.idg", compiled);
 
-// // test loading compiled code
-const loader = new IDGLoader(compiled);
-loader.onImageUpdate((data)=>{
-    console.log("render called")
-    const png = encode(new Uint8Array(data), size, size);
-    Deno.writeFile("image.png", png).catch((x)=>{
-        console.log("image encoding error: ", x);
-    })
-}, true, true);
-loader.startVM();
+// test loading compiled code
+// const loader = new IDGLoader(compiled);
+// loader.onImageUpdate(
+//   (data) => {
+//     console.log(data)
+//   }
+// );
+// loader.startVM();
+

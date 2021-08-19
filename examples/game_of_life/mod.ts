@@ -1,19 +1,17 @@
 import IDGBuilder from "../../IDGVM/Builder/Builder.ts";
 
 const builder = new IDGBuilder({
-    width: 20, height: 20,
-    imageData: new Array(20*20).fill(0)
+  width: 20,
+  height: 20,
+  imageData: new Array(20 * 20).fill(0),
 });
 
 builder
-.modifyPixelAt(8,10, [0,0,0])
-.modifyPixelAt(9,10, [0,0,0])
-.modifyPixelAt(10,10, [0,0,0])
-.RENDER();
+  .modifyPixelAt(8, 10, [0, 0, 0])
+  .modifyPixelAt(9, 10, [0, 0, 0])
+  .modifyPixelAt(10, 10, [0, 0, 0])
+  .RENDER();
 //     CelBuilder.storeValue(0, 17, 0),
-
-
-
 
 // CelBuilder.addInstructions([
 //     CelBuilder.modifyPixel(0, indexByCoordinates(8,10,20), [0,0,0]),
@@ -33,13 +31,11 @@ builder
 //         ])
 //     ]),
 
-
 //     CelBuilder.atInterval(800, 0, -1, [ // calculate game of life every "n" msecs
 //         CelBuilder.forEachPixel(0, [ // memory bank 0 -> index of loop
 //             // reset neighbor counter back to 0
 //             CelBuilder.storeValue(0, 17, 0),
 //             CelBuilder.storePixelColor(1, 0, 18), // mem bank 18 will stores current pixel
-
 
 //             CelBuilder.getNeighboringPixel(1, 0, direction.topLeft, 1), // memory bank 1
 //             CelBuilder.getNeighboringPixel(1, 0, direction.top, 2), // memory bank 2
@@ -49,17 +45,17 @@ builder
 //             CelBuilder.getNeighboringPixel(1, 0, direction.bottomLeft, 6), // memory bank 6
 //             CelBuilder.getNeighboringPixel(1, 0, direction.bottom, 7), // memory bank 7
 //             CelBuilder.getNeighboringPixel(1, 0, direction.bottomRight, 8), // memory bank 8
-    
+
 //             // memory banks storing alpha of neighbors
 //             CelBuilder.storePixelColor(1, 1, 9), // mem bank 9
 //             CelBuilder.storePixelColor(1, 2, 10), // mem bank 10
 //             CelBuilder.storePixelColor(1, 3, 11), // ""
-//             CelBuilder.storePixelColor(1, 4, 12), 
+//             CelBuilder.storePixelColor(1, 4, 12),
 //             CelBuilder.storePixelColor(1, 5, 13),
-//             CelBuilder.storePixelColor(1, 6, 14), 
-//             CelBuilder.storePixelColor(1, 7, 15), 
+//             CelBuilder.storePixelColor(1, 6, 14),
+//             CelBuilder.storePixelColor(1, 7, 15),
 //             CelBuilder.storePixelColor(1, 8, 16),
-    
+
 //             // bank 17 will store amount of neighbors
 //             CelBuilder.ifEquals(1,0, 9, 0, [ // if value in bank 9 is 0
 //                 CelBuilder.calculateAndStore(arithmetic.ADDITION, 1, 0, 17, 1, 17),
@@ -105,7 +101,6 @@ builder
 //                 CelBuilder.modifyPixel(1, 0, [255,255,255]) // index stored in memory bank 0 is loaded.
 //             ]),
 
-
 //             // 2. Any live cell with two or three live neighbours lives on to the next generation.
 //             CelBuilder.ifEquals(1,0, 18, 0, [ // is current pixel index alive?
 //                 CelBuilder.ifEquals(1,0, 17, 2, [ // is neighbor 2 ?
@@ -128,19 +123,11 @@ builder
 //         ]),
 //         CelBuilder.render() // render after we update the board
 
-        
 //     ]),
 // ]);
 
 // const x = new IDGRuntime(CelBuilder.IDG);
 // x.start();
-
-
-
-
-
-
-
 
 ///////// random glider code.
 
@@ -155,7 +142,6 @@ builder
 //     CelBuilder.ifInBounds(71, [
 //         CelBuilder.modifyPixel(1, 71, [0,0,0]),
 //     ]),
-    
 
 //     CelBuilder.calculateAndStore(arithmetic.ADDITION, 1,0, 70, 1, 70), // Y + 1
 //     CelBuilder.calculateAndStore(arithmetic.ADDITION, 1,0, 69, 1, 69), // X + 1
@@ -163,7 +149,6 @@ builder
 //     CelBuilder.ifInBounds(71, [
 //         CelBuilder.modifyPixel(1, 71, [0,0,0]),
 //     ]),
-
 
 //     CelBuilder.calculateAndStore(arithmetic.ADDITION, 1,0, 69, 1, 69), // X + 1
 //     CelBuilder.coordinatesToIndex(1,1,  69,70,  71),
