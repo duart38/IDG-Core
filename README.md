@@ -13,5 +13,5 @@ You need deno to compile the demos, or you can use the already compiled .idg fil
 # Goals
 - [ ] Make a higher level language
 - [ ] Make a drawing app (separate repo)
-- [ ] Finish some of the stuff details in the project open on github
+- [ ] Finish some of the stuff detailed in the "projects" tab on github
 - [ ] Make an NFT marketplace
