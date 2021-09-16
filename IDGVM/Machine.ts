@@ -169,7 +169,7 @@ export default class IDGVM extends InstructionParser {
   }
 
   execute(instruction: number[]): boolean | void {
-    [
+    return [
       ()=>{this.emptyInstructionAtStep++},
       /**
        * @see {Instructions.MOVE}
