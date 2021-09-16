@@ -35,72 +35,68 @@ export enum multiplicationType {
   MUL_MEM_MEM,
 }
 export function subtraction(_this: IDGVM, param: number[]) {
-  switch (param[1]) {
-    case subtractionType.SUB_REG_REG: {
+    return [
+    // case subtractionType.SUB_REG_REG: {
+      () => {
       const r1 = param[2];
       const r2 = param[3];
       const lhs = _this.getRegisterAt(r1); // first registers are always the lhs
       const rhs = _this.getRegisterAt(r2);
       _this.setRegister("acc", lhs - rhs);
-      break;
-    }
-    case subtractionType.SUB_LIT_REG: {
+    },
+    // case subtractionType.SUB_LIT_REG: {
+      () => {
       const literal = param[2];
       const r1 = param[3];
       const r1V = _this.getRegisterAt(r1);
       _this.setRegister("acc", literal - r1V);
-      break;
-    }
-    case subtractionType.SUB_REG_LIT: {
+    },
+    // case subtractionType.SUB_REG_LIT: {
+      () => {
       const r1 = param[2];
       const literal = param[3];
       const r1V = _this.getRegisterAt(r1);
       _this.setRegister("acc", r1V - literal);
-      break;
-    }
-    case subtractionType.SUB_LIT_MEM: {
+    },
+    // case subtractionType.SUB_LIT_MEM: {
+      () => {
       const literal = param[2];
       const mem = param[3];
       const memV = _this.getMemoryAt(mem);
       _this.setRegister("acc", literal - memV);
-      break;
-    }
-    case subtractionType.SUB_REG_MEM: {
+    },
+    // case subtractionType.SUB_REG_MEM: {
+      () => {
       // sub r1, [mem]
       const r1 = param[2];
       const mem = param[3];
       const r1V = _this.getRegisterAt(r1);
       const memV = _this.getMemoryAt(mem);
       _this.setRegister("acc", r1V - memV);
-      break;
-    }
-    case subtractionType.SUB_MEM_REG: {
+    },
+    // case subtractionType.SUB_MEM_REG: {
+      () => {
       // sub [mem], r1
       const mem = param[2];
       const r1 = param[3];
       const memV = _this.getMemoryAt(mem);
       const r1V = _this.getRegisterAt(r1);
       _this.setRegister("acc", memV - r1V);
-      break;
-    }
-    case subtractionType.SUB_MEM_LIT: {
+    },
+    // case subtractionType.SUB_MEM_LIT: {
+      () => {
       // sub [mem], literal
-      const mem = param[2];
-      const literal = param[3];
-      const memV = _this.getMemoryAt(mem);
-      _this.setRegister("acc", memV - literal);
-      break;
-    }
-    case subtractionType.SUB_MEM_MEM: {
+      const memV = _this.getMemoryAt(param[2]);
+      _this.setRegister("acc", memV - param[3]);
+    },
+    // case subtractionType.SUB_MEM_MEM: {
+      () => {
       // sub [mem], [mem2]
-      const mem1 = param[2];
-      const mem2 = param[3];
-      const mem1V = _this.getMemoryAt(mem1);
-      const mem2V = _this.getMemoryAt(mem2);
+      const mem1V = _this.getMemoryAt(param[2]);
+      const mem2V = _this.getMemoryAt(param[3]);
       _this.setRegister("acc", mem1V - mem2V);
-      break;
-    }
-  }
+    },
+    ][param[1]]();
 }
 
 /**
@@ -108,146 +104,137 @@ export function subtraction(_this: IDGVM, param: number[]) {
  * @param param [instruction, additionType, param, param]
  */
 export function addition(_this: IDGVM, param: number[]) {
-  switch (param[1]) {
+    return [
     // add register to register
-    case additionType.ADD_REG_REG: {
+    // case additionType.ADD_REG_REG: 
+    ()=>{
       const r1 = param[2];
       const r2 = param[3];
       const lhs = _this.getRegisterAt(r1);
       const rhs = _this.getRegisterAt(r2);
       _this.setRegister("acc", lhs + rhs);
-      break;
-    }
-
-    // add literal to register
-
-    case additionType.ADD_LIT_REG: {
+    },
+    // case additionType.ADD_LIT_REG: 
+    ()=>{
       const literal = param[2];
       const r1 = param[3];
       const r1V = _this.getRegisterAt(r1);
       _this.setRegister("acc", literal + r1V);
-      break;
-    }
-
-    // adds a literal to memory
-
-    case additionType.ADD_LIT_MEM: {
+    },
+    // case additionType.ADD_REG_LIT: 
+    ()=>{
+      const r1 = param[2];
+      const literal = param[3];
+      const r1V = _this.getRegisterAt(r1);
+      _this.setRegister("acc", literal + r1V);
+    },
+    // case additionType.ADD_LIT_MEM: 
+    ()=>{
       const literal = param[2];
       const mem = param[3];
       const memV = _this.getMemoryAt(mem);
       _this.setRegister("acc", literal + memV);
-      break;
-    }
-
-    case additionType.ADD_REG_MEM: {
+    },
+    // case additionType.ADD_REG_MEM: 
+    ()=>{
       // add r1, [mem]
       const r1 = param[2];
       const mem = param[3];
       const r1V = _this.getRegisterAt(r1);
       const memV = _this.getMemoryAt(mem);
       _this.setRegister("acc", r1V + memV);
-      break;
-    }
-    case additionType.ADD_REG_LIT: {
-      const r1 = param[2];
-      const literal = param[3];
-      const r1V = _this.getRegisterAt(r1);
-      _this.setRegister("acc", literal + r1V);
-      break;
-    }
-    case additionType.ADD_MEM_MEM: {
+    },
+    // case additionType.ADD_LIT_LIT: 
+    ()=>{
+      const literal = param[2];
+      const literal2 = param[3];
+      _this.setRegister("acc", literal + literal2);
+    },
+    // case additionType.ADD_MEM_MEM: 
+    ()=>{
       // add [mem], [mem2]
       const mem1 = param[2];
       const mem2 = param[3];
       const mem1V = _this.getMemoryAt(mem1);
       const mem2V = _this.getMemoryAt(mem2);
       _this.setRegister("acc", mem1V + mem2V);
-      break;
     }
-    case additionType.ADD_LIT_LIT: {
-      const literal = param[2];
-      const literal2 = param[3];
-      _this.setRegister("acc", literal + literal2);
-      break;
-    }
-  }
+    ][param[1]]();
 }
 
-// do the same thing for the multiply instructions
 export function multiplication(_this: IDGVM, param: number[]) {
-  // do the same thing for the multiply instructions
-  switch (param[1]) {
-    case multiplicationType.MUL_REG_REG: {
-      const r1 = param[2];
-      const r2 = param[3];
-      const lhs = _this.getRegisterAt(r1);
-      const rhs = _this.getRegisterAt(r2);
-      _this.setRegister("acc", lhs * rhs);
-      break;
-    }
-    case multiplicationType.MUL_LIT_REG: {
-      const literal = param[2];
-      const r1 = param[3];
-      const r1V = _this.getRegisterAt(r1);
-      _this.setRegister("acc", literal * r1V);
-      break;
-    }
-    case multiplicationType.MUL_LIT_MEM: {
-      const literal = param[2];
-      const mem = param[3];
-      const memV = _this.getMemoryAt(mem);
-      _this.setRegister("acc", literal * memV);
-      break;
-    }
-    case multiplicationType.MUL_REG_MEM: {
-      // mul r1, [mem]
-      const r1 = param[2];
-      const mem = param[3];
-      const r1V = _this.getRegisterAt(r1);
-      const memV = _this.getMemoryAt(mem);
-      _this.setRegister("acc", r1V * memV);
-      break;
-    }
-    case multiplicationType.MUL_MEM_REG: {
-      // mul [mem], r1
-      const mem = param[2];
-      const r1 = param[3];
-      const memV = _this.getMemoryAt(mem);
-      const r1V = _this.getRegisterAt(r1);
-      _this.setRegister("acc", memV * r1V);
-      break;
-    }
-    case multiplicationType.MUL_MEM_LIT: {
-      // mul [mem], literal
-      const mem = param[2];
-      const literal = param[3];
-      const memV = _this.getMemoryAt(mem);
-      _this.setRegister("acc", memV * literal);
-      break;
-    }
-    case multiplicationType.MUL_REG_LIT: {
-      // mul r1, literal
-      const r1 = param[2];
-      const literal = param[3];
-      const r1V = _this.getRegisterAt(r1);
-      _this.setRegister("acc", r1V * literal);
-      break;
-    }
-    case multiplicationType.MUL_LIT_LIT: {
-      // mul literal, literal
-      const literal = param[2];
-      const literal2 = param[3];
-      _this.setRegister("acc", literal * literal2);
-      break;
-    }
-    case multiplicationType.MUL_MEM_MEM: {
-      // mul [mem], [mem]
-      const mem1 = param[2];
-      const mem2 = param[3];
-      const mem1V = _this.getMemoryAt(mem1);
-      const mem2V = _this.getMemoryAt(mem2);
-      _this.setRegister("acc", mem1V * mem2V);
-      break;
-    }
-  }
+    return [
+      /** case multiplicationType.MUL_REG_REG: */
+      ()=> {
+        const r1 = param[2];
+        const r2 = param[3];
+        const lhs = _this.getRegisterAt(r1);
+        const rhs = _this.getRegisterAt(r2);
+        _this.setRegister("acc", lhs * rhs);
+      },
+      /** case multiplicationType.MUL_LIT_REG: */
+      ()=> {
+        const literal = param[2];
+        const r1 = param[3];
+        const r1V = _this.getRegisterAt(r1);
+        _this.setRegister("acc", literal * r1V);
+      },
+      /** case multiplicationType.MUL_LIT_MEM: */
+      ()=> {
+        const literal = param[2];
+        const mem = param[3];
+        const memV = _this.getMemoryAt(mem);
+        _this.setRegister("acc", literal * memV);
+      },
+      /** case multiplicationType.MUL_REG_MEM: */
+      ()=> {
+        // mul r1, [mem]
+        const r1 = param[2];
+        const mem = param[3];
+        const r1V = _this.getRegisterAt(r1);
+        const memV = _this.getMemoryAt(mem);
+        _this.setRegister("acc", r1V * memV);
+      },
+      /** case multiplicationType.MUL_MEM_REG: */
+      ()=> {
+        // mul [mem], r1
+        const mem = param[2];
+        const r1 = param[3];
+        const memV = _this.getMemoryAt(mem);
+        const r1V = _this.getRegisterAt(r1);
+        _this.setRegister("acc", memV * r1V);
+      },
+      /** case multiplicationType.MUL_MEM_LIT: */
+      ()=> {
+        // mul [mem], literal
+        const mem = param[2];
+        const literal = param[3];
+        const memV = _this.getMemoryAt(mem);
+        _this.setRegister("acc", memV * literal);
+      },
+      /** case multiplicationType.MUL_REG_LIT: */
+      ()=> {
+        // mul r1, literal
+        const r1 = param[2];
+        const literal = param[3];
+        const r1V = _this.getRegisterAt(r1);
+        _this.setRegister("acc", r1V * literal);
+      },
+      /** case multiplicationType.MUL_LIT_LIT: */
+      ()=> {
+        // mul literal, literal
+        const literal = param[2];
+        const literal2 = param[3];
+        _this.setRegister("acc", literal * literal2);
+      },
+      /** case multiplicationType.MUL_MEM_MEM: */
+      ()=> {
+        // mul [mem], [mem]
+        const mem1 = param[2];
+        const mem2 = param[3];
+        const mem1V = _this.getMemoryAt(mem1);
+        const mem2V = _this.getMemoryAt(mem2);
+        _this.setRegister("acc", mem1V * mem2V);
+      },
+    ][param[1]]();
 }

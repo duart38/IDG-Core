@@ -169,7 +169,7 @@ export default class IDGVM extends InstructionParser {
   }
 
   execute(instruction: number[]): boolean | void {
-    const instrs: (()=>boolean | void)[] = [
+    [
       ()=>{this.emptyInstructionAtStep++},
       /**
        * @see {Instructions.MOVE}
@@ -510,8 +510,7 @@ export default class IDGVM extends InstructionParser {
       this.debug();
       console.log(`####### END DEBUG ${instruction[1]}  ##############`);
      }
-    ]
-    return instrs[instruction[0]]();
+    ][instruction[0]]();
   }
 
   run() {
