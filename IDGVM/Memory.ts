@@ -240,14 +240,14 @@ export class InstructionParser {
   }
 
   push(value: number) {
-    // TODO: extract the stack in it's own memory to avoid overlap
+    // TODO: instead pf extracting the stack to its own memory we could map it in a region and throw when we get a stack-overflow
     const spAddress = this.getRegister("sp");
     this.memory.setUint32(spAddress, value);
     this.setRegister("sp", spAddress - INSTRUCTION_LENGTH_IN_BYTES); // moving stack pointer down
     this.stackFrameSize += INSTRUCTION_LENGTH_IN_BYTES;
   }
 
-  // TODO: extract the stack in it's own memory to avoid overlap
+  // TODO: instead pf extracting the stack to its own memory we could map it in a region and throw when we get a stack-overflow
   pop() {
     const nextSpAddress = this.getRegister("sp") + INSTRUCTION_LENGTH_IN_BYTES;
 
@@ -256,7 +256,7 @@ export class InstructionParser {
     return this.memory.getUint32(nextSpAddress);
   }
 
-  // TODO: extract the stack in it's own memory to avoid overlap
+  // TODO: instead pf extracting the stack to its own memory we could map it in a region and throw when we get a stack-overflow
   pushState() {
     PUSHABLE_STATE.forEach((r) => {
       this.push(this.getRegister(r));
