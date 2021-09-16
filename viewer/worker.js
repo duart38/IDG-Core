@@ -1,6 +1,3 @@
-/* eslint-disable no-unused-expressions */
-/* eslint-disable no-sequences */
-// deno-lint-ignore-file
 var FileTypes;
 (function(FileTypes1) {
     FileTypes1[FileTypes1["file"] = 0] = "file";
@@ -162,7 +159,7 @@ function bi_reverse(code, len) {
         res |= code & 1;
         code >>>= 1;
         res <<= 1;
-    }while ((--len) > 0)
+    }while (--len > 0)
     return res >>> 1;
 }
 function gen_bitlen(s1, desc) {
@@ -382,7 +379,7 @@ function scan_tree(s1, tree, max_code) {
     for(n = 0; n <= max_code; n++){
         curlen = nextlen;
         nextlen = tree[(n + 1) * 2 + 1];
-        if ((++count) < max_count && curlen === nextlen) {
+        if (++count < max_count && curlen === nextlen) {
             continue;
         } else if (count < min_count) {
             s1.bl_tree[curlen * 2] += count;
@@ -423,12 +420,12 @@ function send_tree(s1, tree, max_code) {
     for(n = 0; n <= max_code; n++){
         curlen = nextlen;
         nextlen = tree[(n + 1) * 2 + 1];
-        if ((++count) < max_count && curlen === nextlen) {
+        if (++count < max_count && curlen === nextlen) {
             continue;
         } else if (count < min_count) {
             do {
                 send_code(s1, curlen, s1.bl_tree);
-            }while ((--count) !== 0)
+            }while (--count !== 0)
         } else if (curlen !== 0) {
             if (curlen !== prevlen) {
                 send_code(s1, curlen, s1.bl_tree);
@@ -698,7 +695,7 @@ function longest_match(s1, cur_match) {
             scan_end1 = _win[scan + best_len - 1];
             scan_end = _win[scan + best_len];
         }
-    }while ((cur_match = prev[cur_match & wmask]) > limit1 && (--chain_length) !== 0)
+    }while ((cur_match = prev[cur_match & wmask]) > limit1 && --chain_length !== 0)
     if (best_len <= s1.lookahead) {
         return best_len;
     }
@@ -831,7 +828,7 @@ function deflate_fast(s1, flush) {
                     s1.ins_h = (s1.ins_h << s1.hash_shift ^ s1.window[s1.strstart + MIN_MATCH - 1]) & s1.hash_mask;
                     hash_head = s1.prev[s1.strstart & s1.w_mask] = s1.head[s1.ins_h];
                     s1.head[s1.ins_h] = s1.strstart;
-                }while ((--s1.match_length) !== 0)
+                }while (--s1.match_length !== 0)
                 s1.strstart++;
             } else {
                 s1.strstart += s1.match_length;
@@ -900,12 +897,12 @@ function deflate_slow(s1, flush) {
             s1.lookahead -= s1.prev_length - 1;
             s1.prev_length -= 2;
             do {
-                if ((++s1.strstart) <= max_insert) {
+                if (++s1.strstart <= max_insert) {
                     s1.ins_h = (s1.ins_h << s1.hash_shift ^ s1.window[s1.strstart + MIN_MATCH - 1]) & s1.hash_mask;
                     hash_head = s1.prev[s1.strstart & s1.w_mask] = s1.head[s1.ins_h];
                     s1.head[s1.ins_h] = s1.strstart;
                 }
-            }while ((--s1.prev_length) !== 0)
+            }while (--s1.prev_length !== 0)
             s1.match_available = 0;
             s1.match_length = MIN_MATCH - 1;
             s1.strstart++;
@@ -965,6 +962,19 @@ class Config {
         this.func = func;
     }
 }
+let configuration_table;
+configuration_table = [
+    new Config(0, 0, 0, 0, deflate_stored),
+    new Config(4, 4, 8, 4, deflate_fast),
+    new Config(4, 5, 16, 8, deflate_fast),
+    new Config(4, 6, 32, 32, deflate_fast),
+    new Config(4, 4, 16, 16, deflate_slow),
+    new Config(8, 16, 32, 32, deflate_slow),
+    new Config(8, 16, 128, 128, deflate_slow),
+    new Config(8, 32, 128, 256, deflate_slow),
+    new Config(32, 128, 258, 1024, deflate_slow),
+    new Config(32, 258, 258, 4096, deflate_slow)
+];
 function concatUint8Array(arr) {
     const length = arr.reduce((pre, next)=>pre + next.length
     , 0);
@@ -1469,7 +1479,7 @@ function inflate_table(type, lens, lens_index, codes, table, table_index, work, 
             huff = 0;
         }
         sym++;
-        if ((--count[len]) === 0) {
+        if (--count[len] === 0) {
             if (len === max) break;
             len = lens[lens_index + work[sym]];
         }
@@ -3015,7 +3025,7 @@ class MemoryMapper {
         };
     }
     findRegion(address) {
-        let region = this.regions.find((r)=>address >= r.start && address <= r.end
+        const region = this.regions.find((r)=>address >= r.start && address <= r.end
         );
         if (!region) {
             throw new Error(`No memory region found for address ${address}`);
@@ -4405,31 +4415,6 @@ var PixelIndexFetchType;
     PixelIndexFetchType1[PixelIndexFetchType1["FETCH_PIXEL_INDEX_MEM_MEM"] = 2] = "FETCH_PIXEL_INDEX_MEM_MEM";
 })(PixelIndexFetchType || (PixelIndexFetchType = {
 }));
-function fetchPixelColor(_this, params) {
-    switch(params[1]){
-        case PixelColorByIndexType.FETCH_PIXEL_COLOR_LIT:
-            {
-                const pixelIndex = params[2];
-                const storageLocation = params[3];
-                _this.setRegisterAt(storageLocation, _this.getPixelColor(pixelIndex));
-                break;
-            }
-        case PixelColorByIndexType.FETCH_PIXEL_COLOR_REG:
-            {
-                const pixelIndex = params[2];
-                const storageLocation = params[3];
-                _this.setRegisterAt(storageLocation, _this.getPixelColor(_this.getRegisterAt(pixelIndex)));
-                break;
-            }
-        case PixelColorByIndexType.FETCH_PIXEL_COLOR_MEM:
-            {
-                const pixelIndex = params[2];
-                const storageLocation = params[3];
-                _this.setRegisterAt(storageLocation, _this.getPixelColor(_this.getMemoryAt(pixelIndex)));
-                break;
-            }
-    }
-}
 function fetchNeighboringPixel(_this, params) {
     const direction = params[2];
     switch(params[1]){
@@ -4822,307 +4807,220 @@ class IDGVM extends InstructionParser {
     pushIp() {
         this.IPStack.push(this.getRegister("ip"));
     }
-    async execute(instruction) {
-        switch(instruction[0]){
-            case Instructions.RET_INT:
-                {
-                    console.log("Return from interupt");
-                    this.isInInterruptHandler = false;
-                    this.popState();
-                    return;
-                }
-            case Instructions.INT:
-                {
-                    const interuptValue = instruction[1] & 15;
-                    this.handleInterupt(interuptValue);
-                    return;
-                }
-            case Instructions.MOVE:
-                executeMove(this, instruction);
-                break;
-            case Instructions.MOVE_S:
-                executeSignedMove(this, instruction);
-                break;
-            case Instructions.ADD:
-                addition(this, instruction);
-                break;
-            case Instructions.SUBTRACT:
-                subtraction(this, instruction);
-                break;
-            case Instructions.MULTIPLY:
-                multiplication(this, instruction);
-                break;
-            case Instructions.INC_REG:
-                {
-                    const r1 = instruction[1];
-                    const r1v = this.registers.getUint32(r1);
-                    this.registers.setUint32(r1, r1v + 1);
-                    return;
-                }
-            case Instructions.DEC_REG:
-                {
-                    const r1 = instruction[1];
-                    const oldValue = this.registers.getUint32(r1);
-                    this.registers.setUint32(r1, oldValue - 1);
-                    return;
-                }
-            case Instructions.BITWISE_SHIFT:
-                bitwiseShift(this, instruction);
-                break;
-            case Instructions.BITWISE_AND:
-                bitwiseAND(this, instruction);
-                break;
-            case Instructions.BITWISE_OR:
-                bitwiseOR(this, instruction);
-                break;
-            case Instructions.NOT:
-                {
-                    const r1 = instruction[1];
-                    const registerValue = this.registers.getUint32(r1);
-                    this.setRegister("acc", ~registerValue & 2147483647);
-                    return;
-                }
-            case Instructions.JMP_ACC:
-                jumpBasedOnAcc(this, instruction);
-                break;
-            case Instructions.GOTO:
-                {
-                    const address = instruction[1];
-                    this.setRegister("ip", address);
-                    return;
-                }
-            case Instructions.PSH_LIT:
-                {
-                    const value = instruction[1];
-                    this.push(value);
-                    return;
-                }
-            case Instructions.PSH_REG:
-                {
-                    const registerIndex = instruction[1];
-                    this.push(this.registers.getUint32(registerIndex));
-                    return;
-                }
-            case Instructions.PSH_STATE:
-                {
-                    this.pushState();
-                    return;
-                }
-            case Instructions.PSH_IP:
-                {
-                    this.IPStack.push(this.getRegister("ip"));
-                    return;
-                }
-            case Instructions.PSH_IP_OFFSETTED:
-                {
-                    this.IPStack.push(this.getRegister("ip") + instruction[1]);
-                    return;
-                }
-            case Instructions.POP:
-                {
-                    const registerIndex = instruction[1];
-                    const value = this.IPStack.pop();
-                    if (!value) throw new Error("Pop called on an empty stack");
-                    this.registers.setUint32(registerIndex, value);
-                    return;
-                }
-            case Instructions.CALL:
-                callALocation(this, instruction);
-                break;
-            case Instructions.RAND:
-                randomToAccumulator(this, instruction);
-                break;
-            case Instructions.SKIP:
-                {
-                    const size5 = instruction[1];
-                    this.setRegister("ip", this.getRegister("ip") + size5);
-                    return;
-                }
-            case Instructions.MODIFY_PIXEL_REG:
-                {
-                    const x = this.getRegister("x");
-                    const y = this.getRegister("y");
-                    const color = this.getRegister("COL");
-                    const index = indexByCoordinates(x, y, this.image.width);
-                    this.setPixelColor(index, color);
-                    return;
-                }
-            case Instructions.MODIFY_PIXEL:
-                modifyPixel(this, instruction);
-                break;
-            case Instructions.FETCH_PIXEL_NEIGHBOR:
-                fetchNeighboringPixel(this, instruction);
-                break;
-            case Instructions.FETCH_PIXEL_COLOR_BY_INDEX:
-                fetchPixelColor(this, instruction);
-                break;
-            case Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES:
-                {
-                    const x = this.getRegister("x");
-                    const y = this.getRegister("y");
-                    const reg = instruction[1];
-                    this.registers.setUint32(reg, indexByCoordinates(x, y, this.image.width));
-                    return;
-                }
-            case Instructions.FETCH_PIXEL_INDEX:
-                fetchPixelIndex(this, instruction);
-                break;
-            case Instructions.RGB_FROMREG_TO_COLOR:
-                {
-                    const r = this.getRegister("R");
-                    const g = this.getRegister("G");
-                    const b = this.getRegister("B");
-                    this.setRegister("COL", combineRGB([
-                        r,
-                        g,
-                        b
-                    ]));
-                    return;
-                }
-            case Instructions.RGB_TO_COLOR:
-                RGBConversion(this, instruction);
-                break;
-            case Instructions.COLOR_FROMREG_TO_RGB:
-                {
-                    const color = this.getRegister("COL");
-                    const [r, g, b] = spreadRGB(color);
-                    this.setRegister("R", r);
-                    this.setRegister("G", g);
-                    this.setRegister("B", b);
-                    return;
-                }
-            case Instructions.LANGTONS_ANT:
-                {
-                    let currentX = this.getRegister("x");
-                    let currentY = this.getRegister("y");
-                    let direction = this.getRegister("r9");
-                    const color1 = instruction[1];
-                    const color2 = instruction[2];
-                    const thisIndex = indexByCoordinates(currentX, currentY, this.image.width);
-                    const moveForward = (d)=>{
-                        switch(d){
-                            case 1:
-                                currentX++;
-                                break;
-                            case 2:
-                                currentY++;
-                                break;
-                            case 3:
-                                currentX--;
-                                break;
-                            case 4:
-                                currentY--;
-                                break;
-                        }
-                    };
-                    const saveBack = (dir, x, y)=>{
-                        this.setRegister("r9", dir);
-                        this.setRegister("x", x);
-                        this.setRegister("y", y);
-                    };
-                    if (color1 === this.image.imageData[thisIndex]) {
-                        direction++;
-                        if (direction > 4) direction = 1;
-                        this.setPixelColor(thisIndex, color2);
-                        moveForward(direction);
-                        saveBack(direction, currentX, currentY);
-                    } else if (color2 === this.image.imageData[indexByCoordinates(currentX, currentY, this.image.width)]) {
-                        direction--;
-                        if (direction < 1) direction = 4;
-                        this.setPixelColor(thisIndex, color1);
-                        moveForward(direction);
-                        saveBack(direction, currentX, currentY);
+    execute(instruction) {
+        const instrs = [
+            ()=>{
+                this.emptyInstructionAtStep++;
+            },
+            ()=>executeMove(this, instruction)
+            ,
+            ()=>executeSignedMove(this, instruction)
+            ,
+            ()=>addition(this, instruction)
+            ,
+            ()=>subtraction(this, instruction)
+            ,
+            ()=>{
+                const r1 = instruction[1];
+                const r1v = this.registers.getUint32(r1);
+                this.registers.setUint32(r1, r1v + 1);
+            },
+            ()=>{
+                const r1 = instruction[1];
+                const oldValue = this.registers.getUint32(r1);
+                this.registers.setUint32(r1, oldValue - 1);
+            },
+            ()=>multiplication(this, instruction)
+            ,
+            ()=>bitwiseShift(this, instruction)
+            ,
+            ()=>bitwiseAND(this, instruction)
+            ,
+            ()=>bitwiseOR(this, instruction)
+            ,
+            ()=>{
+                const r1 = instruction[1];
+                const registerValue = this.registers.getUint32(r1);
+                this.setRegister("acc", ~registerValue & 2147483647);
+            },
+            ()=>jumpBasedOnAcc(this, instruction)
+            ,
+            ()=>this.setRegister("ip", instruction[1])
+            ,
+            ()=>this.push(instruction[1])
+            ,
+            ()=>this.push(this.registers.getUint32(instruction[1]))
+            ,
+            ()=>{
+                console.warn("PSH_STATE is deprecated");
+                this.pushState();
+            },
+            ()=>{
+                const value = this.IPStack.pop();
+                if (!value) throw new Error("Pop called on an empty stack");
+                this.registers.setUint32(instruction[1], value);
+            },
+            ()=>callALocation(this, instruction)
+            ,
+            ()=>{
+                const value = this.IPStack.pop();
+                if (!value) throw new Error("Pop called on an empty stack");
+                this.setRegister("ip", value);
+            },
+            ()=>{
+                const lastIP = this.IPStack.pop();
+                if (!lastIP) throw new Error("Nowhere to return to");
+                this.setRegister("ip", lastIP + 1);
+            },
+            ()=>{
+                this.halt = true;
+                return true;
+            },
+            ()=>{
+                this.isInInterruptHandler = false;
+                this.popState();
+            },
+            ()=>{
+                const interuptValue = instruction[1] & 15;
+                this.handleInterupt(interuptValue);
+            },
+            ()=>{
+                this.IPStack.push(this.getRegister("ip"));
+            },
+            ()=>{
+                this.IPStack.push(this.getRegister("ip") + instruction[1]);
+            },
+            ()=>randomToAccumulator(this, instruction)
+            ,
+            ()=>this.setRegister("ip", this.getRegister("ip") + instruction[1])
+            ,
+            ()=>{
+                const time = instruction[1];
+                const addressToCall = instruction[2];
+                const intervalHandler = setInterval(()=>{
+                    if (!this.halt) {
+                        this.pushState();
+                        this.setRegister("ip", addressToCall);
                     }
-                    return;
-                }
-            case Instructions.SEEDS:
-                {
-                    const onColor = instruction[1];
-                    const offColor = instruction[2];
-                    for(let i = 0; i < this.image.imageData.length; i++){
-                        seeds(this, i, onColor, offColor);
+                }, time);
+                this.setRegister("r9", intervalHandler);
+            },
+            ()=>{
+                const x = this.getRegister("x");
+                const y = this.getRegister("y");
+                const color = this.getRegister("COL");
+                const index = indexByCoordinates(x, y, this.image.width);
+                this.setPixelColor(index, color);
+            },
+            ()=>modifyPixel(this, instruction)
+            ,
+            ()=>this.render()
+            ,
+            async ()=>await sleep(instruction[1])
+            ,
+            ()=>fetchImageInfo(this, instruction)
+            ,
+            ()=>fetchNeighboringPixel(this, instruction)
+            ,
+            ()=>fetchNeighboringPixel(this, instruction)
+            ,
+            ()=>{
+                const x = this.getRegister("x");
+                const y = this.getRegister("y");
+                const reg = instruction[1];
+                this.registers.setUint32(reg, indexByCoordinates(x, y, this.image.width));
+            },
+            ()=>fetchPixelIndex(this, instruction)
+            ,
+            ()=>{
+                const r = this.getRegister("R");
+                const g = this.getRegister("G");
+                const b = this.getRegister("B");
+                this.setRegister("COL", combineRGB([
+                    r,
+                    g,
+                    b
+                ]));
+            },
+            ()=>RGBConversion(this, instruction)
+            ,
+            ()=>{
+                const color = this.getRegister("COL");
+                const [r, g, b] = spreadRGB(color);
+                this.setRegister("R", r);
+                this.setRegister("G", g);
+                this.setRegister("B", b);
+            },
+            ()=>drawBox(this, instruction)
+            ,
+            ()=>drawBoxManual(this, instruction)
+            ,
+            ()=>drawCircleA(this, instruction)
+            ,
+            ()=>drawLineP(this, instruction)
+            ,
+            ()=>modifyLuminosityIns(this, instruction)
+            ,
+            ()=>{
+                let currentX = this.getRegister("x");
+                let currentY = this.getRegister("y");
+                let direction = this.getRegister("r9");
+                const color1 = instruction[1];
+                const color2 = instruction[2];
+                const thisIndex = indexByCoordinates(currentX, currentY, this.image.width);
+                const moveForward = (d)=>{
+                    switch(d){
+                        case 1:
+                            currentX++;
+                            break;
+                        case 2:
+                            currentY++;
+                            break;
+                        case 3:
+                            currentX--;
+                            break;
+                        case 4:
+                            currentY--;
+                            break;
                     }
-                    return;
+                };
+                const saveBack = (dir, x, y)=>{
+                    this.setRegister("r9", dir);
+                    this.setRegister("x", x);
+                    this.setRegister("y", y);
+                };
+                if (color1 === this.image.imageData[thisIndex]) {
+                    direction++;
+                    if (direction > 4) direction = 1;
+                    this.setPixelColor(thisIndex, color2);
+                    moveForward(direction);
+                    saveBack(direction, currentX, currentY);
+                } else if (color2 === this.image.imageData[indexByCoordinates(currentX, currentY, this.image.width)]) {
+                    direction--;
+                    if (direction < 1) direction = 4;
+                    this.setPixelColor(thisIndex, color1);
+                    moveForward(direction);
+                    saveBack(direction, currentX, currentY);
                 }
-            case Instructions.DRAW_BOX:
-                drawBox(this, instruction);
-                break;
-            case Instructions.DRAW_BOX_MANUAL:
-                drawBoxManual(this, instruction);
-                break;
-            case Instructions.DRAW_CIRCLE:
-                drawCircleA(this, instruction);
-                break;
-            case Instructions.DRAW_LINE_POINTS:
-                drawLineP(this, instruction);
-                break;
-            case Instructions.FETCH_IMAGE_INFO:
-                fetchImageInfo(this, instruction);
-                break;
-            case Instructions.MODIFY_LUMINOSITY:
-                modifyLuminosityIns(this, instruction);
-                break;
-            case Instructions.INTERVAL:
-                {
-                    const time = instruction[1];
-                    const addressToCall = instruction[2];
-                    const intervalHandler = setInterval(()=>{
-                        if (!this.halt) {
-                            this.pushState();
-                            this.setRegister("ip", addressToCall);
-                        }
-                    }, time);
-                    this.setRegister("r9", intervalHandler);
-                    return;
+            },
+            ()=>{
+                const onColor = instruction[1];
+                const offColor = instruction[2];
+                for(let i = 0; i < this.image.imageData.length; i++){
+                    seeds(this, i, onColor, offColor);
                 }
-            case Instructions.RENDER:
-                {
-                    this.render();
-                    return;
-                }
-            case Instructions.RET:
-                {
-                    const lastIP = this.IPStack.pop();
-                    if (!lastIP) throw new Error("Nowhere to return to");
-                    this.setRegister("ip", lastIP);
-                    return;
-                }
-            case Instructions.RET_TO_NEXT:
-                {
-                    const lastIP = this.IPStack.pop();
-                    if (!lastIP) throw new Error("Nowhere to return to");
-                    this.setRegister("ip", lastIP + 1);
-                    return;
-                }
-            case Instructions.SLEEP:
-                {
-                    const time = instruction[1];
-                    await sleep(time);
-                    return;
-                }
-            case Instructions.HLT:
-                {
-                    this.halt = true;
-                    return true;
-                }
-            case Instructions.DEBUG:
-                {
-                    console.log(`####### DEBUG ${instruction[1]} ##################`);
-                    this.debug();
-                    console.log(`####### END DEBUG ${instruction[1]}  ##############`);
-                    return;
-                }
-            case 0:
-                {
-                    return;
-                }
-            default:
-                console.error(`instruction ${instruction[0]} is not an executable instruction, make sure your instructions are aligned properly by padding the values that are too small for a complete instruction.`, instruction);
-        }
+            },
+            ()=>{
+                console.log(`####### DEBUG ${instruction[1]} ##################`);
+                this.debug();
+                console.log(`####### END DEBUG ${instruction[1]}  ##############`);
+            }
+        ];
+        return instrs[instruction[0]]();
     }
-    async run() {
+    run() {
         for (const inst of this.fetch()){
-            const htl = await this.execute(inst);
+            const htl = this.execute(inst);
             if (htl || this.halt) return;
         }
     }
