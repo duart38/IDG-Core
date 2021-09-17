@@ -225,159 +225,161 @@ export enum ParameterFetchType {
  * Includes the list of parameters (types) that the generator should fetch.
  * NOTE: Does not include the instruction itself as that has already been fetched at the time of querying this object
  */
-export const InstructionParams: Record<Instructions, ParameterFetchType[]> = {
+export const InstructionParams: ParameterFetchType[][] = [
   // TODO: fetch number from network instruction (this does not seem that problematic)
-  [Instructions.PSH_IP]: [],
-  [Instructions.PSH_IP_OFFSETTED]: [ParameterFetchType.unsignedINT32],
-  [Instructions.DEBUG]: [ParameterFetchType.unsignedINT8],
-  [Instructions.MOVE]: [
+  [],
+  /** [Instructions.MOVE]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.MOVE_S]: [
+  /** [Instructions.MOVE_S]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.signedINT32, // TODO: consequence-> we can't fully address the entire memory space
     ParameterFetchType.unsignedINT32,
-  ], // TODO: test this by providing signed values and see if it retains its precision
-  [Instructions.ADD]: [
+  ],
+  /** [Instructions.ADD]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.SUBTRACT]: [
+  /** [Instructions.SUBTRACT]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.INC_REG]: [ParameterFetchType.signedINT32],
-  [Instructions.DEC_REG]: [ParameterFetchType.signedINT32],
-  [Instructions.MULTIPLY]: [
+  /** [Instructions.INC_REG]:*/ [ParameterFetchType.signedINT32],
+  /** [Instructions.DEC_REG]:*/ [ParameterFetchType.signedINT32],
+  /** [Instructions.MULTIPLY]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.BITWISE_SHIFT]: [
+  /** [Instructions.BITWISE_SHIFT]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.BITWISE_AND]: [
+  /** [Instructions.BITWISE_AND]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.BITWISE_OR]: [
+  /** [Instructions.BITWISE_OR]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.NOT]: [ParameterFetchType.unsignedINT32],
-  [Instructions.JMP_ACC]: [
+  /** [Instructions.NOT]:*/ [ParameterFetchType.unsignedINT32],
+  /** [Instructions.JMP_ACC]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.GOTO]: [ParameterFetchType.unsignedINT32],
-  [Instructions.PSH_LIT]: [ParameterFetchType.unsignedINT32],
-  [Instructions.PSH_REG]: [ParameterFetchType.unsignedINT32],
-  [Instructions.PSH_STATE]: [],
-  [Instructions.POP]: [ParameterFetchType.unsignedINT32],
-  [Instructions.CALL]: [
+  /** [Instructions.GOTO]:*/ [ParameterFetchType.unsignedINT32],
+  /** [Instructions.PSH_LIT]:*/ [ParameterFetchType.unsignedINT32],
+  /** [Instructions.PSH_REG]:*/ [ParameterFetchType.unsignedINT32],
+  /** [Instructions.PSH_STATE]:*/ [],
+  /** [Instructions.POP]:*/ [ParameterFetchType.unsignedINT32],
+  /** [Instructions.CALL]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.RET]: [],
-  [Instructions.RET_TO_NEXT]: [],
-  [Instructions.HLT]: [],
-  [Instructions.RET_INT]: [],
-  [Instructions.INT]: [ParameterFetchType.unsignedINT32],
-  [Instructions.RAND]: [
+  /** [Instructions.RET]:*/ [],
+  /** [Instructions.RET_TO_NEXT]:*/ [],
+  /** [Instructions.HLT]:*/ [],
+  /** [Instructions.RET_INT]:*/ [],
+  /** [Instructions.INT]:*/ [ParameterFetchType.unsignedINT32],
+  /** [Instructions.PSH_IP]:*/ [],
+  /** [Instructions.PSH_IP_OFFSETTED]:*/ [ParameterFetchType.unsignedINT32],
+  /** [Instructions.RAND]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.SKIP]: [ParameterFetchType.unsignedINT32],
-  [Instructions.MODIFY_PIXEL_REG]: [], // takes all values from the register
-  [Instructions.MODIFY_PIXEL]: [
+  /** [Instructions.SKIP]:*/ [ParameterFetchType.unsignedINT32],
+  /** [Instructions.INTERVAL]:*/ [
+    ParameterFetchType.unsignedINT32,
+    ParameterFetchType.unsignedINT32,
+  ],
+  /** [Instructions.MODIFY_PIXEL_REG]:*/ [], // takes all values from the register
+  /** [Instructions.MODIFY_PIXEL]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.RENDER]: [],
-  [Instructions.FETCH_PIXEL_NEIGHBOR]: [
+  /** [Instructions.RENDER]:*/ [],
+  /** [Instructions.SLEEP]:*/ [ParameterFetchType.unsignedINT32],
+  /** [Instructions.FETCH_IMAGE_INFO]:*/ [
+    ParameterFetchType.unsignedINT8,
+    ParameterFetchType.unsignedINT32,
+  ],
+  /** [Instructions.FETCH_PIXEL_NEIGHBOR]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ], // type, direction, where to check, where to put
-  [Instructions.FETCH_PIXEL_COLOR_BY_INDEX]: [
+  /** [Instructions.FETCH_PIXEL_COLOR_BY_INDEX]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES]: [
+  /** [Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES]:*/ [
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.FETCH_PIXEL_INDEX]: [
+  /** [Instructions.FETCH_PIXEL_INDEX]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.RGB_FROMREG_TO_COLOR]: [],
-  [Instructions.RGB_TO_COLOR]: [ // TODO: make a literal version that takes 8bit vals instead
+  /** [Instructions.RGB_FROMREG_TO_COLOR]:*/ [],
+  /** [Instructions.RGB_TO_COLOR]:*/ [ // TODO: make a literal version that takes 8bit vals instead
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.unsignedINT32, // TODO: this is wasteful as the RGB depth is only 8bits per channel.
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.COLOR_FROMREG_TO_RGB]: [],
-  [Instructions.FETCH_IMAGE_INFO]: [
+  /** [Instructions.COLOR_FROMREG_TO_RGB]:*/ [],
+  /** [Instructions.DRAW_BOX]:*/ [
     ParameterFetchType.unsignedINT8,
+    ParameterFetchType.unsignedINT16,
+    ParameterFetchType.unsignedINT16,
+  ],
+  /** [Instructions.DRAW_BOX_MANUAL]:*/ [
+    ParameterFetchType.unsignedINT8,
+    ParameterFetchType.unsignedINT16,
+    ParameterFetchType.unsignedINT16,
+    ParameterFetchType.unsignedINT16,
+    ParameterFetchType.unsignedINT16,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.MODIFY_LUMINOSITY]: [
+  /** [Instructions.DRAW_CIRCLE]:*/ [
+    ParameterFetchType.unsignedINT8,
+    ParameterFetchType.unsignedINT16,
+  ],
+  /** [Instructions.DRAW_LINE_POINTS]:*/ [
+    ParameterFetchType.unsignedINT8,
+    ParameterFetchType.unsignedINT16,
+    ParameterFetchType.unsignedINT16,
+    ParameterFetchType.unsignedINT16,
+    ParameterFetchType.unsignedINT16,
+  ],
+  /** [Instructions.MODIFY_LUMINOSITY]:*/ [
     ParameterFetchType.unsignedINT8,
     ParameterFetchType.signedINT32,
   ],
-  [Instructions.DRAW_BOX]: [
-    ParameterFetchType.unsignedINT8,
-    ParameterFetchType.unsignedINT16,
-    ParameterFetchType.unsignedINT16,
-  ],
-  [Instructions.DRAW_BOX_MANUAL]: [
-    ParameterFetchType.unsignedINT8,
-    ParameterFetchType.unsignedINT16,
-    ParameterFetchType.unsignedINT16,
-    ParameterFetchType.unsignedINT16,
-    ParameterFetchType.unsignedINT16,
-    ParameterFetchType.unsignedINT32,
-  ],
-  [Instructions.DRAW_LINE_POINTS]: [
-    ParameterFetchType.unsignedINT8,
-    ParameterFetchType.unsignedINT16,
-    ParameterFetchType.unsignedINT16,
-    ParameterFetchType.unsignedINT16,
-    ParameterFetchType.unsignedINT16,
-  ],
-  [Instructions.DRAW_CIRCLE]: [
-    ParameterFetchType.unsignedINT8,
-    ParameterFetchType.unsignedINT16,
-  ],
-  [Instructions.INTERVAL]: [
+  /** [Instructions.LANGTONS_ANT]:*/ [
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.SLEEP]: [ParameterFetchType.unsignedINT32],
-  [Instructions.LANGTONS_ANT]: [
+  /** [Instructions.SEEDS]:*/ [
     ParameterFetchType.unsignedINT32,
     ParameterFetchType.unsignedINT32,
   ],
-  [Instructions.SEEDS]: [
-    ParameterFetchType.unsignedINT32,
-    ParameterFetchType.unsignedINT32,
-  ],
+  /** [Instructions.DEBUG]:*/ [ParameterFetchType.unsignedINT8],
+
   // TODO: SHAPE: [type, amountOfPointsToFetch].. the points need to be fetched dynamically so we can decide to do it with the fetch ins or inside our generator based on the amountOfPointsToFetch value
-};
+];
