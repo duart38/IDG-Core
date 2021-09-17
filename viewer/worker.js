@@ -2822,184 +2822,185 @@ var ParameterFetchType;
     ParameterFetchType1[ParameterFetchType1["registerIndex"] = 6] = "registerIndex";
 })(ParameterFetchType || (ParameterFetchType = {
 }));
-const InstructionParams = {
-    [Instructions.PSH_IP]: [],
-    [Instructions.PSH_IP_OFFSETTED]: [
-        ParameterFetchType.unsignedINT32
-    ],
-    [Instructions.DEBUG]: [
-        ParameterFetchType.unsignedINT8
-    ],
-    [Instructions.MOVE]: [
+const InstructionParams = [
+    [],
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.MOVE_S]: [
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.signedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.ADD]: [
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.SUBTRACT]: [
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.INC_REG]: [
+    [
         ParameterFetchType.signedINT32
     ],
-    [Instructions.DEC_REG]: [
+    [
         ParameterFetchType.signedINT32
     ],
-    [Instructions.MULTIPLY]: [
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.BITWISE_SHIFT]: [
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.BITWISE_AND]: [
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.BITWISE_OR]: [
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.NOT]: [
+    [
         ParameterFetchType.unsignedINT32
     ],
-    [Instructions.JMP_ACC]: [
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.GOTO]: [
+    [
         ParameterFetchType.unsignedINT32
     ],
-    [Instructions.PSH_LIT]: [
+    [
         ParameterFetchType.unsignedINT32
     ],
-    [Instructions.PSH_REG]: [
+    [
         ParameterFetchType.unsignedINT32
     ],
-    [Instructions.PSH_STATE]: [],
-    [Instructions.POP]: [
+    [],
+    [
         ParameterFetchType.unsignedINT32
     ],
-    [Instructions.CALL]: [
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.RET]: [],
-    [Instructions.RET_TO_NEXT]: [],
-    [Instructions.HLT]: [],
-    [Instructions.RET_INT]: [],
-    [Instructions.INT]: [
+    [],
+    [],
+    [],
+    [],
+    [
         ParameterFetchType.unsignedINT32
     ],
-    [Instructions.RAND]: [
-        ParameterFetchType.unsignedINT8,
-        ParameterFetchType.unsignedINT32,
-        ParameterFetchType.unsignedINT32, 
-    ],
-    [Instructions.SKIP]: [
+    [],
+    [
         ParameterFetchType.unsignedINT32
     ],
-    [Instructions.MODIFY_PIXEL_REG]: [],
-    [Instructions.MODIFY_PIXEL]: [
+    [
+        ParameterFetchType.unsignedINT8,
+        ParameterFetchType.unsignedINT32,
+        ParameterFetchType.unsignedINT32, 
+    ],
+    [
+        ParameterFetchType.unsignedINT32
+    ],
+    [
+        ParameterFetchType.unsignedINT32,
+        ParameterFetchType.unsignedINT32, 
+    ],
+    [],
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.RENDER]: [],
-    [Instructions.FETCH_PIXEL_NEIGHBOR]: [
+    [],
+    [
+        ParameterFetchType.unsignedINT32
+    ],
+    [
+        ParameterFetchType.unsignedINT8,
+        ParameterFetchType.unsignedINT32, 
+    ],
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.FETCH_PIXEL_COLOR_BY_INDEX]: [
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.FETCH_PIXEL_INDEX_BY_REG_COORDINATES]: [
+    [
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.FETCH_PIXEL_INDEX]: [
-        ParameterFetchType.unsignedINT8,
-        ParameterFetchType.unsignedINT32,
-        ParameterFetchType.unsignedINT32,
-        ParameterFetchType.unsignedINT32, 
-    ],
-    [Instructions.RGB_FROMREG_TO_COLOR]: [],
-    [Instructions.RGB_TO_COLOR]: [
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.COLOR_FROMREG_TO_RGB]: [],
-    [Instructions.FETCH_IMAGE_INFO]: [
+    [],
+    [
         ParameterFetchType.unsignedINT8,
+        ParameterFetchType.unsignedINT32,
+        ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.MODIFY_LUMINOSITY]: [
+    [],
+    [
+        ParameterFetchType.unsignedINT8,
+        ParameterFetchType.unsignedINT16,
+        ParameterFetchType.unsignedINT16, 
+    ],
+    [
+        ParameterFetchType.unsignedINT8,
+        ParameterFetchType.unsignedINT16,
+        ParameterFetchType.unsignedINT16,
+        ParameterFetchType.unsignedINT16,
+        ParameterFetchType.unsignedINT16,
+        ParameterFetchType.unsignedINT32, 
+    ],
+    [
+        ParameterFetchType.unsignedINT8,
+        ParameterFetchType.unsignedINT16, 
+    ],
+    [
+        ParameterFetchType.unsignedINT8,
+        ParameterFetchType.unsignedINT16,
+        ParameterFetchType.unsignedINT16,
+        ParameterFetchType.unsignedINT16,
+        ParameterFetchType.unsignedINT16, 
+    ],
+    [
         ParameterFetchType.unsignedINT8,
         ParameterFetchType.signedINT32, 
     ],
-    [Instructions.DRAW_BOX]: [
-        ParameterFetchType.unsignedINT8,
-        ParameterFetchType.unsignedINT16,
-        ParameterFetchType.unsignedINT16, 
-    ],
-    [Instructions.DRAW_BOX_MANUAL]: [
-        ParameterFetchType.unsignedINT8,
-        ParameterFetchType.unsignedINT16,
-        ParameterFetchType.unsignedINT16,
-        ParameterFetchType.unsignedINT16,
-        ParameterFetchType.unsignedINT16,
-        ParameterFetchType.unsignedINT32, 
-    ],
-    [Instructions.DRAW_LINE_POINTS]: [
-        ParameterFetchType.unsignedINT8,
-        ParameterFetchType.unsignedINT16,
-        ParameterFetchType.unsignedINT16,
-        ParameterFetchType.unsignedINT16,
-        ParameterFetchType.unsignedINT16, 
-    ],
-    [Instructions.DRAW_CIRCLE]: [
-        ParameterFetchType.unsignedINT8,
-        ParameterFetchType.unsignedINT16, 
-    ],
-    [Instructions.INTERVAL]: [
+    [
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.SLEEP]: [
-        ParameterFetchType.unsignedINT32
-    ],
-    [Instructions.LANGTONS_ANT]: [
+    [
         ParameterFetchType.unsignedINT32,
         ParameterFetchType.unsignedINT32, 
     ],
-    [Instructions.SEEDS]: [
-        ParameterFetchType.unsignedINT32,
-        ParameterFetchType.unsignedINT32, 
+    [
+        ParameterFetchType.unsignedINT8
     ]
-};
+];
 const createMemory = (sizeInBytes)=>{
     const ab1 = new ArrayBuffer(sizeInBytes);
     const dv = new DataView(ab1);
@@ -3036,6 +3037,11 @@ class MemoryMapper {
         const region = this.findRegion(address);
         const finalAddress = region.remap ? address - region.start : address;
         return region.device.getUint16(finalAddress);
+    }
+    getInt16(address) {
+        const region = this.findRegion(address);
+        const finalAddress = region.remap ? address - region.start : address;
+        return region.device.getInt16(finalAddress);
     }
     getUint8(address) {
         const region = this.findRegion(address);
@@ -3227,6 +3233,16 @@ class InstructionParser {
         this.setRegister("ip", nextInstructionAddress + 2);
         return instruction;
     }
+    fetchCurrentSignedInstruction16() {
+        const nextInstructionAddress = this.getRegister("ip");
+        if (nextInstructionAddress + 2 > this.allocatedAmount) {
+            this.emptyInstructionAtStep = 9999;
+            return -1;
+        }
+        const instruction = this.memory.getInt16(nextInstructionAddress);
+        this.setRegister("ip", nextInstructionAddress + 2);
+        return instruction;
+    }
     fetchCurrentInstruction32() {
         const nextInstructionAddress = this.getRegister("ip");
         if (nextInstructionAddress + 4 > this.allocatedAmount) {
@@ -3248,22 +3264,22 @@ class InstructionParser {
         return instruction;
     }
     fetchParameter(t) {
-        switch(t){
-            case ParameterFetchType.unsignedINT8:
-                return this.fetchCurrentInstruction8();
-            case ParameterFetchType.signedINT8:
-                return this.fetchCurrentSignedInstruction8();
-            case ParameterFetchType.unsignedINT16:
-                return this.fetchCurrentInstruction16();
-            case ParameterFetchType.unsignedINT32:
-                return this.fetchCurrentInstruction32();
-            case ParameterFetchType.signedINT32:
-                return this.fetchCurrentSignedInstruction32();
-            case ParameterFetchType.registerIndex:
-                return this.fetchRegisterIndex();
-            default:
-                throw new Error("Incorrect register fetch type");
-        }
+        return [
+            ()=>this.fetchCurrentInstruction8()
+            ,
+            ()=>this.fetchCurrentSignedInstruction8()
+            ,
+            ()=>this.fetchCurrentInstruction16()
+            ,
+            ()=>this.fetchCurrentSignedInstruction16()
+            ,
+            ()=>this.fetchCurrentInstruction32()
+            ,
+            ()=>this.fetchCurrentSignedInstruction32()
+            ,
+            ()=>this.fetchRegisterIndex()
+            , 
+        ][t]();
     }
     *fetch() {
         while(true){
@@ -3500,54 +3516,42 @@ var SMoveType;
 })(SMoveType || (SMoveType = {
 }));
 function executeMove(_this, param) {
-    switch(param[1]){
-        case moveType.MOV_LIT_REG:
-            {
-                const literal = param[2];
-                const register = param[3];
-                _this.setRegisterAt(register, literal);
-                break;
-            }
-        case moveType.MOV_REG_REG:
-            {
-                const registerFrom = param[2];
-                const registerTo = param[3];
-                const value = _this.getRegisterAt(registerFrom);
-                _this.setRegisterAt(registerTo, value);
-                break;
-            }
-        case moveType.MOV_REG_MEM:
-            {
-                const registerFrom = param[2];
-                const address = param[3];
-                const value = _this.getRegisterAt(registerFrom);
-                _this.setMemoryAt(address, value);
-                break;
-            }
-        case moveType.MOV_MEM_REG:
-            {
-                const address = param[2];
-                const registerTo = param[3];
-                const value = _this.getMemoryAt(address);
-                _this.setRegisterAt(registerTo, value);
-                break;
-            }
-        case moveType.MOV_LIT_MEM:
-            {
-                const value = param[2];
-                const address = param[3];
-                _this.setMemoryAt(address, value);
-                break;
-            }
-        case moveType.MOV_MEM_MEM:
-            {
-                const addressFrom = param[2];
-                const addressTo = param[3];
-                const value = _this.getMemoryAt(addressFrom);
-                _this.setMemoryAt(addressTo, value);
-                break;
-            }
-    }
+    [
+        ()=>{
+            const literal = param[2];
+            const register = param[3];
+            _this.setRegisterAt(register, literal);
+        },
+        ()=>{
+            const registerFrom = param[2];
+            const registerTo = param[3];
+            const value = _this.getRegisterAt(registerFrom);
+            _this.setRegisterAt(registerTo, value);
+        },
+        ()=>{
+            const registerFrom = param[2];
+            const address = param[3];
+            const value = _this.getRegisterAt(registerFrom);
+            _this.setMemoryAt(address, value);
+        },
+        ()=>{
+            const address = param[2];
+            const registerTo = param[3];
+            const value = _this.getMemoryAt(address);
+            _this.setRegisterAt(registerTo, value);
+        },
+        ()=>{
+            const value = param[2];
+            const address = param[3];
+            _this.setMemoryAt(address, value);
+        },
+        ()=>{
+            const addressFrom = param[2];
+            const addressTo = param[3];
+            const value = _this.getMemoryAt(addressFrom);
+            _this.setMemoryAt(addressTo, value);
+        }, 
+    ][param[1]]();
 }
 function executeSignedMove(_this, param) {
     switch(param[1]){
@@ -3629,217 +3633,165 @@ var multiplicationType;
 })(multiplicationType || (multiplicationType = {
 }));
 function subtraction(_this, param) {
-    switch(param[1]){
-        case subtractionType.SUB_REG_REG:
-            {
-                const r1 = param[2];
-                const r2 = param[3];
-                const lhs = _this.getRegisterAt(r1);
-                const rhs = _this.getRegisterAt(r2);
-                _this.setRegister("acc", lhs - rhs);
-                break;
-            }
-        case subtractionType.SUB_LIT_REG:
-            {
-                const literal = param[2];
-                const r1 = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                _this.setRegister("acc", literal - r1V);
-                break;
-            }
-        case subtractionType.SUB_REG_LIT:
-            {
-                const r1 = param[2];
-                const literal = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                _this.setRegister("acc", r1V - literal);
-                break;
-            }
-        case subtractionType.SUB_LIT_MEM:
-            {
-                const literal = param[2];
-                const mem = param[3];
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", literal - memV);
-                break;
-            }
-        case subtractionType.SUB_REG_MEM:
-            {
-                const r1 = param[2];
-                const mem = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", r1V - memV);
-                break;
-            }
-        case subtractionType.SUB_MEM_REG:
-            {
-                const mem = param[2];
-                const r1 = param[3];
-                const memV = _this.getMemoryAt(mem);
-                const r1V = _this.getRegisterAt(r1);
-                _this.setRegister("acc", memV - r1V);
-                break;
-            }
-        case subtractionType.SUB_MEM_LIT:
-            {
-                const mem = param[2];
-                const literal = param[3];
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", memV - literal);
-                break;
-            }
-        case subtractionType.SUB_MEM_MEM:
-            {
-                const mem1 = param[2];
-                const mem2 = param[3];
-                const mem1V = _this.getMemoryAt(mem1);
-                const mem2V = _this.getMemoryAt(mem2);
-                _this.setRegister("acc", mem1V - mem2V);
-                break;
-            }
-    }
+    return [
+        ()=>{
+            const r1 = param[2];
+            const r2 = param[3];
+            const lhs = _this.getRegisterAt(r1);
+            const rhs = _this.getRegisterAt(r2);
+            _this.setRegister("acc", lhs - rhs);
+        },
+        ()=>{
+            const literal = param[2];
+            const r1 = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            _this.setRegister("acc", literal - r1V);
+        },
+        ()=>{
+            const r1 = param[2];
+            const literal = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            _this.setRegister("acc", r1V - literal);
+        },
+        ()=>{
+            const literal = param[2];
+            const mem = param[3];
+            const memV = _this.getMemoryAt(mem);
+            _this.setRegister("acc", literal - memV);
+        },
+        ()=>{
+            const r1 = param[2];
+            const mem = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            const memV = _this.getMemoryAt(mem);
+            _this.setRegister("acc", r1V - memV);
+        },
+        ()=>{
+            const mem = param[2];
+            const r1 = param[3];
+            const memV = _this.getMemoryAt(mem);
+            const r1V = _this.getRegisterAt(r1);
+            _this.setRegister("acc", memV - r1V);
+        },
+        ()=>{
+            const memV = _this.getMemoryAt(param[2]);
+            _this.setRegister("acc", memV - param[3]);
+        },
+        ()=>{
+            const mem1V = _this.getMemoryAt(param[2]);
+            const mem2V = _this.getMemoryAt(param[3]);
+            _this.setRegister("acc", mem1V - mem2V);
+        }, 
+    ][param[1]]();
 }
 function addition(_this, param) {
-    switch(param[1]){
-        case additionType.ADD_REG_REG:
-            {
-                const r1 = param[2];
-                const r2 = param[3];
-                const lhs = _this.getRegisterAt(r1);
-                const rhs = _this.getRegisterAt(r2);
-                _this.setRegister("acc", lhs + rhs);
-                break;
-            }
-        case additionType.ADD_LIT_REG:
-            {
-                const literal = param[2];
-                const r1 = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                _this.setRegister("acc", literal + r1V);
-                break;
-            }
-        case additionType.ADD_LIT_MEM:
-            {
-                const literal = param[2];
-                const mem = param[3];
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", literal + memV);
-                break;
-            }
-        case additionType.ADD_REG_MEM:
-            {
-                const r1 = param[2];
-                const mem = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", r1V + memV);
-                break;
-            }
-        case additionType.ADD_REG_LIT:
-            {
-                const r1 = param[2];
-                const literal = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                _this.setRegister("acc", literal + r1V);
-                break;
-            }
-        case additionType.ADD_MEM_MEM:
-            {
-                const mem1 = param[2];
-                const mem2 = param[3];
-                const mem1V = _this.getMemoryAt(mem1);
-                const mem2V = _this.getMemoryAt(mem2);
-                _this.setRegister("acc", mem1V + mem2V);
-                break;
-            }
-        case additionType.ADD_LIT_LIT:
-            {
-                const literal = param[2];
-                const literal2 = param[3];
-                _this.setRegister("acc", literal + literal2);
-                break;
-            }
-    }
+    return [
+        ()=>{
+            const r1 = param[2];
+            const r2 = param[3];
+            const lhs = _this.getRegisterAt(r1);
+            const rhs = _this.getRegisterAt(r2);
+            _this.setRegister("acc", lhs + rhs);
+        },
+        ()=>{
+            const literal = param[2];
+            const r1 = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            _this.setRegister("acc", literal + r1V);
+        },
+        ()=>{
+            const r1 = param[2];
+            const literal = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            _this.setRegister("acc", literal + r1V);
+        },
+        ()=>{
+            const literal = param[2];
+            const mem = param[3];
+            const memV = _this.getMemoryAt(mem);
+            _this.setRegister("acc", literal + memV);
+        },
+        ()=>{
+            const r1 = param[2];
+            const mem = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            const memV = _this.getMemoryAt(mem);
+            _this.setRegister("acc", r1V + memV);
+        },
+        ()=>{
+            const literal = param[2];
+            const literal2 = param[3];
+            _this.setRegister("acc", literal + literal2);
+        },
+        ()=>{
+            const mem1 = param[2];
+            const mem2 = param[3];
+            const mem1V = _this.getMemoryAt(mem1);
+            const mem2V = _this.getMemoryAt(mem2);
+            _this.setRegister("acc", mem1V + mem2V);
+        }
+    ][param[1]]();
 }
 function multiplication(_this, param) {
-    switch(param[1]){
-        case multiplicationType.MUL_REG_REG:
-            {
-                const r1 = param[2];
-                const r2 = param[3];
-                const lhs = _this.getRegisterAt(r1);
-                const rhs = _this.getRegisterAt(r2);
-                _this.setRegister("acc", lhs * rhs);
-                break;
-            }
-        case multiplicationType.MUL_LIT_REG:
-            {
-                const literal = param[2];
-                const r1 = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                _this.setRegister("acc", literal * r1V);
-                break;
-            }
-        case multiplicationType.MUL_LIT_MEM:
-            {
-                const literal = param[2];
-                const mem = param[3];
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", literal * memV);
-                break;
-            }
-        case multiplicationType.MUL_REG_MEM:
-            {
-                const r1 = param[2];
-                const mem = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", r1V * memV);
-                break;
-            }
-        case multiplicationType.MUL_MEM_REG:
-            {
-                const mem = param[2];
-                const r1 = param[3];
-                const memV = _this.getMemoryAt(mem);
-                const r1V = _this.getRegisterAt(r1);
-                _this.setRegister("acc", memV * r1V);
-                break;
-            }
-        case multiplicationType.MUL_MEM_LIT:
-            {
-                const mem = param[2];
-                const literal = param[3];
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", memV * literal);
-                break;
-            }
-        case multiplicationType.MUL_REG_LIT:
-            {
-                const r1 = param[2];
-                const literal = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                _this.setRegister("acc", r1V * literal);
-                break;
-            }
-        case multiplicationType.MUL_LIT_LIT:
-            {
-                const literal = param[2];
-                const literal2 = param[3];
-                _this.setRegister("acc", literal * literal2);
-                break;
-            }
-        case multiplicationType.MUL_MEM_MEM:
-            {
-                const mem1 = param[2];
-                const mem2 = param[3];
-                const mem1V = _this.getMemoryAt(mem1);
-                const mem2V = _this.getMemoryAt(mem2);
-                _this.setRegister("acc", mem1V * mem2V);
-                break;
-            }
-    }
+    return [
+        ()=>{
+            const r1 = param[2];
+            const r2 = param[3];
+            const lhs = _this.getRegisterAt(r1);
+            const rhs = _this.getRegisterAt(r2);
+            _this.setRegister("acc", lhs * rhs);
+        },
+        ()=>{
+            const literal = param[2];
+            const r1 = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            _this.setRegister("acc", literal * r1V);
+        },
+        ()=>{
+            const literal = param[2];
+            const mem = param[3];
+            const memV = _this.getMemoryAt(mem);
+            _this.setRegister("acc", literal * memV);
+        },
+        ()=>{
+            const r1 = param[2];
+            const mem = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            const memV = _this.getMemoryAt(mem);
+            _this.setRegister("acc", r1V * memV);
+        },
+        ()=>{
+            const mem = param[2];
+            const r1 = param[3];
+            const memV = _this.getMemoryAt(mem);
+            const r1V = _this.getRegisterAt(r1);
+            _this.setRegister("acc", memV * r1V);
+        },
+        ()=>{
+            const mem = param[2];
+            const literal = param[3];
+            const memV = _this.getMemoryAt(mem);
+            _this.setRegister("acc", memV * literal);
+        },
+        ()=>{
+            const r1 = param[2];
+            const literal = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            _this.setRegister("acc", r1V * literal);
+        },
+        ()=>{
+            const literal = param[2];
+            const literal2 = param[3];
+            _this.setRegister("acc", literal * literal2);
+        },
+        ()=>{
+            const mem1 = param[2];
+            const mem2 = param[3];
+            const mem1V = _this.getMemoryAt(mem1);
+            const mem2V = _this.getMemoryAt(mem2);
+            _this.setRegister("acc", mem1V * mem2V);
+        }, 
+    ][param[1]]();
 }
 var shiftType;
 (function(shiftType1) {
@@ -3878,215 +3830,167 @@ var orType;
 })(orType || (orType = {
 }));
 function bitwiseShift(_this, param) {
-    switch(param[1]){
-        case shiftType.LSF_REG_LIT:
-            {
-                const r1 = param[2];
-                const literal = param[3];
-                const oldValue = _this.getRegisterAt(r1);
-                _this.setRegisterAt(r1, oldValue << literal);
-                break;
-            }
-        case shiftType.LSF_REG_REG:
-            {
-                const r1 = param[2];
-                const r2 = param[3];
-                const oldValue = _this.getRegisterAt(r1);
-                _this.setRegisterAt(r1, oldValue << _this.getRegisterAt(r2));
-                break;
-            }
-        case shiftType.LSF_REG_MEM:
-            {
-                const r1 = param[2];
-                const mem = param[3];
-                const oldValue = _this.getRegisterAt(r1);
-                _this.setRegisterAt(r1, oldValue << _this.getMemoryAt(mem));
-                break;
-            }
-        case shiftType.LSF_MEM_LIT:
-            {
-                const mem = param[2];
-                const literal = param[3];
-                const oldValue = _this.getMemoryAt(mem);
-                _this.setMemoryAt(mem, oldValue << literal);
-                break;
-            }
-        case shiftType.LSF_MEM_REG:
-            {
-                const mem = param[2];
-                const r2 = param[3];
-                const oldValue = _this.getMemoryAt(mem);
-                _this.setMemoryAt(mem, oldValue << _this.getRegisterAt(r2));
-                break;
-            }
-        case shiftType.RSF_REG_LIT:
-            {
-                const r1 = param[2];
-                const literal = param[3];
-                const oldValue = _this.getRegisterAt(r1);
-                _this.setRegisterAt(r1, oldValue >> literal);
-                break;
-            }
-        case shiftType.RSF_REG_REG:
-            {
-                const r1 = param[2];
-                const r2 = param[3];
-                const oldValue = _this.getRegisterAt(r1);
-                _this.setRegisterAt(r1, oldValue >> _this.getRegisterAt(r2));
-                break;
-            }
-        case shiftType.RSF_REG_MEM:
-            {
-                const r1 = param[2];
-                const mem = param[3];
-                const oldValue = _this.getRegisterAt(r1);
-                _this.setRegisterAt(r1, oldValue >> _this.getMemoryAt(mem));
-                break;
-            }
-        case shiftType.RSF_MEM_LIT:
-            {
-                const mem = param[2];
-                const literal = param[3];
-                const oldValue = _this.getMemoryAt(mem);
-                _this.setMemoryAt(mem, oldValue >> literal);
-                break;
-            }
-        case shiftType.RSF_MEM_REG:
-            {
-                const mem = param[2];
-                const r2 = param[3];
-                const oldValue = _this.getMemoryAt(mem);
-                _this.setMemoryAt(mem, oldValue >> _this.getRegisterAt(r2));
-                break;
-            }
-    }
+    [
+        ()=>{
+            const r1 = param[2];
+            const literal = param[3];
+            const oldValue = _this.getRegisterAt(r1);
+            _this.setRegisterAt(r1, oldValue << literal);
+        },
+        ()=>{
+            const r1 = param[2];
+            const r2 = param[3];
+            const oldValue = _this.getRegisterAt(r1);
+            _this.setRegisterAt(r1, oldValue << _this.getRegisterAt(r2));
+        },
+        ()=>{
+            const r1 = param[2];
+            const mem = param[3];
+            const oldValue = _this.getRegisterAt(r1);
+            _this.setRegisterAt(r1, oldValue << _this.getMemoryAt(mem));
+        },
+        ()=>{
+            const mem = param[2];
+            const literal = param[3];
+            const oldValue = _this.getMemoryAt(mem);
+            _this.setMemoryAt(mem, oldValue << literal);
+        },
+        ()=>{
+            const mem = param[2];
+            const r2 = param[3];
+            const oldValue = _this.getMemoryAt(mem);
+            _this.setMemoryAt(mem, oldValue << _this.getRegisterAt(r2));
+        },
+        ()=>{
+            const r1 = param[2];
+            const literal = param[3];
+            const oldValue = _this.getRegisterAt(r1);
+            _this.setRegisterAt(r1, oldValue >> literal);
+        },
+        ()=>{
+            const r1 = param[2];
+            const r2 = param[3];
+            const oldValue = _this.getRegisterAt(r1);
+            _this.setRegisterAt(r1, oldValue >> _this.getRegisterAt(r2));
+        },
+        ()=>{
+            const r1 = param[2];
+            const mem = param[3];
+            const oldValue = _this.getRegisterAt(r1);
+            _this.setRegisterAt(r1, oldValue >> _this.getMemoryAt(mem));
+        },
+        ()=>{
+            const mem = param[2];
+            const literal = param[3];
+            const oldValue = _this.getMemoryAt(mem);
+            _this.setMemoryAt(mem, oldValue >> literal);
+        },
+        ()=>{
+            const mem = param[2];
+            const r2 = param[3];
+            const oldValue = _this.getMemoryAt(mem);
+            _this.setMemoryAt(mem, oldValue >> _this.getRegisterAt(r2));
+        }, 
+    ][param[1]]();
 }
 function bitwiseAND(_this, param) {
-    switch(param[1]){
-        case andType.AND_REG_LIT:
-            {
-                const r1 = param[2];
-                const literal = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                _this.setRegister("acc", r1V & literal);
-                break;
-            }
-        case andType.AND_REG_REG:
-            {
-                const r1 = param[2];
-                const r2 = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                const r2V = _this.getRegisterAt(r2);
-                _this.setRegister("acc", r1V & r2V);
-                break;
-            }
-        case andType.AND_REG_MEM:
-            {
-                const r1 = param[2];
-                const mem = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                const r2V = _this.getMemoryAt(mem);
-                _this.setRegister("acc", r1V & r2V);
-                break;
-            }
-        case andType.AND_MEM_REG:
-            {
-                const mem = param[2];
-                const r2 = param[3];
-                const r2V = _this.getRegisterAt(r2);
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", memV & r2V);
-                break;
-            }
-        case andType.AND_LIT_MEM:
-            {
-                const literal = param[2];
-                const mem = param[3];
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", memV & literal);
-                break;
-            }
-        case andType.AND_MEM_LIT:
-            {
-                const mem = param[2];
-                const literal = param[3];
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", memV & literal);
-                break;
-            }
-    }
+    [
+        ()=>{
+            const r1 = param[2];
+            const literal = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            _this.setRegister("acc", r1V & literal);
+        },
+        ()=>{
+            const r1 = param[2];
+            const r2 = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            const r2V = _this.getRegisterAt(r2);
+            _this.setRegister("acc", r1V & r2V);
+        },
+        ()=>{
+            const r1 = param[2];
+            const mem = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            const r2V = _this.getMemoryAt(mem);
+            _this.setRegister("acc", r1V & r2V);
+        },
+        ()=>{
+            const mem = param[2];
+            const r2 = param[3];
+            const r2V = _this.getRegisterAt(r2);
+            const memV = _this.getMemoryAt(mem);
+            _this.setRegister("acc", memV & r2V);
+        },
+        ()=>{
+            const literal = param[2];
+            const mem = param[3];
+            const memV = _this.getMemoryAt(mem);
+            _this.setRegister("acc", memV & literal);
+        },
+        ()=>{
+            const mem = param[2];
+            const literal = param[3];
+            const memV = _this.getMemoryAt(mem);
+            _this.setRegister("acc", memV & literal);
+        }
+    ][param[1]]();
 }
 function bitwiseOR(_this, param) {
-    switch(param[1]){
-        case orType.OR_REG_LIT:
-            {
-                const r1 = param[2];
-                const literal = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                _this.setRegister("acc", r1V | literal);
-                break;
-            }
-        case orType.OR_REG_REG:
-            {
-                const r1 = param[2];
-                const r2 = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                const r2V = _this.getRegisterAt(r2);
-                _this.setRegister("acc", r1V | r2V);
-                break;
-            }
-        case orType.OR_LIT_MEM:
-            {
-                const literal = param[2];
-                const mem = param[3];
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", memV | literal);
-                break;
-            }
-        case orType.OR_REG_MEM:
-            {
-                const r1 = param[2];
-                const mem = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                const r2V = _this.getMemoryAt(mem);
-                _this.setRegister("acc", r1V | r2V);
-                break;
-            }
-        case orType.XOR_REG_LIT:
-            {
-                const r1 = param[2];
-                const literal = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                _this.setRegister("acc", r1V ^ literal);
-                break;
-            }
-        case orType.XOR_REG_REG:
-            {
-                const r1 = param[2];
-                const r2 = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                const r2V = _this.getRegisterAt(r2);
-                _this.setRegister("acc", r1V ^ r2V);
-                break;
-            }
-        case orType.XOR_LIT_MEM:
-            {
-                const literal = param[2];
-                const mem = param[3];
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", memV ^ literal);
-                break;
-            }
-        case orType.XOR_REG_MEM:
-            {
-                const r1 = param[2];
-                const mem = param[3];
-                const r1V = _this.getRegisterAt(r1);
-                const memV = _this.getMemoryAt(mem);
-                _this.setRegister("acc", memV ^ r1V);
-                break;
-            }
-    }
+    [
+        ()=>{
+            const r1 = param[2];
+            const literal = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            _this.setRegister("acc", r1V | literal);
+        },
+        ()=>{
+            const r1 = param[2];
+            const r2 = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            const r2V = _this.getRegisterAt(r2);
+            _this.setRegister("acc", r1V | r2V);
+        },
+        ()=>{
+            const literal = param[2];
+            const mem = param[3];
+            const memV = _this.getMemoryAt(mem);
+            _this.setRegister("acc", memV | literal);
+        },
+        ()=>{
+            const r1 = param[2];
+            const mem = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            const r2V = _this.getMemoryAt(mem);
+            _this.setRegister("acc", r1V | r2V);
+        },
+        ()=>{
+            const r1 = param[2];
+            const literal = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            _this.setRegister("acc", r1V ^ literal);
+        },
+        ()=>{
+            const r1 = param[2];
+            const r2 = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            const r2V = _this.getRegisterAt(r2);
+            _this.setRegister("acc", r1V ^ r2V);
+        },
+        ()=>{
+            const literal = param[2];
+            const mem = param[3];
+            const memV = _this.getMemoryAt(mem);
+            _this.setRegister("acc", memV ^ literal);
+        },
+        ()=>{
+            const r1 = param[2];
+            const mem = param[3];
+            const r1V = _this.getRegisterAt(r1);
+            const memV = _this.getMemoryAt(mem);
+            _this.setRegister("acc", memV ^ r1V);
+        }, 
+    ][param[1]]();
 }
 var AccJumpType;
 (function(AccJumpType1) {
@@ -4112,153 +4016,123 @@ var CallType;
 })(CallType || (CallType = {
 }));
 function jumpBasedOnAcc(_this, param) {
-    switch(param[1]){
-        case AccJumpType.JNE_LIT:
-            {
-                const value = param[2];
-                const address = param[3];
-                if (value !== _this.getRegister("acc")) {
-                    _this.pushIp();
-                    _this.setRegister("ip", address);
-                }
-                break;
+    [
+        ()=>{
+            const value = param[2];
+            const address = param[3];
+            if (value !== _this.getRegister("acc")) {
+                _this.pushIp();
+                _this.setRegister("ip", address);
             }
-        case AccJumpType.JNE_REG:
-            {
-                const value = _this.getRegisterAt(param[2]);
-                const address = param[3];
-                if (value !== _this.getRegister("acc")) {
-                    _this.pushIp();
-                    _this.setRegister("ip", address);
-                }
-                break;
+        },
+        ()=>{
+            const value = _this.getRegisterAt(param[2]);
+            const address = param[3];
+            if (value !== _this.getRegister("acc")) {
+                _this.pushIp();
+                _this.setRegister("ip", address);
             }
-        case AccJumpType.JEQ_REG:
-            {
-                const value = _this.getRegisterAt(param[2]);
-                const address = param[3];
-                if (value === _this.getRegister("acc")) {
-                    _this.pushIp();
-                    _this.setRegister("ip", address);
-                }
-                break;
+        },
+        ()=>{
+            const value = _this.getRegisterAt(param[2]);
+            const address = param[3];
+            if (value === _this.getRegister("acc")) {
+                _this.pushIp();
+                _this.setRegister("ip", address);
             }
-        case AccJumpType.JEQ_LIT:
-            {
-                const value = param[2];
-                const address = param[3];
-                if (value === _this.getRegister("acc")) {
-                    _this.pushIp();
-                    _this.setRegister("ip", address);
-                }
-                break;
+        },
+        ()=>{
+            const value = param[2];
+            const address = param[3];
+            if (value === _this.getRegister("acc")) {
+                _this.pushIp();
+                _this.setRegister("ip", address);
             }
-        case AccJumpType.JLT_REG:
-            {
-                const value = _this.getRegisterAt(param[2]);
-                const address = param[3];
-                if (value < _this.getRegister("acc")) {
-                    _this.pushIp();
-                    _this.setRegister("ip", address);
-                }
-                break;
+        },
+        ()=>{
+            const value = _this.getRegisterAt(param[2]);
+            const address = param[3];
+            if (value < _this.getRegister("acc")) {
+                _this.pushIp();
+                _this.setRegister("ip", address);
             }
-        case AccJumpType.JLT_LIT:
-            {
-                const value = param[2];
-                const address = param[3];
-                if (value < _this.getRegister("acc")) {
-                    _this.pushIp();
-                    _this.setRegister("ip", address);
-                }
-                break;
+        },
+        ()=>{
+            const value = param[2];
+            const address = param[3];
+            if (value < _this.getRegister("acc")) {
+                _this.pushIp();
+                _this.setRegister("ip", address);
             }
-        case AccJumpType.JGT_REG:
-            {
-                const value = _this.getRegisterAt(param[2]);
-                const address = param[3];
-                if (value > _this.getRegister("acc")) {
-                    _this.pushIp();
-                    _this.setRegister("ip", address);
-                }
-                break;
+        },
+        ()=>{
+            const value = _this.getRegisterAt(param[2]);
+            const address = param[3];
+            if (value > _this.getRegister("acc")) {
+                _this.pushIp();
+                _this.setRegister("ip", address);
             }
-        case AccJumpType.JGT_LIT:
-            {
-                const value = param[2];
-                const address = param[3];
-                if (value > _this.getRegister("acc")) {
-                    _this.pushIp();
-                    _this.setRegister("ip", address);
-                }
-                break;
+        },
+        ()=>{
+            const value = param[2];
+            const address = param[3];
+            if (value > _this.getRegister("acc")) {
+                _this.pushIp();
+                _this.setRegister("ip", address);
             }
-        case AccJumpType.JLE_REG:
-            {
-                const value = _this.getRegisterAt(param[2]);
-                const address = param[3];
-                if (value <= _this.getRegister("acc")) {
-                    _this.pushIp();
-                    _this.setRegister("ip", address);
-                }
-                break;
+        },
+        ()=>{
+            const value = _this.getRegisterAt(param[2]);
+            const address = param[3];
+            if (value <= _this.getRegister("acc")) {
+                _this.pushIp();
+                _this.setRegister("ip", address);
             }
-        case AccJumpType.JLE_LIT:
-            {
-                const value = param[2];
-                const address = param[3];
-                if (value <= _this.getRegister("acc")) {
-                    _this.pushIp();
-                    _this.setRegister("ip", address);
-                }
-                break;
+        },
+        ()=>{
+            const value = param[2];
+            const address = param[3];
+            if (value <= _this.getRegister("acc")) {
+                _this.pushIp();
+                _this.setRegister("ip", address);
             }
-        case AccJumpType.JGE_REG:
-            {
-                const value = _this.getRegisterAt(param[2]);
-                const address = param[3];
-                if (value >= _this.getRegister("acc")) {
-                    _this.pushIp();
-                    _this.setRegister("ip", address);
-                }
-                break;
+        },
+        ()=>{
+            const value = _this.getRegisterAt(param[2]);
+            const address = param[3];
+            if (value >= _this.getRegister("acc")) {
+                _this.pushIp();
+                _this.setRegister("ip", address);
             }
-        case AccJumpType.JGE_LIT:
-            {
-                const value = param[2];
-                const address = param[3];
-                if (value >= _this.getRegister("acc")) {
-                    _this.pushIp();
-                    _this.setRegister("ip", address);
-                }
-                break;
+        },
+        ()=>{
+            const value = param[2];
+            const address = param[3];
+            if (value >= _this.getRegister("acc")) {
+                _this.pushIp();
+                _this.setRegister("ip", address);
             }
-    }
+        }
+    ][param[1]]();
 }
 function callALocation(_this, param) {
-    switch(param[1]){
-        case CallType.CAL_LIT:
-            {
-                const address = param[2];
-                _this.pushIp();
-                _this.setRegister("ip", address);
-                break;
-            }
-        case CallType.CAL_REG:
-            {
-                const address = _this.getRegisterAt(param[2]);
-                _this.pushIp();
-                _this.setRegister("ip", address);
-                break;
-            }
-        case CallType.CAL_MEM:
-            {
-                const address = _this.getMemoryAt(param[2]);
-                _this.pushIp();
-                _this.setRegister("ip", address);
-                break;
-            }
-    }
+    [
+        ()=>{
+            const address = param[2];
+            _this.pushIp();
+            _this.setRegister("ip", address);
+        },
+        ()=>{
+            const address = _this.getRegisterAt(param[2]);
+            _this.pushIp();
+            _this.setRegister("ip", address);
+        },
+        ()=>{
+            const address = _this.getMemoryAt(param[2]);
+            _this.pushIp();
+            _this.setRegister("ip", address);
+        }
+    ][param[1]]();
 }
 var RandomType;
 (function(RandomType1) {
@@ -4522,44 +4396,32 @@ var ImageInfoFetchType;
 })(ImageInfoFetchType || (ImageInfoFetchType = {
 }));
 function fetchImageInfo(_this, params) {
-    switch(params[1]){
-        case ImageInfoFetchType.IMAGE_WIDTH_REG:
-            {
-                const regToStoreIn = params[2];
-                _this.setRegisterAt(regToStoreIn, _this.image.width);
-                break;
-            }
-        case ImageInfoFetchType.IMAGE_WIDTH_MEM:
-            {
-                const memToStoreIn = params[2];
-                _this.setMemoryAt(memToStoreIn, _this.image.width);
-                break;
-            }
-        case ImageInfoFetchType.IMAGE_HEIGHT_REG:
-            {
-                const regToStoreIn = params[2];
-                _this.setRegisterAt(regToStoreIn, _this.image.height);
-                break;
-            }
-        case ImageInfoFetchType.IMAGE_HEIGHT_MEM:
-            {
-                const memToStoreIn = params[2];
-                _this.setMemoryAt(memToStoreIn, _this.image.height);
-                break;
-            }
-        case ImageInfoFetchType.IMAGE_TOTAL_PIXELS_REG:
-            {
-                const regToStoreIn = params[2];
-                _this.setRegisterAt(regToStoreIn, _this.image.width * _this.image.height);
-                break;
-            }
-        case ImageInfoFetchType.IMAGE_TOTAL_PIXELS_MEM:
-            {
-                const memToStoreIn = params[2];
-                _this.setMemoryAt(memToStoreIn, _this.image.width * _this.image.height);
-                break;
-            }
-    }
+    [
+        ()=>{
+            const regToStoreIn = params[2];
+            _this.setRegisterAt(regToStoreIn, _this.image.width);
+        },
+        ()=>{
+            const memToStoreIn = params[2];
+            _this.setMemoryAt(memToStoreIn, _this.image.width);
+        },
+        ()=>{
+            const regToStoreIn = params[2];
+            _this.setRegisterAt(regToStoreIn, _this.image.height);
+        },
+        ()=>{
+            const memToStoreIn = params[2];
+            _this.setMemoryAt(memToStoreIn, _this.image.height);
+        },
+        ()=>{
+            const regToStoreIn = params[2];
+            _this.setRegisterAt(regToStoreIn, _this.image.width * _this.image.height);
+        },
+        ()=>{
+            const memToStoreIn = params[2];
+            _this.setMemoryAt(memToStoreIn, _this.image.width * _this.image.height);
+        }, 
+    ][params[1]]();
 }
 var RectangleDrawingType;
 (function(RectangleDrawingType1) {
@@ -4808,7 +4670,7 @@ class IDGVM extends InstructionParser {
         this.IPStack.push(this.getRegister("ip"));
     }
     execute(instruction) {
-        const instrs = [
+        return [
             ()=>{
                 this.emptyInstructionAtStep++;
             },
@@ -5015,8 +4877,7 @@ class IDGVM extends InstructionParser {
                 this.debug();
                 console.log(`####### END DEBUG ${instruction[1]}  ##############`);
             }
-        ];
-        return instrs[instruction[0]]();
+        ][instruction[0]]();
     }
     run() {
         for (const inst of this.fetch()){

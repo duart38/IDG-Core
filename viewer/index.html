@@ -7,9 +7,21 @@
     <title>IDG Viewer</title>
 </head>
 <body>
+    <section class="m-auto">
+        <button onclick="printStuff()">
+            Test responsiveness
+        </button>
+    </section>
     <div id="frame">
         <canvas id="canvas" width="800" height="600"></canvas>
     </div>
+
+    <script type="module">
+        import {upgradeElement} from './dist/main.mjs';
+        upgradeElement(document.getElementById('canvas'), './dist/worker/worker.mjs');
+    </script>
     <script src="./index.js"></script>
+    <script src="./dist/main.mjs" type="module"></script>
+    <script src="./dist/main.js" nomodule defer></script>
 </body>
 </html>

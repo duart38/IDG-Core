@@ -5,6 +5,9 @@ function spreadRGB(input) {
     const blue = ((input)    & 0x0ff);
     return [red, green, blue];
 }
+function printStuff(){
+  console.log("Printing stuff");
+}
 
 function coordinatesByIndex(i, width) {
   //i = i / 4;

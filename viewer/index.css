@@ -13,6 +13,9 @@
     box-shadow: 0 0 20px 12px whitesmoke;
     background: white;
 }
+.m-auto{
+    margin: auto;
+}
 body{
     overflow: hidden;
 }
