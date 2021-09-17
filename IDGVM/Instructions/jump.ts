@@ -1,5 +1,8 @@
 import IDGVM from "../Machine.ts";
 
+/**
+ * The type of jump instruction that is being executed based on the value in the accumulator and the supplied value.
+ */
 export enum AccJumpType {
   /**
      * Jump if the provided literal is not equals to the value in the accumulator.
@@ -33,6 +36,10 @@ export enum AccJumpType {
   JGE_LIT,
 }
 
+/**
+ * Calling mimics a function in the sense that it pushes the current instruction pointer which can later be popped from
+ * the stack to return to your original position.
+ */
 export enum CallType {
   CAL_LIT,
   CAL_REG,
