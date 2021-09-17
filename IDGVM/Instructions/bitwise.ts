@@ -34,193 +34,191 @@ export enum orType {
 }
 
 export function bitwiseShift(_this: IDGVM, param: number[]) {
-  switch (param[1]) {
-    case shiftType.LSF_REG_LIT: {
-      const r1 = param[2];
-      const literal = param[3];
-      const oldValue = _this.getRegisterAt(r1);
-      _this.setRegisterAt(r1, oldValue << literal);
-      break;
-    }
-    case shiftType.LSF_REG_REG: {
-      const r1 = param[2];
-      const r2 = param[3];
-      const oldValue = _this.getRegisterAt(r1);
-      _this.setRegisterAt(r1, oldValue << _this.getRegisterAt(r2));
-      break;
-    }
-    case shiftType.LSF_REG_MEM: {
-      const r1 = param[2];
-      const mem = param[3];
-      const oldValue = _this.getRegisterAt(r1);
-      _this.setRegisterAt(r1, oldValue << _this.getMemoryAt(mem));
-      break;
-    }
-    case shiftType.LSF_MEM_LIT: {
-      const mem = param[2];
-      const literal = param[3];
-      const oldValue = _this.getMemoryAt(mem);
-      _this.setMemoryAt(mem, oldValue << literal);
-      break;
-    }
-    case shiftType.LSF_MEM_REG: {
-      const mem = param[2];
-      const r2 = param[3];
-      const oldValue = _this.getMemoryAt(mem);
-      _this.setMemoryAt(mem, oldValue << _this.getRegisterAt(r2));
-      break;
-    }
-    case shiftType.RSF_REG_LIT: {
-      const r1 = param[2];
-      const literal = param[3];
-      const oldValue = _this.getRegisterAt(r1);
-      _this.setRegisterAt(r1, oldValue >> literal);
-      break;
-    }
-    case shiftType.RSF_REG_REG: {
-      const r1 = param[2];
-      const r2 = param[3];
-      const oldValue = _this.getRegisterAt(r1);
-      _this.setRegisterAt(r1, oldValue >> _this.getRegisterAt(r2));
-      break;
-    }
-    case shiftType.RSF_REG_MEM: {
-      const r1 = param[2];
-      const mem = param[3];
-      const oldValue = _this.getRegisterAt(r1);
-      _this.setRegisterAt(r1, oldValue >> _this.getMemoryAt(mem));
-      break;
-    }
-    case shiftType.RSF_MEM_LIT: {
-      const mem = param[2];
-      const literal = param[3];
-      const oldValue = _this.getMemoryAt(mem);
-      _this.setMemoryAt(mem, oldValue >> literal);
-      break;
-    }
-    case shiftType.RSF_MEM_REG: {
-      const mem = param[2];
-      const r2 = param[3];
-      const oldValue = _this.getMemoryAt(mem);
-      _this.setMemoryAt(mem, oldValue >> _this.getRegisterAt(r2));
-      break;
-    }
-  }
+    [
+      /**  case shiftType.LSF_REG_LIT: */
+         ()=>{
+        const r1 = param[2];
+        const literal = param[3];
+        const oldValue = _this.getRegisterAt(r1);
+        _this.setRegisterAt(r1, oldValue << literal);
+      },
+      /**  case shiftType.LSF_REG_REG: */
+         ()=>{
+        const r1 = param[2];
+        const r2 = param[3];
+        const oldValue = _this.getRegisterAt(r1);
+        _this.setRegisterAt(r1, oldValue << _this.getRegisterAt(r2));
+      },
+      /**  case shiftType.LSF_REG_MEM: */
+         ()=>{
+        const r1 = param[2];
+        const mem = param[3];
+        const oldValue = _this.getRegisterAt(r1);
+        _this.setRegisterAt(r1, oldValue << _this.getMemoryAt(mem));
+      },
+      /**  case shiftType.LSF_MEM_LIT: */
+         ()=>{
+        const mem = param[2];
+        const literal = param[3];
+        const oldValue = _this.getMemoryAt(mem);
+        _this.setMemoryAt(mem, oldValue << literal);
+      },
+      /**  case shiftType.LSF_MEM_REG: */
+         ()=>{
+        const mem = param[2];
+        const r2 = param[3];
+        const oldValue = _this.getMemoryAt(mem);
+        _this.setMemoryAt(mem, oldValue << _this.getRegisterAt(r2));
+      },
+      /**  case shiftType.RSF_REG_LIT: */
+         ()=>{
+        const r1 = param[2];
+        const literal = param[3];
+        const oldValue = _this.getRegisterAt(r1);
+        _this.setRegisterAt(r1, oldValue >> literal);
+      },
+      /**  case shiftType.RSF_REG_REG: */
+         ()=>{
+        const r1 = param[2];
+        const r2 = param[3];
+        const oldValue = _this.getRegisterAt(r1);
+        _this.setRegisterAt(r1, oldValue >> _this.getRegisterAt(r2));
+      },
+      /**  case shiftType.RSF_REG_MEM: */
+         ()=>{
+        const r1 = param[2];
+        const mem = param[3];
+        const oldValue = _this.getRegisterAt(r1);
+        _this.setRegisterAt(r1, oldValue >> _this.getMemoryAt(mem));
+      },
+      /**  case shiftType.RSF_MEM_LIT: */
+         ()=>{
+        const mem = param[2];
+        const literal = param[3];
+        const oldValue = _this.getMemoryAt(mem);
+        _this.setMemoryAt(mem, oldValue >> literal);
+      },
+      /**  case shiftType.RSF_MEM_REG: */
+         ()=>{
+        const mem = param[2];
+        const r2 = param[3];
+        const oldValue = _this.getMemoryAt(mem);
+        _this.setMemoryAt(mem, oldValue >> _this.getRegisterAt(r2));
+      },
+    ][param[1]]();
 }
 
 export function bitwiseAND(_this: IDGVM, param: number[]) {
-  switch (param[1]) {
-    case andType.AND_REG_LIT: {
+  [
+    /** case andType.AND_REG_LIT: */
+    ()=>{
       const r1 = param[2];
       const literal = param[3];
       const r1V = _this.getRegisterAt(r1);
       _this.setRegister("acc", r1V & literal);
-      break;
-    }
-    case andType.AND_REG_REG: {
+    },
+    /** case andType.AND_REG_REG: */
+    ()=>{
       const r1 = param[2];
       const r2 = param[3];
       const r1V = _this.getRegisterAt(r1);
       const r2V = _this.getRegisterAt(r2);
       _this.setRegister("acc", r1V & r2V);
-      break;
-    }
-    case andType.AND_REG_MEM: {
+    },
+    /** case andType.AND_REG_MEM: */
+    ()=>{
       const r1 = param[2];
       const mem = param[3];
       const r1V = _this.getRegisterAt(r1);
       const r2V = _this.getMemoryAt(mem);
       _this.setRegister("acc", r1V & r2V);
-      break;
-    }
-    case andType.AND_MEM_REG: {
+    },
+    /** case andType.AND_MEM_REG: */
+    ()=>{
       const mem = param[2];
       const r2 = param[3];
       const r2V = _this.getRegisterAt(r2);
       const memV = _this.getMemoryAt(mem);
       _this.setRegister("acc", memV & r2V);
-      break;
-    }
-    case andType.AND_LIT_MEM: {
+    },
+    /** case andType.AND_LIT_MEM: */
+    ()=>{
       const literal = param[2];
       const mem = param[3];
       const memV = _this.getMemoryAt(mem);
       _this.setRegister("acc", memV & literal); 
-      break;
-    }
-    case andType.AND_MEM_LIT: {
+    },
+    /** case andType.AND_MEM_LIT: */
+    ()=>{
       const mem = param[2];
       const literal = param[3];
       const memV = _this.getMemoryAt(mem);
       _this.setRegister("acc", memV & literal);
-      break;
     }
-  }
+  ][param[1]]();
 }
 
 export function bitwiseOR(_this: IDGVM, param: number[]) {
-  switch (param[1]) {
-    case orType.OR_REG_LIT: {
+  [
+    /**  case orType.OR_REG_LIT: */
+    ()=> {
       const r1 = param[2];
       const literal = param[3];
       const r1V = _this.getRegisterAt(r1);
       _this.setRegister("acc", r1V | literal);
-      break;
-    }
-    case orType.OR_REG_REG: {
+    },
+    /**  case orType.OR_REG_REG: */
+    ()=> {
       const r1 = param[2];
       const r2 = param[3];
       const r1V = _this.getRegisterAt(r1);
       const r2V = _this.getRegisterAt(r2);
       _this.setRegister("acc", r1V | r2V);
-      break;
-    }
-    case orType.OR_LIT_MEM: {
+    },
+    /**  case orType.OR_LIT_MEM: */
+    ()=> {
       const literal = param[2];
       const mem = param[3];
       const memV = _this.getMemoryAt(mem);
       _this.setRegister("acc", memV | literal);
-      break;
-    }
-    case orType.OR_REG_MEM: {
+    },
+    /**  case orType.OR_REG_MEM: */
+    ()=> {
       const r1 = param[2];
       const mem = param[3];
       const r1V = _this.getRegisterAt(r1);
       const r2V = _this.getMemoryAt(mem);
       _this.setRegister("acc", r1V | r2V);
-      break;
-    }
-
-    
-    case orType.XOR_REG_LIT: {
+    },
+    /**  case orType.XOR_REG_LIT: */
+    ()=> {
       const r1 = param[2];
       const literal = param[3];
       const r1V = _this.getRegisterAt(r1);
       _this.setRegister("acc", r1V ^ literal);
-      break;
-    }
-    case orType.XOR_REG_REG: {
+    },
+    /**  case orType.XOR_REG_REG: */
+    ()=> {
       const r1 = param[2];
       const r2 = param[3];
       const r1V = _this.getRegisterAt(r1);
       const r2V = _this.getRegisterAt(r2);
       _this.setRegister("acc", r1V ^ r2V);
-      break;
-    }
-    case orType.XOR_LIT_MEM: {
+    },
+    /**  case orType.XOR_LIT_MEM: */
+    ()=> {
       const literal = param[2];
       const mem = param[3];
       const memV = _this.getMemoryAt(mem);
       _this.setRegister("acc", memV ^ literal);
-      break;
-    }
-    case orType.XOR_REG_MEM: {
+    },
+    /**  case orType.XOR_REG_MEM: */
+    ()=> {
       const r1 = param[2];
       const mem = param[3];
       const r1V = _this.getRegisterAt(r1);
       const memV = _this.getMemoryAt(mem);
       _this.setRegister("acc", memV ^ r1V);
-      break;
-    }
-  }
+    },
+  ][param[1]]();
 }
