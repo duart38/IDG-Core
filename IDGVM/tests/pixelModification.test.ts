@@ -62,3 +62,5 @@ Deno.test("MODIFY_PIXEL_MEM_MEM_MEM", async function () {
     b.insert32(col);
     assertEquals((await makeLoader(b,true)).getVM().imageCopy[0], combineRGB([255,0,0]));
 });
+
+// TODO: luminosity tests
