@@ -66,6 +66,11 @@ export class MemoryMapper {
     const finalAddress = region.remap ? address - region.start : address;
     return region.device.getUint16(finalAddress);
   }
+  getInt16(address: number): number {
+    const region = this.findRegion(address);
+    const finalAddress = region.remap ? address - region.start : address;
+    return region.device.getInt16(finalAddress);
+  }
 
   getUint8(address: number): number {
     const region = this.findRegion(address);
@@ -331,6 +336,16 @@ export class InstructionParser {
     this.setRegister("ip", nextInstructionAddress + 2);
     return instruction;
   }
+  public fetchCurrentSignedInstruction16() {
+    const nextInstructionAddress = this.getRegister("ip");
+    if (nextInstructionAddress + 2 > this.allocatedAmount) {
+      this.emptyInstructionAtStep = 9999;
+      return -1;
+    }
+    const instruction = this.memory.getInt16(nextInstructionAddress);
+    this.setRegister("ip", nextInstructionAddress + 2);
+    return instruction;
+  }
 
   /**
    * Fetches the current instruction to be returned and increments the instruction pointer
@@ -358,22 +373,22 @@ export class InstructionParser {
     return instruction;
   }
   fetchParameter(t: ParameterFetchType): number {
-    switch (t) {
-      case ParameterFetchType.unsignedINT8:
-        return this.fetchCurrentInstruction8();
-      case ParameterFetchType.signedINT8:
-        return this.fetchCurrentSignedInstruction8();
-      case ParameterFetchType.unsignedINT16:
-        return this.fetchCurrentInstruction16();
-      case ParameterFetchType.unsignedINT32:
-        return this.fetchCurrentInstruction32();
-      case ParameterFetchType.signedINT32:
-        return this.fetchCurrentSignedInstruction32();
-      case ParameterFetchType.registerIndex:
-        return this.fetchRegisterIndex();
-      default:
-        throw new Error("Incorrect register fetch type");
-    }
+    return [
+        // case ParameterFetchType.unsignedINT8:
+        ()=> this.fetchCurrentInstruction8(),
+        // case ParameterFetchType.signedINT8:
+        ()=> this.fetchCurrentSignedInstruction8(),
+        // case ParameterFetchType.unsignedINT16:
+        ()=> this.fetchCurrentInstruction16(),
+        // case ParameterFetchType.signedINT16:
+        ()=> this.fetchCurrentSignedInstruction16(),
+        // case ParameterFetchType.unsignedINT32:
+        ()=> this.fetchCurrentInstruction32(),
+        // case ParameterFetchType.signedINT32:
+        ()=> this.fetchCurrentSignedInstruction32(),
+        // case ParameterFetchType.registerIndex:
+        ()=> this.fetchRegisterIndex(),
+    ][t]();
   }
 
   /**
