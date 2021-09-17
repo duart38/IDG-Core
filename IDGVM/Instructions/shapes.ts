@@ -1,3 +1,4 @@
+// deno-lint-ignore-file
 import { drawLine, indexByCoordinates } from "../../utils/coordinates.ts";
 import IDGVM from "../Machine.ts";
 

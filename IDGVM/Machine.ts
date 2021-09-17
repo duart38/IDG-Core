@@ -1,4 +1,4 @@
-import { Instructions, RegisterKey } from "./Registers.ts";
+import { RegisterKey } from "./Registers.ts";
 import { InstructionParser, MemoryMapper } from "./Memory.ts";
 import {
   indexByCoordinates,
@@ -24,7 +24,6 @@ import {
 } from "./Instructions/pixelModification.ts";
 import {
   fetchNeighboringPixel,
-  fetchPixelColor,
   fetchPixelIndex,
 } from "./Instructions/pixelRetrieval.ts";
 import { RGBConversion } from "./Instructions/color.ts";

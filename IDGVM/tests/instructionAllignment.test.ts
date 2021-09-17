@@ -84,7 +84,7 @@ function checkIfMatch<T>(enumBase: T, expected: string[], offset = 0){
             console.error(`\ninstruction ${v} not found in:`, actualIns);
             return false;
         }
-        // @ts-ignore 
+        // @ts-ignore: we already know the type here
         if(enumBase[foundIdx[0]] !== staticIdx+offset){
             console.error(`\ninstruction ${v} is misaligned Actual:${foundIdx}, Expected:${staticIdx+offset}`);
             return false;
