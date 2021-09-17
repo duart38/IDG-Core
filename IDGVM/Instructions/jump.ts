@@ -42,137 +42,137 @@ export enum CallType {
 // TODO: JMP based on comparison of 2 locations (instead of acc)
 
 export function jumpBasedOnAcc(_this: IDGVM, param: number[]) {
-  switch (param[1]) {
-    case AccJumpType.JNE_LIT: {
+    [
+    /**  case AccJumpType.JNE_LIT: */
+    ()=>{
       const value = param[2];
       const address = param[3];
       if (value !== _this.getRegister("acc")) {
         _this.pushIp();
         _this.setRegister("ip", address);
       }
-      break;
-    }
-    case AccJumpType.JNE_REG: {
+    },
+    /**  case AccJumpType.JNE_REG: */
+    ()=>{
       const value = _this.getRegisterAt(param[2]);
       const address = param[3];
       if (value !== _this.getRegister("acc")) {
         _this.pushIp();
         _this.setRegister("ip", address);
       }
-      break;
-    }
-    case AccJumpType.JEQ_REG: {
+    },
+    /**  case AccJumpType.JEQ_REG: */
+    ()=>{
       const value = _this.getRegisterAt(param[2]);
       const address = param[3];
       if (value === _this.getRegister("acc")) {
         _this.pushIp();
         _this.setRegister("ip", address);
       }
-      break;
-    }
-    case AccJumpType.JEQ_LIT: {
+    },
+    /**  case AccJumpType.JEQ_LIT: */
+    ()=>{
       const value = param[2];
       const address = param[3];
       if (value === _this.getRegister("acc")) {
         _this.pushIp();
         _this.setRegister("ip", address);
       }
-      break;
-    }
-    case AccJumpType.JLT_REG: {
+    },
+    /**  case AccJumpType.JLT_REG: */
+    ()=>{
       const value = _this.getRegisterAt(param[2]);
       const address = param[3];
       if (value < _this.getRegister("acc")) {
         _this.pushIp();
         _this.setRegister("ip", address);
       }
-      break;
-    }
-    case AccJumpType.JLT_LIT: {
+    },
+    /**  case AccJumpType.JLT_LIT: */
+    ()=>{
       const value = param[2];
       const address = param[3];
       if (value < _this.getRegister("acc")) {
         _this.pushIp();
         _this.setRegister("ip", address);
       }
-      break;
-    }
-    case AccJumpType.JGT_REG: {
+    },
+    /**  case AccJumpType.JGT_REG: */
+    ()=>{
       const value = _this.getRegisterAt(param[2]);
       const address = param[3];
       if (value > _this.getRegister("acc")) {
         _this.pushIp();
         _this.setRegister("ip", address);
       }
-      break;
-    }
-    case AccJumpType.JGT_LIT: {
+    },
+    /**  case AccJumpType.JGT_LIT: */
+    ()=>{
       const value = param[2];
       const address = param[3];
       if (value > _this.getRegister("acc")) {
         _this.pushIp();
         _this.setRegister("ip", address);
       }
-      break;
-    }
-    case AccJumpType.JLE_REG: {
+    },
+    /**  case AccJumpType.JLE_REG: */
+    ()=>{
       const value = _this.getRegisterAt(param[2]);
       const address = param[3];
       if (value <= _this.getRegister("acc")) {
         _this.pushIp();
         _this.setRegister("ip", address);
       }
-      break;
-    }
-    case AccJumpType.JLE_LIT: {
+    },
+    /**  case AccJumpType.JLE_LIT: */
+    ()=>{
       const value = param[2];
       const address = param[3];
       if (value <= _this.getRegister("acc")) {
         _this.pushIp();
         _this.setRegister("ip", address);
       }
-      break;
-    }
-    case AccJumpType.JGE_REG: {
+    },
+    /**  case AccJumpType.JGE_REG: */
+    ()=>{
       const value = _this.getRegisterAt(param[2]);
       const address = param[3];
       if (value >= _this.getRegister("acc")) {
         _this.pushIp();
         _this.setRegister("ip", address);
       }
-      break;
-    }
-    case AccJumpType.JGE_LIT: {
+    },
+    /**  case AccJumpType.JGE_LIT: */
+    ()=>{
       const value = param[2];
       const address = param[3];
       if (value >= _this.getRegister("acc")) {
         _this.pushIp();
         _this.setRegister("ip", address);
       }
-      break;
     }
-  }
+  ][param[1]]();
 }
 
 export function callALocation(_this: IDGVM, param: number[]) {
-  switch (param[1]) {
-    case CallType.CAL_LIT: {
-      const address = param[2];
-      _this.pushIp();
-      _this.setRegister("ip", address);
-      break;
-    }
-    case CallType.CAL_REG: {
-      const address = _this.getRegisterAt(param[2]);
-      _this.pushIp();
-      _this.setRegister("ip", address);
-      break;
-    }
-    case CallType.CAL_MEM: {
-      const address = _this.getMemoryAt(param[2]);
-      _this.pushIp();
-      _this.setRegister("ip", address);
-      break;
-    }
-  }
+    [
+      /**  case CallType.CAL_LIT: */
+      ()=>{
+        const address = param[2];
+        _this.pushIp();
+        _this.setRegister("ip", address);
+      },
+      /**  case CallType.CAL_REG: */
+      ()=>{
+        const address = _this.getRegisterAt(param[2]);
+        _this.pushIp();
+        _this.setRegister("ip", address);
+      },
+      /**  case CallType.CAL_MEM: */
+      ()=>{
+        const address = _this.getMemoryAt(param[2]);
+        _this.pushIp();
+        _this.setRegister("ip", address);
+      }
+    ][param[1]]();
 }
