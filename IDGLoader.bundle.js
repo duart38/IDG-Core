@@ -1,20 +1,20 @@
 var FileTypes;
-(function(FileTypes1) {
-    FileTypes1[FileTypes1["file"] = 0] = "file";
-    FileTypes1[FileTypes1["link"] = 1] = "link";
-    FileTypes1[FileTypes1["symlink"] = 2] = "symlink";
-    FileTypes1[FileTypes1["character-device"] = 3] = "character-device";
-    FileTypes1[FileTypes1["block-device"] = 4] = "block-device";
-    FileTypes1[FileTypes1["directory"] = 5] = "directory";
-    FileTypes1[FileTypes1["fifo"] = 6] = "fifo";
-    FileTypes1[FileTypes1["contiguous-file"] = 7] = "contiguous-file";
+(function(FileTypes) {
+    FileTypes[FileTypes["file"] = 0] = "file";
+    FileTypes[FileTypes["link"] = 1] = "link";
+    FileTypes[FileTypes["symlink"] = 2] = "symlink";
+    FileTypes[FileTypes["character-device"] = 3] = "character-device";
+    FileTypes[FileTypes["block-device"] = 4] = "block-device";
+    FileTypes[FileTypes["directory"] = 5] = "directory";
+    FileTypes[FileTypes["fifo"] = 6] = "fifo";
+    FileTypes[FileTypes["contiguous-file"] = 7] = "contiguous-file";
 })(FileTypes || (FileTypes = {
 }));
 var DiffType;
-(function(DiffType1) {
-    DiffType1["removed"] = "removed";
-    DiffType1["common"] = "common";
-    DiffType1["added"] = "added";
+(function(DiffType) {
+    DiffType["removed"] = "removed";
+    DiffType["common"] = "common";
+    DiffType["added"] = "added";
 })(DiffType || (DiffType = {
 }));
 const message2 = {
@@ -135,23 +135,23 @@ zero(base_dist);
 function d_code(dist) {
     return dist < 256 ? _dist_code[dist] : _dist_code[256 + (dist >>> 7)];
 }
-function put_short(s1, w) {
-    s1.pending_buf[s1.pending++] = w & 255;
-    s1.pending_buf[s1.pending++] = w >>> 8 & 255;
+function put_short(s, w) {
+    s.pending_buf[s.pending++] = w & 255;
+    s.pending_buf[s.pending++] = w >>> 8 & 255;
 }
-function send_bits(s1, value, length) {
-    if (s1.bi_valid > 16 - length) {
-        s1.bi_buf |= value << s1.bi_valid & 65535;
-        put_short(s1, s1.bi_buf);
-        s1.bi_buf = value >> Buf_size - s1.bi_valid;
-        s1.bi_valid += length - Buf_size;
+function send_bits(s, value, length) {
+    if (s.bi_valid > 16 - length) {
+        s.bi_buf |= value << s.bi_valid & 65535;
+        put_short(s, s.bi_buf);
+        s.bi_buf = value >> Buf_size - s.bi_valid;
+        s.bi_valid += length - Buf_size;
     } else {
-        s1.bi_buf |= value << s1.bi_valid & 65535;
-        s1.bi_valid += length;
+        s.bi_buf |= value << s.bi_valid & 65535;
+        s.bi_valid += length;
     }
 }
-function send_code(s1, c, tree) {
-    send_bits(s1, tree[c * 2], tree[c * 2 + 1]);
+function send_code(s, c, tree) {
+    send_bits(s, tree[c * 2], tree[c * 2 + 1]);
 }
 function bi_reverse(code, len) {
     let res = 0;
@@ -162,14 +162,14 @@ function bi_reverse(code, len) {
     }while (--len > 0)
     return res >>> 1;
 }
-function gen_bitlen(s1, desc) {
+function gen_bitlen(s, desc) {
     let tree = desc.dyn_tree;
     let max_code = desc.max_code;
     let stree = desc.stat_desc.static_tree;
     let has_stree = desc.stat_desc.has_stree;
     let extra = desc.stat_desc.extra_bits;
     let base = desc.stat_desc.extra_base;
-    let max_length1 = desc.stat_desc.max_length;
+    let max_length = desc.stat_desc.max_length;
     let h;
     let n, m;
     let bits;
@@ -177,45 +177,45 @@ function gen_bitlen(s1, desc) {
     let f;
     let overflow = 0;
     for(bits = 0; bits <= 15; bits++){
-        s1.bl_count[bits] = 0;
+        s.bl_count[bits] = 0;
     }
-    tree[s1.heap[s1.heap_max] * 2 + 1] = 0;
-    for(h = s1.heap_max + 1; h < HEAP_SIZE; h++){
-        n = s1.heap[h];
+    tree[s.heap[s.heap_max] * 2 + 1] = 0;
+    for(h = s.heap_max + 1; h < HEAP_SIZE; h++){
+        n = s.heap[h];
         bits = tree[tree[n * 2 + 1] * 2 + 1] + 1;
-        if (bits > max_length1) {
-            bits = max_length1;
+        if (bits > max_length) {
+            bits = max_length;
             overflow++;
         }
         tree[n * 2 + 1] = bits;
         if (n > max_code) continue;
-        s1.bl_count[bits]++;
+        s.bl_count[bits]++;
         xbits = 0;
         if (n >= base) {
             xbits = extra[n - base];
         }
         f = tree[n * 2];
-        s1.opt_len += f * (bits + xbits);
+        s.opt_len += f * (bits + xbits);
         if (has_stree) {
-            s1.static_len += f * (stree[n * 2 + 1] + xbits);
+            s.static_len += f * (stree[n * 2 + 1] + xbits);
         }
     }
     if (overflow === 0) return;
     do {
-        bits = max_length1 - 1;
-        while(s1.bl_count[bits] === 0)bits--;
-        s1.bl_count[bits]--;
-        s1.bl_count[bits + 1] += 2;
-        s1.bl_count[max_length1]--;
+        bits = max_length - 1;
+        while(s.bl_count[bits] === 0)bits--;
+        s.bl_count[bits]--;
+        s.bl_count[bits + 1] += 2;
+        s.bl_count[max_length]--;
         overflow -= 2;
     }while (overflow > 0)
-    for(bits = max_length1; bits !== 0; bits--){
-        n = s1.bl_count[bits];
+    for(bits = max_length; bits !== 0; bits--){
+        n = s.bl_count[bits];
         while(n !== 0){
-            m = s1.heap[--h];
+            m = s.heap[--h];
             if (m > max_code) continue;
             if (tree[m * 2 + 1] !== bits) {
-                s1.opt_len += (bits - tree[m * 2 + 1]) * tree[m * 2];
+                s.opt_len += (bits - tree[m * 2 + 1]) * tree[m * 2];
                 tree[m * 2 + 1] = bits;
             }
             n--;
@@ -236,134 +236,134 @@ function gen_codes(tree, max_code, bl_count) {
         tree[n * 2] = bi_reverse(next_code[len]++, len);
     }
 }
-function init_block(s1) {
+function init_block(s) {
     let n;
-    for(n = 0; n < L_CODES; n++)s1.dyn_ltree[n * 2] = 0;
-    for(n = 0; n < 30; n++)s1.dyn_dtree[n * 2] = 0;
-    for(n = 0; n < 19; n++)s1.bl_tree[n * 2] = 0;
-    s1.dyn_ltree[END_BLOCK * 2] = 1;
-    s1.opt_len = s1.static_len = 0;
-    s1.last_lit = s1.matches = 0;
+    for(n = 0; n < L_CODES; n++)s.dyn_ltree[n * 2] = 0;
+    for(n = 0; n < 30; n++)s.dyn_dtree[n * 2] = 0;
+    for(n = 0; n < 19; n++)s.bl_tree[n * 2] = 0;
+    s.dyn_ltree[END_BLOCK * 2] = 1;
+    s.opt_len = s.static_len = 0;
+    s.last_lit = s.matches = 0;
 }
-function bi_windup(s1) {
-    if (s1.bi_valid > 8) {
-        put_short(s1, s1.bi_buf);
-    } else if (s1.bi_valid > 0) {
-        s1.pending_buf[s1.pending++] = s1.bi_buf;
+function bi_windup(s) {
+    if (s.bi_valid > 8) {
+        put_short(s, s.bi_buf);
+    } else if (s.bi_valid > 0) {
+        s.pending_buf[s.pending++] = s.bi_buf;
     }
-    s1.bi_buf = 0;
-    s1.bi_valid = 0;
+    s.bi_buf = 0;
+    s.bi_valid = 0;
 }
-function copy_block(s1, buf, len, header1) {
-    bi_windup(s1);
-    if (header1) {
-        put_short(s1, len);
-        put_short(s1, ~len);
+function copy_block(s, buf, len, header) {
+    bi_windup(s);
+    if (header) {
+        put_short(s, len);
+        put_short(s, ~len);
     }
-    s1.pending_buf.set(s1.window.subarray(buf, buf + len), s1.pending);
-    s1.pending += len;
+    s.pending_buf.set(s.window.subarray(buf, buf + len), s.pending);
+    s.pending += len;
 }
 function smaller(tree, n, m, depth) {
     let _n2 = n * 2;
     let _m2 = m * 2;
     return tree[_n2] < tree[_m2] || tree[_n2] === tree[_m2] && depth[n] <= depth[m];
 }
-function pqdownheap(s1, tree, k) {
-    let v = s1.heap[k];
+function pqdownheap(s, tree, k) {
+    let v = s.heap[k];
     let j = k << 1;
-    while(j <= s1.heap_len){
-        if (j < s1.heap_len && smaller(tree, s1.heap[j + 1], s1.heap[j], s1.depth)) {
+    while(j <= s.heap_len){
+        if (j < s.heap_len && smaller(tree, s.heap[j + 1], s.heap[j], s.depth)) {
             j++;
         }
-        if (smaller(tree, v, s1.heap[j], s1.depth)) break;
-        s1.heap[k] = s1.heap[j];
+        if (smaller(tree, v, s.heap[j], s.depth)) break;
+        s.heap[k] = s.heap[j];
         k = j;
         j <<= 1;
     }
-    s1.heap[k] = v;
+    s.heap[k] = v;
 }
-function compress_block(s1, ltree, dtree) {
+function compress_block(s, ltree, dtree) {
     let dist;
     let lc;
     let lx = 0;
     let code;
     let extra;
-    if (s1.last_lit !== 0) {
+    if (s.last_lit !== 0) {
         do {
-            dist = s1.pending_buf[s1.d_buf + lx * 2] << 8 | s1.pending_buf[s1.d_buf + lx * 2 + 1];
-            lc = s1.pending_buf[s1.l_buf + lx];
+            dist = s.pending_buf[s.d_buf + lx * 2] << 8 | s.pending_buf[s.d_buf + lx * 2 + 1];
+            lc = s.pending_buf[s.l_buf + lx];
             lx++;
             if (dist === 0) {
-                send_code(s1, lc, ltree);
+                send_code(s, lc, ltree);
             } else {
                 code = _length_code[lc];
-                send_code(s1, code + 256 + 1, ltree);
+                send_code(s, code + 256 + 1, ltree);
                 extra = extra_lbits[code];
                 if (extra !== 0) {
                     lc -= base_length[code];
-                    send_bits(s1, lc, extra);
+                    send_bits(s, lc, extra);
                 }
                 dist--;
                 code = d_code(dist);
-                send_code(s1, code, dtree);
+                send_code(s, code, dtree);
                 extra = extra_dbits[code];
                 if (extra !== 0) {
                     dist -= base_dist[code];
-                    send_bits(s1, dist, extra);
+                    send_bits(s, dist, extra);
                 }
             }
-        }while (lx < s1.last_lit)
+        }while (lx < s.last_lit)
     }
-    send_code(s1, 256, ltree);
+    send_code(s, 256, ltree);
 }
-function build_tree(s1, desc) {
+function build_tree(s, desc) {
     let tree = desc.dyn_tree;
     let stree = desc.stat_desc.static_tree;
     let has_stree = desc.stat_desc.has_stree;
-    let elems1 = desc.stat_desc.elems;
+    let elems = desc.stat_desc.elems;
     let n, m;
     let max_code = -1;
     let node;
-    s1.heap_len = 0;
-    s1.heap_max = HEAP_SIZE;
-    for(n = 0; n < elems1; n++){
+    s.heap_len = 0;
+    s.heap_max = HEAP_SIZE;
+    for(n = 0; n < elems; n++){
         if (tree[n * 2] !== 0) {
-            s1.heap[++s1.heap_len] = max_code = n;
-            s1.depth[n] = 0;
+            s.heap[++s.heap_len] = max_code = n;
+            s.depth[n] = 0;
         } else {
             tree[n * 2 + 1] = 0;
         }
     }
-    while(s1.heap_len < 2){
-        node = s1.heap[++s1.heap_len] = max_code < 2 ? ++max_code : 0;
+    while(s.heap_len < 2){
+        node = s.heap[++s.heap_len] = max_code < 2 ? ++max_code : 0;
         tree[node * 2] = 1;
-        s1.depth[node] = 0;
-        s1.opt_len--;
+        s.depth[node] = 0;
+        s.opt_len--;
         if (has_stree) {
-            s1.static_len -= stree[node * 2 + 1];
+            s.static_len -= stree[node * 2 + 1];
         }
     }
     desc.max_code = max_code;
-    for(n = s1.heap_len >> 1; n >= 1; n--)pqdownheap(s1, tree, n);
-    node = elems1;
+    for(n = s.heap_len >> 1; n >= 1; n--)pqdownheap(s, tree, n);
+    node = elems;
     do {
-        n = s1.heap[1];
-        s1.heap[1] = s1.heap[s1.heap_len--];
-        pqdownheap(s1, tree, 1);
-        m = s1.heap[1];
-        s1.heap[--s1.heap_max] = n;
-        s1.heap[--s1.heap_max] = m;
+        n = s.heap[1];
+        s.heap[1] = s.heap[s.heap_len--];
+        pqdownheap(s, tree, 1);
+        m = s.heap[1];
+        s.heap[--s.heap_max] = n;
+        s.heap[--s.heap_max] = m;
         tree[node * 2] = tree[n * 2] + tree[m * 2];
-        s1.depth[node] = (s1.depth[n] >= s1.depth[m] ? s1.depth[n] : s1.depth[m]) + 1;
+        s.depth[node] = (s.depth[n] >= s.depth[m] ? s.depth[n] : s.depth[m]) + 1;
         tree[n * 2 + 1] = tree[m * 2 + 1] = node;
-        s1.heap[1] = node++;
-        pqdownheap(s1, tree, 1);
-    }while (s1.heap_len >= 2)
-    s1.heap[--s1.heap_max] = s1.heap[1];
-    gen_bitlen(s1, desc);
-    gen_codes(tree, max_code, s1.bl_count);
+        s.heap[1] = node++;
+        pqdownheap(s, tree, 1);
+    }while (s.heap_len >= 2)
+    s.heap[--s.heap_max] = s.heap[1];
+    gen_bitlen(s, desc);
+    gen_codes(tree, max_code, s.bl_count);
 }
-function scan_tree(s1, tree, max_code) {
+function scan_tree(s, tree, max_code) {
     let n;
     let prevlen = -1;
     let curlen;
@@ -382,14 +382,14 @@ function scan_tree(s1, tree, max_code) {
         if (++count < max_count && curlen === nextlen) {
             continue;
         } else if (count < min_count) {
-            s1.bl_tree[curlen * 2] += count;
+            s.bl_tree[curlen * 2] += count;
         } else if (curlen !== 0) {
-            if (curlen !== prevlen) s1.bl_tree[curlen * 2]++;
-            s1.bl_tree[16 * 2]++;
+            if (curlen !== prevlen) s.bl_tree[curlen * 2]++;
+            s.bl_tree[16 * 2]++;
         } else if (count <= 10) {
-            s1.bl_tree[17 * 2]++;
+            s.bl_tree[17 * 2]++;
         } else {
-            s1.bl_tree[18 * 2]++;
+            s.bl_tree[18 * 2]++;
         }
         count = 0;
         prevlen = curlen;
@@ -405,7 +405,7 @@ function scan_tree(s1, tree, max_code) {
         }
     }
 }
-function send_tree(s1, tree, max_code) {
+function send_tree(s, tree, max_code) {
     let n;
     let prevlen = -1;
     let curlen;
@@ -424,21 +424,21 @@ function send_tree(s1, tree, max_code) {
             continue;
         } else if (count < min_count) {
             do {
-                send_code(s1, curlen, s1.bl_tree);
+                send_code(s, curlen, s.bl_tree);
             }while (--count !== 0)
         } else if (curlen !== 0) {
             if (curlen !== prevlen) {
-                send_code(s1, curlen, s1.bl_tree);
+                send_code(s, curlen, s.bl_tree);
                 count--;
             }
-            send_code(s1, 16, s1.bl_tree);
-            send_bits(s1, count - 3, 2);
+            send_code(s, 16, s.bl_tree);
+            send_bits(s, count - 3, 2);
         } else if (count <= 10) {
-            send_code(s1, 17, s1.bl_tree);
-            send_bits(s1, count - 3, 3);
+            send_code(s, 17, s.bl_tree);
+            send_bits(s, count - 3, 3);
         } else {
-            send_code(s1, 18, s1.bl_tree);
-            send_bits(s1, count - 11, 7);
+            send_code(s, 18, s.bl_tree);
+            send_bits(s, count - 11, 7);
         }
         count = 0;
         prevlen = curlen;
@@ -454,97 +454,97 @@ function send_tree(s1, tree, max_code) {
         }
     }
 }
-function build_bl_tree(s1) {
+function build_bl_tree(s) {
     let max_blindex;
-    scan_tree(s1, s1.dyn_ltree, s1.l_desc.max_code);
-    scan_tree(s1, s1.dyn_dtree, s1.d_desc.max_code);
-    build_tree(s1, s1.bl_desc);
+    scan_tree(s, s.dyn_ltree, s.l_desc.max_code);
+    scan_tree(s, s.dyn_dtree, s.d_desc.max_code);
+    build_tree(s, s.bl_desc);
     for(max_blindex = BL_CODES - 1; max_blindex >= 3; max_blindex--){
-        if (s1.bl_tree[bl_order[max_blindex] * 2 + 1] !== 0) {
+        if (s.bl_tree[bl_order[max_blindex] * 2 + 1] !== 0) {
             break;
         }
     }
-    s1.opt_len += 3 * (max_blindex + 1) + 5 + 5 + 4;
+    s.opt_len += 3 * (max_blindex + 1) + 5 + 5 + 4;
     return max_blindex;
 }
-function send_all_trees(s1, lcodes, dcodes, blcodes) {
+function send_all_trees(s, lcodes, dcodes, blcodes) {
     let rank;
-    send_bits(s1, lcodes - 257, 5);
-    send_bits(s1, dcodes - 1, 5);
-    send_bits(s1, blcodes - 4, 4);
+    send_bits(s, lcodes - 257, 5);
+    send_bits(s, dcodes - 1, 5);
+    send_bits(s, blcodes - 4, 4);
     for(rank = 0; rank < blcodes; rank++){
-        send_bits(s1, s1.bl_tree[bl_order[rank] * 2 + 1], 3);
+        send_bits(s, s.bl_tree[bl_order[rank] * 2 + 1], 3);
     }
-    send_tree(s1, s1.dyn_ltree, lcodes - 1);
-    send_tree(s1, s1.dyn_dtree, dcodes - 1);
+    send_tree(s, s.dyn_ltree, lcodes - 1);
+    send_tree(s, s.dyn_dtree, dcodes - 1);
 }
-function detect_data_type(s1) {
+function detect_data_type(s) {
     let black_mask = 4093624447;
     let n;
     for(n = 0; n <= 31; n++, black_mask >>>= 1){
-        if (black_mask & 1 && s1.dyn_ltree[n * 2] !== 0) {
+        if (black_mask & 1 && s.dyn_ltree[n * 2] !== 0) {
             return 0;
         }
     }
-    if (s1.dyn_ltree[9 * 2] !== 0 || s1.dyn_ltree[10 * 2] !== 0 || s1.dyn_ltree[13 * 2] !== 0) {
+    if (s.dyn_ltree[9 * 2] !== 0 || s.dyn_ltree[10 * 2] !== 0 || s.dyn_ltree[13 * 2] !== 0) {
         return 1;
     }
     for(n = 32; n < 256; n++){
-        if (s1.dyn_ltree[n * 2] !== 0) {
+        if (s.dyn_ltree[n * 2] !== 0) {
             return 1;
         }
     }
     return 0;
 }
-function _tr_stored_block(s1, buf, stored_len, last) {
-    send_bits(s1, (0 << 1) + (last ? 1 : 0), 3);
-    copy_block(s1, buf, stored_len, true);
+function _tr_stored_block(s, buf, stored_len, last) {
+    send_bits(s, (0 << 1) + (last ? 1 : 0), 3);
+    copy_block(s, buf, stored_len, true);
 }
-function _tr_flush_block(s1, buf, stored_len, last) {
+function _tr_flush_block(s, buf, stored_len, last) {
     let opt_lenb, static_lenb;
     let max_blindex = 0;
-    if (s1.level > 0) {
-        if (s1.strm.data_type === 2) {
-            s1.strm.data_type = detect_data_type(s1);
+    if (s.level > 0) {
+        if (s.strm.data_type === 2) {
+            s.strm.data_type = detect_data_type(s);
         }
-        build_tree(s1, s1.l_desc);
-        build_tree(s1, s1.d_desc);
-        max_blindex = build_bl_tree(s1);
-        opt_lenb = s1.opt_len + 3 + 7 >>> 3;
-        static_lenb = s1.static_len + 3 + 7 >>> 3;
+        build_tree(s, s.l_desc);
+        build_tree(s, s.d_desc);
+        max_blindex = build_bl_tree(s);
+        opt_lenb = s.opt_len + 3 + 7 >>> 3;
+        static_lenb = s.static_len + 3 + 7 >>> 3;
         if (static_lenb <= opt_lenb) opt_lenb = static_lenb;
     } else {
         opt_lenb = static_lenb = stored_len + 5;
     }
     if (stored_len + 4 <= opt_lenb && buf !== -1) {
-        _tr_stored_block(s1, buf, stored_len, last);
-    } else if (s1.strategy === 4 || static_lenb === opt_lenb) {
-        send_bits(s1, (1 << 1) + (last ? 1 : 0), 3);
-        compress_block(s1, static_ltree, static_dtree);
+        _tr_stored_block(s, buf, stored_len, last);
+    } else if (s.strategy === 4 || static_lenb === opt_lenb) {
+        send_bits(s, (1 << 1) + (last ? 1 : 0), 3);
+        compress_block(s, static_ltree, static_dtree);
     } else {
-        send_bits(s1, (2 << 1) + (last ? 1 : 0), 3);
-        send_all_trees(s1, s1.l_desc.max_code + 1, s1.d_desc.max_code + 1, max_blindex + 1);
-        compress_block(s1, s1.dyn_ltree, s1.dyn_dtree);
+        send_bits(s, (2 << 1) + (last ? 1 : 0), 3);
+        send_all_trees(s, s.l_desc.max_code + 1, s.d_desc.max_code + 1, max_blindex + 1);
+        compress_block(s, s.dyn_ltree, s.dyn_dtree);
     }
-    init_block(s1);
+    init_block(s);
     if (last) {
-        bi_windup(s1);
+        bi_windup(s);
     }
 }
-function _tr_tally(s1, dist, lc) {
-    s1.pending_buf[s1.d_buf + s1.last_lit * 2] = dist >>> 8 & 255;
-    s1.pending_buf[s1.d_buf + s1.last_lit * 2 + 1] = dist & 255;
-    s1.pending_buf[s1.l_buf + s1.last_lit] = lc & 255;
-    s1.last_lit++;
+function _tr_tally(s, dist, lc) {
+    s.pending_buf[s.d_buf + s.last_lit * 2] = dist >>> 8 & 255;
+    s.pending_buf[s.d_buf + s.last_lit * 2 + 1] = dist & 255;
+    s.pending_buf[s.l_buf + s.last_lit] = lc & 255;
+    s.last_lit++;
     if (dist === 0) {
-        s1.dyn_ltree[lc * 2]++;
+        s.dyn_ltree[lc * 2]++;
     } else {
-        s1.matches++;
+        s.matches++;
         dist--;
-        s1.dyn_ltree[(_length_code[lc] + 256 + 1) * 2]++;
-        s1.dyn_dtree[d_code(dist) * 2]++;
+        s.dyn_ltree[(_length_code[lc] + 256 + 1) * 2]++;
+        s.dyn_dtree[d_code(dist) * 2]++;
     }
-    return s1.last_lit === s1.lit_bufsize - 1;
+    return s.last_lit === s.lit_bufsize - 1;
 }
 function adler32(adler, buf, len, pos) {
     let s1 = adler & 65535 | 0;
@@ -587,64 +587,64 @@ function crc32(crc, buf, len, pos) {
     return crc ^ -1;
 }
 var STATUS;
-(function(STATUS1) {
-    STATUS1[STATUS1["Z_NO_FLUSH"] = 0] = "Z_NO_FLUSH";
-    STATUS1[STATUS1["Z_PARTIAL_FLUSH"] = 1] = "Z_PARTIAL_FLUSH";
-    STATUS1[STATUS1["Z_SYNC_FLUSH"] = 2] = "Z_SYNC_FLUSH";
-    STATUS1[STATUS1["Z_FULL_FLUSH"] = 3] = "Z_FULL_FLUSH";
-    STATUS1[STATUS1["Z_FINISH"] = 4] = "Z_FINISH";
-    STATUS1[STATUS1["Z_BLOCK"] = 5] = "Z_BLOCK";
-    STATUS1[STATUS1["Z_TREES"] = 6] = "Z_TREES";
-    STATUS1[STATUS1["Z_OK"] = 0] = "Z_OK";
-    STATUS1[STATUS1["Z_STREAM_END"] = 1] = "Z_STREAM_END";
-    STATUS1[STATUS1["Z_NEED_DICT"] = 2] = "Z_NEED_DICT";
-    STATUS1[STATUS1["Z_ERRNO"] = -1] = "Z_ERRNO";
-    STATUS1[STATUS1["Z_STREAM_ERROR"] = -2] = "Z_STREAM_ERROR";
-    STATUS1[STATUS1["Z_DATA_ERROR"] = -3] = "Z_DATA_ERROR";
-    STATUS1[STATUS1["Z_BUF_ERROR"] = -5] = "Z_BUF_ERROR";
-    STATUS1[STATUS1["Z_NO_COMPRESSION"] = 0] = "Z_NO_COMPRESSION";
-    STATUS1[STATUS1["Z_BEST_SPEED"] = 1] = "Z_BEST_SPEED";
-    STATUS1[STATUS1["Z_BEST_COMPRESSION"] = 9] = "Z_BEST_COMPRESSION";
-    STATUS1[STATUS1["Z_DEFAULT_COMPRESSION"] = -1] = "Z_DEFAULT_COMPRESSION";
-    STATUS1[STATUS1["Z_FILTERED"] = 1] = "Z_FILTERED";
-    STATUS1[STATUS1["Z_HUFFMAN_ONLY"] = 2] = "Z_HUFFMAN_ONLY";
-    STATUS1[STATUS1["Z_RLE"] = 3] = "Z_RLE";
-    STATUS1[STATUS1["Z_FIXED"] = 4] = "Z_FIXED";
-    STATUS1[STATUS1["Z_DEFAULT_STRATEGY"] = 0] = "Z_DEFAULT_STRATEGY";
-    STATUS1[STATUS1["Z_BINARY"] = 0] = "Z_BINARY";
-    STATUS1[STATUS1["Z_TEXT"] = 1] = "Z_TEXT";
-    STATUS1[STATUS1["Z_UNKNOWN"] = 2] = "Z_UNKNOWN";
-    STATUS1[STATUS1["Z_DEFLATED"] = 8] = "Z_DEFLATED";
+(function(STATUS) {
+    STATUS[STATUS["Z_NO_FLUSH"] = 0] = "Z_NO_FLUSH";
+    STATUS[STATUS["Z_PARTIAL_FLUSH"] = 1] = "Z_PARTIAL_FLUSH";
+    STATUS[STATUS["Z_SYNC_FLUSH"] = 2] = "Z_SYNC_FLUSH";
+    STATUS[STATUS["Z_FULL_FLUSH"] = 3] = "Z_FULL_FLUSH";
+    STATUS[STATUS["Z_FINISH"] = 4] = "Z_FINISH";
+    STATUS[STATUS["Z_BLOCK"] = 5] = "Z_BLOCK";
+    STATUS[STATUS["Z_TREES"] = 6] = "Z_TREES";
+    STATUS[STATUS["Z_OK"] = 0] = "Z_OK";
+    STATUS[STATUS["Z_STREAM_END"] = 1] = "Z_STREAM_END";
+    STATUS[STATUS["Z_NEED_DICT"] = 2] = "Z_NEED_DICT";
+    STATUS[STATUS["Z_ERRNO"] = -1] = "Z_ERRNO";
+    STATUS[STATUS["Z_STREAM_ERROR"] = -2] = "Z_STREAM_ERROR";
+    STATUS[STATUS["Z_DATA_ERROR"] = -3] = "Z_DATA_ERROR";
+    STATUS[STATUS["Z_BUF_ERROR"] = -5] = "Z_BUF_ERROR";
+    STATUS[STATUS["Z_NO_COMPRESSION"] = 0] = "Z_NO_COMPRESSION";
+    STATUS[STATUS["Z_BEST_SPEED"] = 1] = "Z_BEST_SPEED";
+    STATUS[STATUS["Z_BEST_COMPRESSION"] = 9] = "Z_BEST_COMPRESSION";
+    STATUS[STATUS["Z_DEFAULT_COMPRESSION"] = -1] = "Z_DEFAULT_COMPRESSION";
+    STATUS[STATUS["Z_FILTERED"] = 1] = "Z_FILTERED";
+    STATUS[STATUS["Z_HUFFMAN_ONLY"] = 2] = "Z_HUFFMAN_ONLY";
+    STATUS[STATUS["Z_RLE"] = 3] = "Z_RLE";
+    STATUS[STATUS["Z_FIXED"] = 4] = "Z_FIXED";
+    STATUS[STATUS["Z_DEFAULT_STRATEGY"] = 0] = "Z_DEFAULT_STRATEGY";
+    STATUS[STATUS["Z_BINARY"] = 0] = "Z_BINARY";
+    STATUS[STATUS["Z_TEXT"] = 1] = "Z_TEXT";
+    STATUS[STATUS["Z_UNKNOWN"] = 2] = "Z_UNKNOWN";
+    STATUS[STATUS["Z_DEFLATED"] = 8] = "Z_DEFLATED";
 })(STATUS || (STATUS = {
 }));
 const MIN_MATCH = 3;
 const MAX_MATCH = 258;
 const MIN_LOOKAHEAD = 258 + 3 + 1;
 function flush_pending(strm) {
-    let s1 = strm.state;
-    let len = s1.pending;
+    let s = strm.state;
+    let len = s.pending;
     if (len > strm.avail_out) {
         len = strm.avail_out;
     }
     if (len === 0) return;
-    strm.output.set(s1.pending_buf.subarray(s1.pending_out, s1.pending_out + len), strm.next_out);
+    strm.output.set(s.pending_buf.subarray(s.pending_out, s.pending_out + len), strm.next_out);
     strm.next_out += len;
-    s1.pending_out += len;
+    s.pending_out += len;
     strm.total_out += len;
     strm.avail_out -= len;
-    s1.pending -= len;
-    if (s1.pending === 0) {
-        s1.pending_out = 0;
+    s.pending -= len;
+    if (s.pending === 0) {
+        s.pending_out = 0;
     }
 }
-function flush_block_only(s1, last) {
-    _tr_flush_block(s1, s1.block_start >= 0 ? s1.block_start : -1, s1.strstart - s1.block_start, last);
-    s1.block_start = s1.strstart;
-    flush_pending(s1.strm);
+function flush_block_only(s, last) {
+    _tr_flush_block(s, s.block_start >= 0 ? s.block_start : -1, s.strstart - s.block_start, last);
+    s.block_start = s.strstart;
+    flush_pending(s.strm);
 }
-function read_buf(strm, buf, start, size4) {
+function read_buf(strm, buf, start, size) {
     let len = strm.avail_in;
-    if (len > size4) len = size4;
+    if (len > size) len = size;
     if (len === 0) return 0;
     strm.avail_in -= len;
     buf.set(strm.input.subarray(strm.next_in, strm.next_in + len), start);
@@ -657,24 +657,24 @@ function read_buf(strm, buf, start, size4) {
     strm.total_in += len;
     return len;
 }
-function longest_match(s1, cur_match) {
-    let chain_length = s1.max_chain_length;
-    let scan = s1.strstart;
+function longest_match(s, cur_match) {
+    let chain_length = s.max_chain_length;
+    let scan = s.strstart;
     let match;
     let len;
-    let best_len = s1.prev_length;
-    let nice_match = s1.nice_match;
-    let limit1 = s1.strstart > s1.w_size - MIN_LOOKAHEAD ? s1.strstart - (s1.w_size - MIN_LOOKAHEAD) : 0;
-    let _win = s1.window;
-    let wmask = s1.w_mask;
-    let prev = s1.prev;
-    let strend = s1.strstart + 258;
+    let best_len = s.prev_length;
+    let nice_match = s.nice_match;
+    let limit = s.strstart > s.w_size - MIN_LOOKAHEAD ? s.strstart - (s.w_size - MIN_LOOKAHEAD) : 0;
+    let _win = s.window;
+    let wmask = s.w_mask;
+    let prev = s.prev;
+    let strend = s.strstart + 258;
     let scan_end1 = _win[scan + best_len - 1];
     let scan_end = _win[scan + best_len];
-    if (s1.prev_length >= s1.good_match) {
+    if (s.prev_length >= s.good_match) {
         chain_length >>= 2;
     }
-    if (nice_match > s1.lookahead) nice_match = s1.lookahead;
+    if (nice_match > s.lookahead) nice_match = s.lookahead;
     do {
         match = cur_match;
         if (_win[match + best_len] !== scan_end || _win[match + best_len - 1] !== scan_end1 || _win[match] !== _win[scan] || _win[++match] !== _win[scan + 1]) {
@@ -687,7 +687,7 @@ function longest_match(s1, cur_match) {
         len = MAX_MATCH - (strend - scan);
         scan = strend - MAX_MATCH;
         if (len > best_len) {
-            s1.match_start = cur_match;
+            s.match_start = cur_match;
             best_len = len;
             if (len >= nice_match) {
                 break;
@@ -695,254 +695,254 @@ function longest_match(s1, cur_match) {
             scan_end1 = _win[scan + best_len - 1];
             scan_end = _win[scan + best_len];
         }
-    }while ((cur_match = prev[cur_match & wmask]) > limit1 && --chain_length !== 0)
-    if (best_len <= s1.lookahead) {
+    }while ((cur_match = prev[cur_match & wmask]) > limit && --chain_length !== 0)
+    if (best_len <= s.lookahead) {
         return best_len;
     }
-    return s1.lookahead;
+    return s.lookahead;
 }
-function fill_window(s1) {
-    let _w_size = s1.w_size;
+function fill_window(s) {
+    let _w_size = s.w_size;
     let p, n, m, more, str;
     do {
-        more = s1.window_size - s1.lookahead - s1.strstart;
-        if (s1.strstart >= _w_size + (_w_size - MIN_LOOKAHEAD)) {
-            s1.window.set(s1.window.subarray(_w_size, _w_size + _w_size), 0);
-            s1.match_start -= _w_size;
-            s1.strstart -= _w_size;
-            s1.block_start -= _w_size;
-            n = s1.hash_size;
+        more = s.window_size - s.lookahead - s.strstart;
+        if (s.strstart >= _w_size + (_w_size - MIN_LOOKAHEAD)) {
+            s.window.set(s.window.subarray(_w_size, _w_size + _w_size), 0);
+            s.match_start -= _w_size;
+            s.strstart -= _w_size;
+            s.block_start -= _w_size;
+            n = s.hash_size;
             p = n;
             do {
-                m = s1.head[--p];
-                s1.head[p] = m >= _w_size ? m - _w_size : 0;
+                m = s.head[--p];
+                s.head[p] = m >= _w_size ? m - _w_size : 0;
             }while (--n)
             n = _w_size;
             p = n;
             do {
-                m = s1.prev[--p];
-                s1.prev[p] = m >= _w_size ? m - _w_size : 0;
+                m = s.prev[--p];
+                s.prev[p] = m >= _w_size ? m - _w_size : 0;
             }while (--n)
             more += _w_size;
         }
-        if (s1.strm.avail_in === 0) {
+        if (s.strm.avail_in === 0) {
             break;
         }
-        n = read_buf(s1.strm, s1.window, s1.strstart + s1.lookahead, more);
-        s1.lookahead += n;
-        if (s1.lookahead + s1.insert >= 3) {
-            str = s1.strstart - s1.insert;
-            s1.ins_h = s1.window[str];
-            s1.ins_h = (s1.ins_h << s1.hash_shift ^ s1.window[str + 1]) & s1.hash_mask;
-            while(s1.insert){
-                s1.ins_h = (s1.ins_h << s1.hash_shift ^ s1.window[str + MIN_MATCH - 1]) & s1.hash_mask;
-                s1.prev[str & s1.w_mask] = s1.head[s1.ins_h];
-                s1.head[s1.ins_h] = str;
+        n = read_buf(s.strm, s.window, s.strstart + s.lookahead, more);
+        s.lookahead += n;
+        if (s.lookahead + s.insert >= 3) {
+            str = s.strstart - s.insert;
+            s.ins_h = s.window[str];
+            s.ins_h = (s.ins_h << s.hash_shift ^ s.window[str + 1]) & s.hash_mask;
+            while(s.insert){
+                s.ins_h = (s.ins_h << s.hash_shift ^ s.window[str + MIN_MATCH - 1]) & s.hash_mask;
+                s.prev[str & s.w_mask] = s.head[s.ins_h];
+                s.head[s.ins_h] = str;
                 str++;
-                s1.insert--;
-                if (s1.lookahead + s1.insert < 3) {
+                s.insert--;
+                if (s.lookahead + s.insert < 3) {
                     break;
                 }
             }
         }
-    }while (s1.lookahead < MIN_LOOKAHEAD && s1.strm.avail_in !== 0)
+    }while (s.lookahead < MIN_LOOKAHEAD && s.strm.avail_in !== 0)
 }
-function deflate_stored(s1, flush) {
+function deflate_stored(s, flush) {
     let max_block_size = 65535;
-    if (max_block_size > s1.pending_buf_size - 5) {
-        max_block_size = s1.pending_buf_size - 5;
+    if (max_block_size > s.pending_buf_size - 5) {
+        max_block_size = s.pending_buf_size - 5;
     }
     for(;;){
-        if (s1.lookahead <= 1) {
-            fill_window(s1);
-            if (s1.lookahead === 0 && flush === STATUS.Z_NO_FLUSH) {
+        if (s.lookahead <= 1) {
+            fill_window(s);
+            if (s.lookahead === 0 && flush === STATUS.Z_NO_FLUSH) {
                 return 1;
             }
-            if (s1.lookahead === 0) {
+            if (s.lookahead === 0) {
                 break;
             }
         }
-        s1.strstart += s1.lookahead;
-        s1.lookahead = 0;
-        let max_start = s1.block_start + max_block_size;
-        if (s1.strstart === 0 || s1.strstart >= max_start) {
-            s1.lookahead = s1.strstart - max_start;
-            s1.strstart = max_start;
-            flush_block_only(s1, false);
-            if (s1.strm.avail_out === 0) {
+        s.strstart += s.lookahead;
+        s.lookahead = 0;
+        let max_start = s.block_start + max_block_size;
+        if (s.strstart === 0 || s.strstart >= max_start) {
+            s.lookahead = s.strstart - max_start;
+            s.strstart = max_start;
+            flush_block_only(s, false);
+            if (s.strm.avail_out === 0) {
                 return 1;
             }
         }
-        if (s1.strstart - s1.block_start >= s1.w_size - MIN_LOOKAHEAD) {
-            flush_block_only(s1, false);
-            if (s1.strm.avail_out === 0) {
+        if (s.strstart - s.block_start >= s.w_size - MIN_LOOKAHEAD) {
+            flush_block_only(s, false);
+            if (s.strm.avail_out === 0) {
                 return 1;
             }
         }
     }
-    s1.insert = 0;
+    s.insert = 0;
     if (flush === STATUS.Z_FINISH) {
-        flush_block_only(s1, true);
-        if (s1.strm.avail_out === 0) {
+        flush_block_only(s, true);
+        if (s.strm.avail_out === 0) {
             return 3;
         }
         return 4;
     }
-    if (s1.strstart > s1.block_start) {
-        flush_block_only(s1, false);
-        if (s1.strm.avail_out === 0) {
+    if (s.strstart > s.block_start) {
+        flush_block_only(s, false);
+        if (s.strm.avail_out === 0) {
             return 1;
         }
     }
     return 1;
 }
-function deflate_fast(s1, flush) {
+function deflate_fast(s, flush) {
     let hash_head;
     let bflush;
     for(;;){
-        if (s1.lookahead < MIN_LOOKAHEAD) {
-            fill_window(s1);
-            if (s1.lookahead < MIN_LOOKAHEAD && flush === STATUS.Z_NO_FLUSH) {
+        if (s.lookahead < MIN_LOOKAHEAD) {
+            fill_window(s);
+            if (s.lookahead < MIN_LOOKAHEAD && flush === STATUS.Z_NO_FLUSH) {
                 return 1;
             }
-            if (s1.lookahead === 0) {
+            if (s.lookahead === 0) {
                 break;
             }
         }
         hash_head = 0;
-        if (s1.lookahead >= 3) {
-            s1.ins_h = (s1.ins_h << s1.hash_shift ^ s1.window[s1.strstart + MIN_MATCH - 1]) & s1.hash_mask;
-            hash_head = s1.prev[s1.strstart & s1.w_mask] = s1.head[s1.ins_h];
-            s1.head[s1.ins_h] = s1.strstart;
+        if (s.lookahead >= 3) {
+            s.ins_h = (s.ins_h << s.hash_shift ^ s.window[s.strstart + MIN_MATCH - 1]) & s.hash_mask;
+            hash_head = s.prev[s.strstart & s.w_mask] = s.head[s.ins_h];
+            s.head[s.ins_h] = s.strstart;
         }
-        if (hash_head !== 0 && s1.strstart - hash_head <= s1.w_size - MIN_LOOKAHEAD) {
-            s1.match_length = longest_match(s1, hash_head);
+        if (hash_head !== 0 && s.strstart - hash_head <= s.w_size - MIN_LOOKAHEAD) {
+            s.match_length = longest_match(s, hash_head);
         }
-        if (s1.match_length >= 3) {
-            bflush = _tr_tally(s1, s1.strstart - s1.match_start, s1.match_length - MIN_MATCH);
-            s1.lookahead -= s1.match_length;
-            if (s1.match_length <= s1.max_lazy_match && s1.lookahead >= 3) {
-                s1.match_length--;
+        if (s.match_length >= 3) {
+            bflush = _tr_tally(s, s.strstart - s.match_start, s.match_length - MIN_MATCH);
+            s.lookahead -= s.match_length;
+            if (s.match_length <= s.max_lazy_match && s.lookahead >= 3) {
+                s.match_length--;
                 do {
-                    s1.strstart++;
-                    s1.ins_h = (s1.ins_h << s1.hash_shift ^ s1.window[s1.strstart + MIN_MATCH - 1]) & s1.hash_mask;
-                    hash_head = s1.prev[s1.strstart & s1.w_mask] = s1.head[s1.ins_h];
-                    s1.head[s1.ins_h] = s1.strstart;
-                }while (--s1.match_length !== 0)
-                s1.strstart++;
+                    s.strstart++;
+                    s.ins_h = (s.ins_h << s.hash_shift ^ s.window[s.strstart + MIN_MATCH - 1]) & s.hash_mask;
+                    hash_head = s.prev[s.strstart & s.w_mask] = s.head[s.ins_h];
+                    s.head[s.ins_h] = s.strstart;
+                }while (--s.match_length !== 0)
+                s.strstart++;
             } else {
-                s1.strstart += s1.match_length;
-                s1.match_length = 0;
-                s1.ins_h = s1.window[s1.strstart];
-                s1.ins_h = (s1.ins_h << s1.hash_shift ^ s1.window[s1.strstart + 1]) & s1.hash_mask;
+                s.strstart += s.match_length;
+                s.match_length = 0;
+                s.ins_h = s.window[s.strstart];
+                s.ins_h = (s.ins_h << s.hash_shift ^ s.window[s.strstart + 1]) & s.hash_mask;
             }
         } else {
-            bflush = _tr_tally(s1, 0, s1.window[s1.strstart]);
-            s1.lookahead--;
-            s1.strstart++;
+            bflush = _tr_tally(s, 0, s.window[s.strstart]);
+            s.lookahead--;
+            s.strstart++;
         }
         if (bflush) {
-            flush_block_only(s1, false);
-            if (s1.strm.avail_out === 0) {
+            flush_block_only(s, false);
+            if (s.strm.avail_out === 0) {
                 return 1;
             }
         }
     }
-    s1.insert = s1.strstart < MIN_MATCH - 1 ? s1.strstart : MIN_MATCH - 1;
+    s.insert = s.strstart < MIN_MATCH - 1 ? s.strstart : MIN_MATCH - 1;
     if (flush === STATUS.Z_FINISH) {
-        flush_block_only(s1, true);
-        if (s1.strm.avail_out === 0) {
+        flush_block_only(s, true);
+        if (s.strm.avail_out === 0) {
             return 3;
         }
         return 4;
     }
-    if (s1.last_lit) {
-        flush_block_only(s1, false);
-        if (s1.strm.avail_out === 0) {
+    if (s.last_lit) {
+        flush_block_only(s, false);
+        if (s.strm.avail_out === 0) {
             return 1;
         }
     }
     return 2;
 }
-function deflate_slow(s1, flush) {
+function deflate_slow(s, flush) {
     let hash_head;
     let bflush;
     let max_insert;
     for(;;){
-        if (s1.lookahead < MIN_LOOKAHEAD) {
-            fill_window(s1);
-            if (s1.lookahead < MIN_LOOKAHEAD && flush === STATUS.Z_NO_FLUSH) {
+        if (s.lookahead < MIN_LOOKAHEAD) {
+            fill_window(s);
+            if (s.lookahead < MIN_LOOKAHEAD && flush === STATUS.Z_NO_FLUSH) {
                 return 1;
             }
-            if (s1.lookahead === 0) break;
+            if (s.lookahead === 0) break;
         }
         hash_head = 0;
-        if (s1.lookahead >= 3) {
-            s1.ins_h = (s1.ins_h << s1.hash_shift ^ s1.window[s1.strstart + MIN_MATCH - 1]) & s1.hash_mask;
-            hash_head = s1.prev[s1.strstart & s1.w_mask] = s1.head[s1.ins_h];
-            s1.head[s1.ins_h] = s1.strstart;
+        if (s.lookahead >= 3) {
+            s.ins_h = (s.ins_h << s.hash_shift ^ s.window[s.strstart + MIN_MATCH - 1]) & s.hash_mask;
+            hash_head = s.prev[s.strstart & s.w_mask] = s.head[s.ins_h];
+            s.head[s.ins_h] = s.strstart;
         }
-        s1.prev_length = s1.match_length;
-        s1.prev_match = s1.match_start;
-        s1.match_length = MIN_MATCH - 1;
-        if (hash_head !== 0 && s1.prev_length < s1.max_lazy_match && s1.strstart - hash_head <= s1.w_size - MIN_LOOKAHEAD) {
-            s1.match_length = longest_match(s1, hash_head);
-            if (s1.match_length <= 5 && (s1.strategy === 1 || s1.match_length === 3 && s1.strstart - s1.match_start > 4096)) {
-                s1.match_length = MIN_MATCH - 1;
+        s.prev_length = s.match_length;
+        s.prev_match = s.match_start;
+        s.match_length = MIN_MATCH - 1;
+        if (hash_head !== 0 && s.prev_length < s.max_lazy_match && s.strstart - hash_head <= s.w_size - MIN_LOOKAHEAD) {
+            s.match_length = longest_match(s, hash_head);
+            if (s.match_length <= 5 && (s.strategy === 1 || s.match_length === 3 && s.strstart - s.match_start > 4096)) {
+                s.match_length = MIN_MATCH - 1;
             }
         }
-        if (s1.prev_length >= 3 && s1.match_length <= s1.prev_length) {
-            max_insert = s1.strstart + s1.lookahead - MIN_MATCH;
-            bflush = _tr_tally(s1, s1.strstart - 1 - s1.prev_match, s1.prev_length - MIN_MATCH);
-            s1.lookahead -= s1.prev_length - 1;
-            s1.prev_length -= 2;
+        if (s.prev_length >= 3 && s.match_length <= s.prev_length) {
+            max_insert = s.strstart + s.lookahead - MIN_MATCH;
+            bflush = _tr_tally(s, s.strstart - 1 - s.prev_match, s.prev_length - MIN_MATCH);
+            s.lookahead -= s.prev_length - 1;
+            s.prev_length -= 2;
             do {
-                if (++s1.strstart <= max_insert) {
-                    s1.ins_h = (s1.ins_h << s1.hash_shift ^ s1.window[s1.strstart + MIN_MATCH - 1]) & s1.hash_mask;
-                    hash_head = s1.prev[s1.strstart & s1.w_mask] = s1.head[s1.ins_h];
-                    s1.head[s1.ins_h] = s1.strstart;
+                if (++s.strstart <= max_insert) {
+                    s.ins_h = (s.ins_h << s.hash_shift ^ s.window[s.strstart + MIN_MATCH - 1]) & s.hash_mask;
+                    hash_head = s.prev[s.strstart & s.w_mask] = s.head[s.ins_h];
+                    s.head[s.ins_h] = s.strstart;
                 }
-            }while (--s1.prev_length !== 0)
-            s1.match_available = 0;
-            s1.match_length = MIN_MATCH - 1;
-            s1.strstart++;
+            }while (--s.prev_length !== 0)
+            s.match_available = 0;
+            s.match_length = MIN_MATCH - 1;
+            s.strstart++;
             if (bflush) {
-                flush_block_only(s1, false);
-                if (s1.strm.avail_out === 0) {
+                flush_block_only(s, false);
+                if (s.strm.avail_out === 0) {
                     return 1;
                 }
             }
-        } else if (s1.match_available) {
-            bflush = _tr_tally(s1, 0, s1.window[s1.strstart - 1]);
+        } else if (s.match_available) {
+            bflush = _tr_tally(s, 0, s.window[s.strstart - 1]);
             if (bflush) {
-                flush_block_only(s1, false);
+                flush_block_only(s, false);
             }
-            s1.strstart++;
-            s1.lookahead--;
-            if (s1.strm.avail_out === 0) {
+            s.strstart++;
+            s.lookahead--;
+            if (s.strm.avail_out === 0) {
                 return 1;
             }
         } else {
-            s1.match_available = 1;
-            s1.strstart++;
-            s1.lookahead--;
+            s.match_available = 1;
+            s.strstart++;
+            s.lookahead--;
         }
     }
-    if (s1.match_available) {
-        bflush = _tr_tally(s1, 0, s1.window[s1.strstart - 1]);
-        s1.match_available = 0;
+    if (s.match_available) {
+        bflush = _tr_tally(s, 0, s.window[s.strstart - 1]);
+        s.match_available = 0;
     }
-    s1.insert = s1.strstart < MIN_MATCH - 1 ? s1.strstart : MIN_MATCH - 1;
+    s.insert = s.strstart < MIN_MATCH - 1 ? s.strstart : MIN_MATCH - 1;
     if (flush === STATUS.Z_FINISH) {
-        flush_block_only(s1, true);
-        if (s1.strm.avail_out === 0) {
+        flush_block_only(s, true);
+        if (s.strm.avail_out === 0) {
             return 3;
         }
         return 4;
     }
-    if (s1.last_lit) {
-        flush_block_only(s1, false);
-        if (s1.strm.avail_out === 0) {
+    if (s.last_lit) {
+        flush_block_only(s, false);
+        if (s.strm.avail_out === 0) {
             return 1;
         }
     }
@@ -954,12 +954,12 @@ class Config {
     nice_length;
     max_chain;
     func;
-    constructor(good_length, max_lazy, nice_length, max_chain, func){
-        this.good_length = good_length;
-        this.max_lazy = max_lazy;
-        this.nice_length = nice_length;
-        this.max_chain = max_chain;
-        this.func = func;
+    constructor(good_length1, max_lazy1, nice_length1, max_chain1, func1){
+        this.good_length = good_length1;
+        this.max_lazy = max_lazy1;
+        this.nice_length = nice_length1;
+        this.max_chain = max_chain1;
+        this.func = func1;
     }
 }
 let configuration_table;
@@ -1687,7 +1687,7 @@ function fixedtables(state) {
     state.distcode = distfix;
     state.distbits = 5;
 }
-function updatewindow(strm, src, end, copy1) {
+function updatewindow(strm, src, end, copy) {
     let dist;
     let state = strm.state;
     if (state.window === null) {
@@ -1696,20 +1696,20 @@ function updatewindow(strm, src, end, copy1) {
         state.whave = 0;
         state.window = new Uint8Array(state.wsize);
     }
-    if (copy1 >= state.wsize) {
+    if (copy >= state.wsize) {
         state.window.set(src.subarray(end - state.wsize, end), 0);
         state.wnext = 0;
         state.whave = state.wsize;
     } else {
         dist = state.wsize - state.wnext;
-        if (dist > copy1) {
-            dist = copy1;
+        if (dist > copy) {
+            dist = copy;
         }
-        state.window.set(src.subarray(end - copy1, end - copy1 + dist), state.wnext);
-        copy1 -= dist;
-        if (copy1) {
-            state.window.set(src.subarray(end - copy1, end), 0);
-            state.wnext = copy1;
+        state.window.set(src.subarray(end - copy, end - copy + dist), state.wnext);
+        copy -= dist;
+        if (copy) {
+            state.window.set(src.subarray(end - copy, end), 0);
+            state.wnext = copy;
             state.whave = state.wsize;
         } else {
             state.wnext += dist;
@@ -1728,7 +1728,7 @@ function inflate2(strm, flush) {
     let hold;
     let bits;
     let _in, _out;
-    let copy1;
+    let copy;
     let from;
     let from_source;
     let here = 0;
@@ -1922,22 +1922,22 @@ function inflate2(strm, flush) {
                 state.mode = EXTRA;
             case 6:
                 if (state.flags & 1024) {
-                    copy1 = state.length;
-                    if (copy1 > have) copy1 = have;
-                    if (copy1) {
+                    copy = state.length;
+                    if (copy > have) copy = have;
+                    if (copy) {
                         if (state.head) {
                             len = state.head.extra_len - state.length;
                             if (!state.head.extra) {
                                 state.head.extra = new Array(state.head.extra_len);
                             }
-                            state.head.extra.set(input.subarray(next, next + copy1), len);
+                            state.head.extra.set(input.subarray(next, next + copy), len);
                         }
                         if (state.flags & 512) {
-                            state.check = crc32(state.check, input, copy1, next);
+                            state.check = crc32(state.check, input, copy, next);
                         }
-                        have -= copy1;
-                        next += copy1;
-                        state.length -= copy1;
+                        have -= copy;
+                        next += copy;
+                        state.length -= copy;
                     }
                     if (state.length) break inf_leave;
                 }
@@ -1946,18 +1946,18 @@ function inflate2(strm, flush) {
             case 7:
                 if (state.flags & 2048) {
                     if (have === 0) break inf_leave;
-                    copy1 = 0;
+                    copy = 0;
                     do {
-                        len = input[next + copy1++];
+                        len = input[next + copy++];
                         if (state.head && len && state.length < 65536) {
                             state.head.name += String.fromCharCode(len);
                         }
-                    }while (len && copy1 < have)
+                    }while (len && copy < have)
                     if (state.flags & 512) {
-                        state.check = crc32(state.check, input, copy1, next);
+                        state.check = crc32(state.check, input, copy, next);
                     }
-                    have -= copy1;
-                    next += copy1;
+                    have -= copy;
+                    next += copy;
                     if (len) break inf_leave;
                 } else if (state.head) {
                     state.head.name = null;
@@ -1967,18 +1967,18 @@ function inflate2(strm, flush) {
             case 8:
                 if (state.flags & 4096) {
                     if (have === 0) break inf_leave;
-                    copy1 = 0;
+                    copy = 0;
                     do {
-                        len = input[next + copy1++];
+                        len = input[next + copy++];
                         if (state.head && len && state.length < 65536) {
                             state.head.comment += String.fromCharCode(len);
                         }
-                    }while (len && copy1 < have)
+                    }while (len && copy < have)
                     if (state.flags & 512) {
-                        state.check = crc32(state.check, input, copy1, next);
+                        state.check = crc32(state.check, input, copy, next);
                     }
-                    have -= copy1;
-                    next += copy1;
+                    have -= copy;
+                    next += copy;
                     if (len) break inf_leave;
                 } else if (state.head) {
                     state.head.comment = null;
@@ -2093,17 +2093,17 @@ function inflate2(strm, flush) {
             case 15:
                 state.mode = COPY;
             case 16:
-                copy1 = state.length;
-                if (copy1) {
-                    if (copy1 > have) copy1 = have;
-                    if (copy1 > left) copy1 = left;
-                    if (copy1 === 0) break inf_leave;
-                    output.set(input.subarray(next, next + copy1), put);
-                    have -= copy1;
-                    next += copy1;
-                    left -= copy1;
-                    put += copy1;
-                    state.length -= copy1;
+                copy = state.length;
+                if (copy) {
+                    if (copy > have) copy = have;
+                    if (copy > left) copy = left;
+                    if (copy === 0) break inf_leave;
+                    output.set(input.subarray(next, next + copy), put);
+                    have -= copy;
+                    next += copy;
+                    left -= copy;
+                    put += copy;
+                    state.length -= copy;
                     break;
                 }
                 state.mode = TYPE1;
@@ -2194,7 +2194,7 @@ function inflate2(strm, flush) {
                                 break;
                             }
                             len = state.lens[state.have - 1];
-                            copy1 = 3 + (hold & 3);
+                            copy = 3 + (hold & 3);
                             hold >>>= 2;
                             bits -= 2;
                         } else if (here_val === 17) {
@@ -2208,7 +2208,7 @@ function inflate2(strm, flush) {
                             hold >>>= here_bits;
                             bits -= here_bits;
                             len = 0;
-                            copy1 = 3 + (hold & 7);
+                            copy = 3 + (hold & 7);
                             hold >>>= 3;
                             bits -= 3;
                         } else {
@@ -2222,16 +2222,16 @@ function inflate2(strm, flush) {
                             hold >>>= here_bits;
                             bits -= here_bits;
                             len = 0;
-                            copy1 = 11 + (hold & 127);
+                            copy = 11 + (hold & 127);
                             hold >>>= 7;
                             bits -= 7;
                         }
-                        if (state.have + copy1 > state.nlen + state.ndist) {
+                        if (state.have + copy > state.nlen + state.ndist) {
                             strm.msg = "invalid bit length repeat";
                             state.mode = BAD1;
                             break;
                         }
-                        while(copy1--){
+                        while(copy--){
                             state.lens[state.have++] = len;
                         }
                     }
@@ -2422,35 +2422,35 @@ function inflate2(strm, flush) {
                 state.mode = MATCH;
             case 25:
                 if (left === 0) break inf_leave;
-                copy1 = _out - left;
-                if (state.offset > copy1) {
-                    copy1 = state.offset - copy1;
-                    if (copy1 > state.whave) {
+                copy = _out - left;
+                if (state.offset > copy) {
+                    copy = state.offset - copy;
+                    if (copy > state.whave) {
                         if (state.sane) {
                             strm.msg = "invalid distance too far back";
                             state.mode = BAD1;
                             break;
                         }
                     }
-                    if (copy1 > state.wnext) {
-                        copy1 -= state.wnext;
-                        from = state.wsize - copy1;
+                    if (copy > state.wnext) {
+                        copy -= state.wnext;
+                        from = state.wsize - copy;
                     } else {
-                        from = state.wnext - copy1;
+                        from = state.wnext - copy;
                     }
-                    if (copy1 > state.length) copy1 = state.length;
+                    if (copy > state.length) copy = state.length;
                     from_source = state.window;
                 } else {
                     from_source = output;
                     from = put - state.offset;
-                    copy1 = state.length;
+                    copy = state.length;
                 }
-                if (copy1 > left) copy1 = left;
-                left -= copy1;
-                state.length -= copy1;
+                if (copy > left) copy = left;
+                left -= copy;
+                state.length -= copy;
                 do {
                     output[put++] = from_source[from++];
-                }while (--copy1)
+                }while (--copy)
                 if (state.length === 0) state.mode = LEN;
                 break;
             case 26:
@@ -2627,17 +2627,17 @@ class Inflate {
         }
         this.strm = new ZStream();
         this.strm.avail_out = 0;
-        var status1 = inflateInit2(this.strm, opt1.windowBits);
-        if (status1 !== STATUS.Z_OK) {
-            throw new Error(message2[status1]);
+        var status2 = inflateInit2(this.strm, opt1.windowBits);
+        if (status2 !== STATUS.Z_OK) {
+            throw new Error(message2[status2]);
         }
         this.header = new GZheader();
         inflateGetHeader(this.strm, this.header);
         if (opt1.dictionary) {
             if (opt1.raw) {
-                status1 = inflateSetDictionary(this.strm, opt1.dictionary);
-                if (status1 !== STATUS.Z_OK) {
-                    throw new Error(message2[status1]);
+                status2 = inflateSetDictionary(this.strm, opt1.dictionary);
+                if (status2 !== STATUS.Z_OK) {
+                    throw new Error(message2[status2]);
                 }
             }
         }
@@ -2647,7 +2647,7 @@ class Inflate {
         const chunkSize = this.options.chunkSize;
         const dictionary = this.options.dictionary;
         const chunks = [];
-        let status2;
+        let status;
         var allowBufError = false;
         if (this.ended) {
             throw new Error("can not call after ended");
@@ -2662,34 +2662,34 @@ class Inflate {
                 strm.next_out = 0;
                 strm.avail_out = chunkSize;
             }
-            status2 = inflate2(strm, STATUS.Z_NO_FLUSH);
-            if (status2 === STATUS.Z_NEED_DICT && dictionary) {
-                status2 = inflateSetDictionary(this.strm, dictionary);
+            status = inflate2(strm, STATUS.Z_NO_FLUSH);
+            if (status === STATUS.Z_NEED_DICT && dictionary) {
+                status = inflateSetDictionary(this.strm, dictionary);
             }
-            if (status2 === STATUS.Z_BUF_ERROR && allowBufError === true) {
-                status2 = STATUS.Z_OK;
+            if (status === STATUS.Z_BUF_ERROR && allowBufError === true) {
+                status = STATUS.Z_OK;
                 allowBufError = false;
             }
-            if (status2 !== STATUS.Z_STREAM_END && status2 !== STATUS.Z_OK) {
+            if (status !== STATUS.Z_STREAM_END && status !== STATUS.Z_OK) {
                 this.ended = true;
                 throw new Error(this.strm.msg);
             }
             if (strm.next_out) {
-                if (strm.avail_out === 0 || status2 === STATUS.Z_STREAM_END || strm.avail_in === 0 && (_mode === STATUS.Z_FINISH || _mode === STATUS.Z_SYNC_FLUSH)) {
+                if (strm.avail_out === 0 || status === STATUS.Z_STREAM_END || strm.avail_in === 0 && (_mode === STATUS.Z_FINISH || _mode === STATUS.Z_SYNC_FLUSH)) {
                     chunks.push(strm.output.subarray(0, strm.next_out));
                 }
             }
             if (strm.avail_in === 0 && strm.avail_out === 0) {
                 allowBufError = true;
             }
-        }while ((strm.avail_in > 0 || strm.avail_out === 0) && status2 !== STATUS.Z_STREAM_END)
-        if (status2 === STATUS.Z_STREAM_END) {
+        }while ((strm.avail_in > 0 || strm.avail_out === 0) && status !== STATUS.Z_STREAM_END)
+        if (status === STATUS.Z_STREAM_END) {
             _mode = STATUS.Z_FINISH;
         }
         if (_mode === STATUS.Z_FINISH) {
-            status2 = inflateEnd(this.strm);
+            status = inflateEnd(this.strm);
             this.ended = true;
-            if (status2 !== STATUS.Z_OK) throw new Error(this.strm.msg);
+            if (status !== STATUS.Z_OK) throw new Error(this.strm.msg);
         }
         if (_mode === STATUS.Z_SYNC_FLUSH) {
             strm.avail_out = 0;
@@ -2697,9 +2697,9 @@ class Inflate {
         return concatUint8Array(chunks);
     }
 }
-function inflate1(input, options3 = {
+function inflate1(input, options = {
 }) {
-    const inflator = new Inflate(options3);
+    const inflator = new Inflate(options);
     const result = inflator.push(input, true);
     if (inflator.err) throw inflator.msg || message2[inflator.err];
     return result;
@@ -2733,93 +2733,93 @@ const REGISTERS = [
     "im", 
 ];
 var RegisterIndexOf;
-(function(RegisterIndexOf1) {
-    RegisterIndexOf1[RegisterIndexOf1["ip"] = 0] = "ip";
-    RegisterIndexOf1[RegisterIndexOf1["acc"] = 1] = "acc";
-    RegisterIndexOf1[RegisterIndexOf1["r1"] = 2] = "r1";
-    RegisterIndexOf1[RegisterIndexOf1["r2"] = 3] = "r2";
-    RegisterIndexOf1[RegisterIndexOf1["r3"] = 4] = "r3";
-    RegisterIndexOf1[RegisterIndexOf1["r4"] = 5] = "r4";
-    RegisterIndexOf1[RegisterIndexOf1["r5"] = 6] = "r5";
-    RegisterIndexOf1[RegisterIndexOf1["r6"] = 7] = "r6";
-    RegisterIndexOf1[RegisterIndexOf1["r7"] = 8] = "r7";
-    RegisterIndexOf1[RegisterIndexOf1["r8"] = 9] = "r8";
-    RegisterIndexOf1[RegisterIndexOf1["r9"] = 10] = "r9";
-    RegisterIndexOf1[RegisterIndexOf1["R"] = 11] = "R";
-    RegisterIndexOf1[RegisterIndexOf1["G"] = 12] = "G";
-    RegisterIndexOf1[RegisterIndexOf1["B"] = 13] = "B";
-    RegisterIndexOf1[RegisterIndexOf1["COL"] = 14] = "COL";
-    RegisterIndexOf1[RegisterIndexOf1["x"] = 15] = "x";
-    RegisterIndexOf1[RegisterIndexOf1["y"] = 16] = "y";
-    RegisterIndexOf1[RegisterIndexOf1["li"] = 17] = "li";
-    RegisterIndexOf1[RegisterIndexOf1["sp"] = 18] = "sp";
-    RegisterIndexOf1[RegisterIndexOf1["fp"] = 19] = "fp";
-    RegisterIndexOf1[RegisterIndexOf1["mb"] = 20] = "mb";
-    RegisterIndexOf1[RegisterIndexOf1["im"] = 21] = "im";
+(function(RegisterIndexOf) {
+    RegisterIndexOf[RegisterIndexOf["ip"] = 0] = "ip";
+    RegisterIndexOf[RegisterIndexOf["acc"] = 1] = "acc";
+    RegisterIndexOf[RegisterIndexOf["r1"] = 2] = "r1";
+    RegisterIndexOf[RegisterIndexOf["r2"] = 3] = "r2";
+    RegisterIndexOf[RegisterIndexOf["r3"] = 4] = "r3";
+    RegisterIndexOf[RegisterIndexOf["r4"] = 5] = "r4";
+    RegisterIndexOf[RegisterIndexOf["r5"] = 6] = "r5";
+    RegisterIndexOf[RegisterIndexOf["r6"] = 7] = "r6";
+    RegisterIndexOf[RegisterIndexOf["r7"] = 8] = "r7";
+    RegisterIndexOf[RegisterIndexOf["r8"] = 9] = "r8";
+    RegisterIndexOf[RegisterIndexOf["r9"] = 10] = "r9";
+    RegisterIndexOf[RegisterIndexOf["R"] = 11] = "R";
+    RegisterIndexOf[RegisterIndexOf["G"] = 12] = "G";
+    RegisterIndexOf[RegisterIndexOf["B"] = 13] = "B";
+    RegisterIndexOf[RegisterIndexOf["COL"] = 14] = "COL";
+    RegisterIndexOf[RegisterIndexOf["x"] = 15] = "x";
+    RegisterIndexOf[RegisterIndexOf["y"] = 16] = "y";
+    RegisterIndexOf[RegisterIndexOf["li"] = 17] = "li";
+    RegisterIndexOf[RegisterIndexOf["sp"] = 18] = "sp";
+    RegisterIndexOf[RegisterIndexOf["fp"] = 19] = "fp";
+    RegisterIndexOf[RegisterIndexOf["mb"] = 20] = "mb";
+    RegisterIndexOf[RegisterIndexOf["im"] = 21] = "im";
 })(RegisterIndexOf || (RegisterIndexOf = {
 }));
 const PUSHABLE_STATE = REGISTERS.slice(0, RegisterIndexOf.y + 1);
 var Instructions;
-(function(Instructions1) {
-    Instructions1[Instructions1["MOVE"] = 1] = "MOVE";
-    Instructions1[Instructions1["MOVE_S"] = 2] = "MOVE_S";
-    Instructions1[Instructions1["ADD"] = 3] = "ADD";
-    Instructions1[Instructions1["SUBTRACT"] = 4] = "SUBTRACT";
-    Instructions1[Instructions1["INC_REG"] = 5] = "INC_REG";
-    Instructions1[Instructions1["DEC_REG"] = 6] = "DEC_REG";
-    Instructions1[Instructions1["MULTIPLY"] = 7] = "MULTIPLY";
-    Instructions1[Instructions1["BITWISE_SHIFT"] = 8] = "BITWISE_SHIFT";
-    Instructions1[Instructions1["BITWISE_AND"] = 9] = "BITWISE_AND";
-    Instructions1[Instructions1["BITWISE_OR"] = 10] = "BITWISE_OR";
-    Instructions1[Instructions1["NOT"] = 11] = "NOT";
-    Instructions1[Instructions1["JMP_ACC"] = 12] = "JMP_ACC";
-    Instructions1[Instructions1["GOTO"] = 13] = "GOTO";
-    Instructions1[Instructions1["PSH_LIT"] = 14] = "PSH_LIT";
-    Instructions1[Instructions1["PSH_REG"] = 15] = "PSH_REG";
-    Instructions1[Instructions1["PSH_STATE"] = 16] = "PSH_STATE";
-    Instructions1[Instructions1["POP"] = 17] = "POP";
-    Instructions1[Instructions1["CALL"] = 18] = "CALL";
-    Instructions1[Instructions1["RET"] = 19] = "RET";
-    Instructions1[Instructions1["RET_TO_NEXT"] = 20] = "RET_TO_NEXT";
-    Instructions1[Instructions1["HLT"] = 21] = "HLT";
-    Instructions1[Instructions1["RET_INT"] = 22] = "RET_INT";
-    Instructions1[Instructions1["INT"] = 23] = "INT";
-    Instructions1[Instructions1["PSH_IP"] = 24] = "PSH_IP";
-    Instructions1[Instructions1["PSH_IP_OFFSETTED"] = 25] = "PSH_IP_OFFSETTED";
-    Instructions1[Instructions1["RAND"] = 26] = "RAND";
-    Instructions1[Instructions1["SKIP"] = 27] = "SKIP";
-    Instructions1[Instructions1["INTERVAL"] = 28] = "INTERVAL";
-    Instructions1[Instructions1["MODIFY_PIXEL_REG"] = 29] = "MODIFY_PIXEL_REG";
-    Instructions1[Instructions1["MODIFY_PIXEL"] = 30] = "MODIFY_PIXEL";
-    Instructions1[Instructions1["RENDER"] = 31] = "RENDER";
-    Instructions1[Instructions1["SLEEP"] = 32] = "SLEEP";
-    Instructions1[Instructions1["FETCH_IMAGE_INFO"] = 33] = "FETCH_IMAGE_INFO";
-    Instructions1[Instructions1["FETCH_PIXEL_NEIGHBOR"] = 34] = "FETCH_PIXEL_NEIGHBOR";
-    Instructions1[Instructions1["FETCH_PIXEL_COLOR_BY_INDEX"] = 35] = "FETCH_PIXEL_COLOR_BY_INDEX";
-    Instructions1[Instructions1["FETCH_PIXEL_INDEX_BY_REG_COORDINATES"] = 36] = "FETCH_PIXEL_INDEX_BY_REG_COORDINATES";
-    Instructions1[Instructions1["FETCH_PIXEL_INDEX"] = 37] = "FETCH_PIXEL_INDEX";
-    Instructions1[Instructions1["RGB_FROMREG_TO_COLOR"] = 38] = "RGB_FROMREG_TO_COLOR";
-    Instructions1[Instructions1["RGB_TO_COLOR"] = 39] = "RGB_TO_COLOR";
-    Instructions1[Instructions1["COLOR_FROMREG_TO_RGB"] = 40] = "COLOR_FROMREG_TO_RGB";
-    Instructions1[Instructions1["DRAW_BOX"] = 41] = "DRAW_BOX";
-    Instructions1[Instructions1["DRAW_BOX_MANUAL"] = 42] = "DRAW_BOX_MANUAL";
-    Instructions1[Instructions1["DRAW_CIRCLE"] = 43] = "DRAW_CIRCLE";
-    Instructions1[Instructions1["DRAW_LINE_POINTS"] = 44] = "DRAW_LINE_POINTS";
-    Instructions1[Instructions1["MODIFY_LUMINOSITY"] = 45] = "MODIFY_LUMINOSITY";
-    Instructions1[Instructions1["LANGTONS_ANT"] = 46] = "LANGTONS_ANT";
-    Instructions1[Instructions1["SEEDS"] = 47] = "SEEDS";
-    Instructions1[Instructions1["DEBUG"] = 48] = "DEBUG";
+(function(Instructions) {
+    Instructions[Instructions["MOVE"] = 1] = "MOVE";
+    Instructions[Instructions["MOVE_S"] = 2] = "MOVE_S";
+    Instructions[Instructions["ADD"] = 3] = "ADD";
+    Instructions[Instructions["SUBTRACT"] = 4] = "SUBTRACT";
+    Instructions[Instructions["INC_REG"] = 5] = "INC_REG";
+    Instructions[Instructions["DEC_REG"] = 6] = "DEC_REG";
+    Instructions[Instructions["MULTIPLY"] = 7] = "MULTIPLY";
+    Instructions[Instructions["BITWISE_SHIFT"] = 8] = "BITWISE_SHIFT";
+    Instructions[Instructions["BITWISE_AND"] = 9] = "BITWISE_AND";
+    Instructions[Instructions["BITWISE_OR"] = 10] = "BITWISE_OR";
+    Instructions[Instructions["NOT"] = 11] = "NOT";
+    Instructions[Instructions["JMP_ACC"] = 12] = "JMP_ACC";
+    Instructions[Instructions["GOTO"] = 13] = "GOTO";
+    Instructions[Instructions["PSH_LIT"] = 14] = "PSH_LIT";
+    Instructions[Instructions["PSH_REG"] = 15] = "PSH_REG";
+    Instructions[Instructions["PSH_STATE"] = 16] = "PSH_STATE";
+    Instructions[Instructions["POP"] = 17] = "POP";
+    Instructions[Instructions["CALL"] = 18] = "CALL";
+    Instructions[Instructions["RET"] = 19] = "RET";
+    Instructions[Instructions["RET_TO_NEXT"] = 20] = "RET_TO_NEXT";
+    Instructions[Instructions["HLT"] = 21] = "HLT";
+    Instructions[Instructions["RET_INT"] = 22] = "RET_INT";
+    Instructions[Instructions["INT"] = 23] = "INT";
+    Instructions[Instructions["PSH_IP"] = 24] = "PSH_IP";
+    Instructions[Instructions["PSH_IP_OFFSETTED"] = 25] = "PSH_IP_OFFSETTED";
+    Instructions[Instructions["RAND"] = 26] = "RAND";
+    Instructions[Instructions["SKIP"] = 27] = "SKIP";
+    Instructions[Instructions["INTERVAL"] = 28] = "INTERVAL";
+    Instructions[Instructions["MODIFY_PIXEL_REG"] = 29] = "MODIFY_PIXEL_REG";
+    Instructions[Instructions["MODIFY_PIXEL"] = 30] = "MODIFY_PIXEL";
+    Instructions[Instructions["RENDER"] = 31] = "RENDER";
+    Instructions[Instructions["SLEEP"] = 32] = "SLEEP";
+    Instructions[Instructions["FETCH_IMAGE_INFO"] = 33] = "FETCH_IMAGE_INFO";
+    Instructions[Instructions["FETCH_PIXEL_NEIGHBOR"] = 34] = "FETCH_PIXEL_NEIGHBOR";
+    Instructions[Instructions["FETCH_PIXEL_COLOR_BY_INDEX"] = 35] = "FETCH_PIXEL_COLOR_BY_INDEX";
+    Instructions[Instructions["FETCH_PIXEL_INDEX_BY_REG_COORDINATES"] = 36] = "FETCH_PIXEL_INDEX_BY_REG_COORDINATES";
+    Instructions[Instructions["FETCH_PIXEL_INDEX"] = 37] = "FETCH_PIXEL_INDEX";
+    Instructions[Instructions["RGB_FROMREG_TO_COLOR"] = 38] = "RGB_FROMREG_TO_COLOR";
+    Instructions[Instructions["RGB_TO_COLOR"] = 39] = "RGB_TO_COLOR";
+    Instructions[Instructions["COLOR_FROMREG_TO_RGB"] = 40] = "COLOR_FROMREG_TO_RGB";
+    Instructions[Instructions["DRAW_BOX"] = 41] = "DRAW_BOX";
+    Instructions[Instructions["DRAW_BOX_MANUAL"] = 42] = "DRAW_BOX_MANUAL";
+    Instructions[Instructions["DRAW_CIRCLE"] = 43] = "DRAW_CIRCLE";
+    Instructions[Instructions["DRAW_LINE_POINTS"] = 44] = "DRAW_LINE_POINTS";
+    Instructions[Instructions["MODIFY_LUMINOSITY"] = 45] = "MODIFY_LUMINOSITY";
+    Instructions[Instructions["LANGTONS_ANT"] = 46] = "LANGTONS_ANT";
+    Instructions[Instructions["SEEDS"] = 47] = "SEEDS";
+    Instructions[Instructions["DEBUG"] = 48] = "DEBUG";
 })(Instructions || (Instructions = {
 }));
 var ParameterFetchType;
-(function(ParameterFetchType1) {
-    ParameterFetchType1[ParameterFetchType1["unsignedINT8"] = 0] = "unsignedINT8";
-    ParameterFetchType1[ParameterFetchType1["signedINT8"] = 1] = "signedINT8";
-    ParameterFetchType1[ParameterFetchType1["unsignedINT16"] = 2] = "unsignedINT16";
-    ParameterFetchType1[ParameterFetchType1["signedINT16"] = 3] = "signedINT16";
-    ParameterFetchType1[ParameterFetchType1["unsignedINT32"] = 4] = "unsignedINT32";
-    ParameterFetchType1[ParameterFetchType1["signedINT32"] = 5] = "signedINT32";
-    ParameterFetchType1[ParameterFetchType1["registerIndex"] = 6] = "registerIndex";
+(function(ParameterFetchType) {
+    ParameterFetchType[ParameterFetchType["unsignedINT8"] = 0] = "unsignedINT8";
+    ParameterFetchType[ParameterFetchType["signedINT8"] = 1] = "signedINT8";
+    ParameterFetchType[ParameterFetchType["unsignedINT16"] = 2] = "unsignedINT16";
+    ParameterFetchType[ParameterFetchType["signedINT16"] = 3] = "signedINT16";
+    ParameterFetchType[ParameterFetchType["unsignedINT32"] = 4] = "unsignedINT32";
+    ParameterFetchType[ParameterFetchType["signedINT32"] = 5] = "signedINT32";
+    ParameterFetchType[ParameterFetchType["registerIndex"] = 6] = "registerIndex";
 })(ParameterFetchType || (ParameterFetchType = {
 }));
 const InstructionParams = [
@@ -3002,8 +3002,8 @@ const InstructionParams = [
     ]
 ];
 const createMemory = (sizeInBytes)=>{
-    const ab1 = new ArrayBuffer(sizeInBytes);
-    const dv = new DataView(ab1);
+    const ab = new ArrayBuffer(sizeInBytes);
+    const dv = new DataView(ab);
     return dv;
 };
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
@@ -3101,8 +3101,8 @@ class InstructionParser {
     allocatedAmount;
     halt = false;
     emptyInstructionAtStep = 0;
-    constructor(memory, loadedFile, interruptVectorAddress = 150000){
-        this.memory = memory;
+    constructor(memory1, loadedFile, interruptVectorAddress1 = 150000){
+        this.memory = memory1;
         this.allocatedAmount = loadedFile.memoryRequest;
         this.registers = createMemory(REGISTERS.length * INSTRUCTION_LENGTH_IN_BYTES);
         this.registerMap = REGISTERS.reduce((map, name, i)=>{
@@ -3110,7 +3110,7 @@ class InstructionParser {
             return map;
         }, {
         });
-        this.interruptVectorAddress = interruptVectorAddress;
+        this.interruptVectorAddress = interruptVectorAddress1;
         this.isInInterruptHandler = false;
         this.setRegister("im", this.allocatedAmount);
         this.setRegister("sp", this.allocatedAmount - loadedFile.stackSizeRequirement);
@@ -3296,30 +3296,30 @@ class InstructionParser {
     }
 }
 var arithmetic;
-(function(arithmetic1) {
-    arithmetic1[arithmetic1["ADDITION"] = 0] = "ADDITION";
-    arithmetic1[arithmetic1["SUBTRACTION"] = 1] = "SUBTRACTION";
-    arithmetic1[arithmetic1["DIVISION"] = 2] = "DIVISION";
-    arithmetic1[arithmetic1["MULTIPLICATION"] = 3] = "MULTIPLICATION";
-    arithmetic1[arithmetic1["BITSHIFT_LEFT"] = 4] = "BITSHIFT_LEFT";
-    arithmetic1[arithmetic1["BITSIGNEDSHIFT_RIGHT"] = 5] = "BITSIGNEDSHIFT_RIGHT";
-    arithmetic1[arithmetic1["BITSHIFT_RIGHT"] = 6] = "BITSHIFT_RIGHT";
-    arithmetic1[arithmetic1["BIT_AND"] = 7] = "BIT_AND";
-    arithmetic1[arithmetic1["BIT_OR"] = 8] = "BIT_OR";
-    arithmetic1[arithmetic1["BIT_XOR"] = 9] = "BIT_XOR";
-    arithmetic1[arithmetic1["BIT_NOT"] = 10] = "BIT_NOT";
+(function(arithmetic) {
+    arithmetic[arithmetic["ADDITION"] = 0] = "ADDITION";
+    arithmetic[arithmetic["SUBTRACTION"] = 1] = "SUBTRACTION";
+    arithmetic[arithmetic["DIVISION"] = 2] = "DIVISION";
+    arithmetic[arithmetic["MULTIPLICATION"] = 3] = "MULTIPLICATION";
+    arithmetic[arithmetic["BITSHIFT_LEFT"] = 4] = "BITSHIFT_LEFT";
+    arithmetic[arithmetic["BITSIGNEDSHIFT_RIGHT"] = 5] = "BITSIGNEDSHIFT_RIGHT";
+    arithmetic[arithmetic["BITSHIFT_RIGHT"] = 6] = "BITSHIFT_RIGHT";
+    arithmetic[arithmetic["BIT_AND"] = 7] = "BIT_AND";
+    arithmetic[arithmetic["BIT_OR"] = 8] = "BIT_OR";
+    arithmetic[arithmetic["BIT_XOR"] = 9] = "BIT_XOR";
+    arithmetic[arithmetic["BIT_NOT"] = 10] = "BIT_NOT";
 })(arithmetic || (arithmetic = {
 }));
 var Direction;
-(function(Direction1) {
-    Direction1[Direction1["topLeft"] = 0] = "topLeft";
-    Direction1[Direction1["top"] = 1] = "top";
-    Direction1[Direction1["topRight"] = 2] = "topRight";
-    Direction1[Direction1["left"] = 3] = "left";
-    Direction1[Direction1["right"] = 4] = "right";
-    Direction1[Direction1["bottomLeft"] = 5] = "bottomLeft";
-    Direction1[Direction1["bottom"] = 6] = "bottom";
-    Direction1[Direction1["bottomRight"] = 7] = "bottomRight";
+(function(Direction) {
+    Direction[Direction["topLeft"] = 0] = "topLeft";
+    Direction[Direction["top"] = 1] = "top";
+    Direction[Direction["topRight"] = 2] = "topRight";
+    Direction[Direction["left"] = 3] = "left";
+    Direction[Direction["right"] = 4] = "right";
+    Direction[Direction["bottomLeft"] = 5] = "bottomLeft";
+    Direction[Direction["bottom"] = 6] = "bottom";
+    Direction[Direction["bottomRight"] = 7] = "bottomRight";
 })(Direction || (Direction = {
 }));
 function indexByCoordinates(x, y, w) {
@@ -3497,22 +3497,22 @@ function seeds(_this, index, liveColor, deadColor) {
     }
 }
 var moveType;
-(function(moveType1) {
-    moveType1[moveType1["MOV_LIT_REG"] = 0] = "MOV_LIT_REG";
-    moveType1[moveType1["MOV_REG_REG"] = 1] = "MOV_REG_REG";
-    moveType1[moveType1["MOV_REG_MEM"] = 2] = "MOV_REG_MEM";
-    moveType1[moveType1["MOV_MEM_REG"] = 3] = "MOV_MEM_REG";
-    moveType1[moveType1["MOV_LIT_MEM"] = 4] = "MOV_LIT_MEM";
-    moveType1[moveType1["MOV_MEM_MEM"] = 5] = "MOV_MEM_MEM";
+(function(moveType) {
+    moveType[moveType["MOV_LIT_REG"] = 0] = "MOV_LIT_REG";
+    moveType[moveType["MOV_REG_REG"] = 1] = "MOV_REG_REG";
+    moveType[moveType["MOV_REG_MEM"] = 2] = "MOV_REG_MEM";
+    moveType[moveType["MOV_MEM_REG"] = 3] = "MOV_MEM_REG";
+    moveType[moveType["MOV_LIT_MEM"] = 4] = "MOV_LIT_MEM";
+    moveType[moveType["MOV_MEM_MEM"] = 5] = "MOV_MEM_MEM";
 })(moveType || (moveType = {
 }));
 var SMoveType;
-(function(SMoveType1) {
-    SMoveType1[SMoveType1["MOV_SLIT_REG"] = 0] = "MOV_SLIT_REG";
-    SMoveType1[SMoveType1["MOV_SREG_REG"] = 1] = "MOV_SREG_REG";
-    SMoveType1[SMoveType1["MOV_SREG_MEM"] = 2] = "MOV_SREG_MEM";
-    SMoveType1[SMoveType1["MOV_SMEM_REG"] = 3] = "MOV_SMEM_REG";
-    SMoveType1[SMoveType1["MOV_SLIT_MEM"] = 4] = "MOV_SLIT_MEM";
+(function(SMoveType) {
+    SMoveType[SMoveType["MOV_SLIT_REG"] = 0] = "MOV_SLIT_REG";
+    SMoveType[SMoveType["MOV_SREG_REG"] = 1] = "MOV_SREG_REG";
+    SMoveType[SMoveType["MOV_SREG_MEM"] = 2] = "MOV_SREG_MEM";
+    SMoveType[SMoveType["MOV_SMEM_REG"] = 3] = "MOV_SMEM_REG";
+    SMoveType[SMoveType["MOV_SLIT_MEM"] = 4] = "MOV_SLIT_MEM";
 })(SMoveType || (SMoveType = {
 }));
 function executeMove(_this, param) {
@@ -3597,39 +3597,39 @@ function executeSignedMove(_this, param) {
     }
 }
 var additionType;
-(function(additionType1) {
-    additionType1[additionType1["ADD_REG_REG"] = 0] = "ADD_REG_REG";
-    additionType1[additionType1["ADD_LIT_REG"] = 1] = "ADD_LIT_REG";
-    additionType1[additionType1["ADD_REG_LIT"] = 2] = "ADD_REG_LIT";
-    additionType1[additionType1["ADD_LIT_MEM"] = 3] = "ADD_LIT_MEM";
-    additionType1[additionType1["ADD_REG_MEM"] = 4] = "ADD_REG_MEM";
-    additionType1[additionType1["ADD_LIT_LIT"] = 5] = "ADD_LIT_LIT";
-    additionType1[additionType1["ADD_MEM_MEM"] = 6] = "ADD_MEM_MEM";
+(function(additionType) {
+    additionType[additionType["ADD_REG_REG"] = 0] = "ADD_REG_REG";
+    additionType[additionType["ADD_LIT_REG"] = 1] = "ADD_LIT_REG";
+    additionType[additionType["ADD_REG_LIT"] = 2] = "ADD_REG_LIT";
+    additionType[additionType["ADD_LIT_MEM"] = 3] = "ADD_LIT_MEM";
+    additionType[additionType["ADD_REG_MEM"] = 4] = "ADD_REG_MEM";
+    additionType[additionType["ADD_LIT_LIT"] = 5] = "ADD_LIT_LIT";
+    additionType[additionType["ADD_MEM_MEM"] = 6] = "ADD_MEM_MEM";
 })(additionType || (additionType = {
 }));
 var subtractionType;
-(function(subtractionType1) {
-    subtractionType1[subtractionType1["SUB_REG_REG"] = 0] = "SUB_REG_REG";
-    subtractionType1[subtractionType1["SUB_LIT_REG"] = 1] = "SUB_LIT_REG";
-    subtractionType1[subtractionType1["SUB_REG_LIT"] = 2] = "SUB_REG_LIT";
-    subtractionType1[subtractionType1["SUB_LIT_MEM"] = 3] = "SUB_LIT_MEM";
-    subtractionType1[subtractionType1["SUB_REG_MEM"] = 4] = "SUB_REG_MEM";
-    subtractionType1[subtractionType1["SUB_MEM_REG"] = 5] = "SUB_MEM_REG";
-    subtractionType1[subtractionType1["SUB_MEM_LIT"] = 6] = "SUB_MEM_LIT";
-    subtractionType1[subtractionType1["SUB_MEM_MEM"] = 7] = "SUB_MEM_MEM";
+(function(subtractionType) {
+    subtractionType[subtractionType["SUB_REG_REG"] = 0] = "SUB_REG_REG";
+    subtractionType[subtractionType["SUB_LIT_REG"] = 1] = "SUB_LIT_REG";
+    subtractionType[subtractionType["SUB_REG_LIT"] = 2] = "SUB_REG_LIT";
+    subtractionType[subtractionType["SUB_LIT_MEM"] = 3] = "SUB_LIT_MEM";
+    subtractionType[subtractionType["SUB_REG_MEM"] = 4] = "SUB_REG_MEM";
+    subtractionType[subtractionType["SUB_MEM_REG"] = 5] = "SUB_MEM_REG";
+    subtractionType[subtractionType["SUB_MEM_LIT"] = 6] = "SUB_MEM_LIT";
+    subtractionType[subtractionType["SUB_MEM_MEM"] = 7] = "SUB_MEM_MEM";
 })(subtractionType || (subtractionType = {
 }));
 var multiplicationType;
-(function(multiplicationType1) {
-    multiplicationType1[multiplicationType1["MUL_REG_REG"] = 0] = "MUL_REG_REG";
-    multiplicationType1[multiplicationType1["MUL_LIT_REG"] = 1] = "MUL_LIT_REG";
-    multiplicationType1[multiplicationType1["MUL_LIT_MEM"] = 2] = "MUL_LIT_MEM";
-    multiplicationType1[multiplicationType1["MUL_REG_MEM"] = 3] = "MUL_REG_MEM";
-    multiplicationType1[multiplicationType1["MUL_MEM_REG"] = 4] = "MUL_MEM_REG";
-    multiplicationType1[multiplicationType1["MUL_MEM_LIT"] = 5] = "MUL_MEM_LIT";
-    multiplicationType1[multiplicationType1["MUL_REG_LIT"] = 6] = "MUL_REG_LIT";
-    multiplicationType1[multiplicationType1["MUL_LIT_LIT"] = 7] = "MUL_LIT_LIT";
-    multiplicationType1[multiplicationType1["MUL_MEM_MEM"] = 8] = "MUL_MEM_MEM";
+(function(multiplicationType) {
+    multiplicationType[multiplicationType["MUL_REG_REG"] = 0] = "MUL_REG_REG";
+    multiplicationType[multiplicationType["MUL_LIT_REG"] = 1] = "MUL_LIT_REG";
+    multiplicationType[multiplicationType["MUL_LIT_MEM"] = 2] = "MUL_LIT_MEM";
+    multiplicationType[multiplicationType["MUL_REG_MEM"] = 3] = "MUL_REG_MEM";
+    multiplicationType[multiplicationType["MUL_MEM_REG"] = 4] = "MUL_MEM_REG";
+    multiplicationType[multiplicationType["MUL_MEM_LIT"] = 5] = "MUL_MEM_LIT";
+    multiplicationType[multiplicationType["MUL_REG_LIT"] = 6] = "MUL_REG_LIT";
+    multiplicationType[multiplicationType["MUL_LIT_LIT"] = 7] = "MUL_LIT_LIT";
+    multiplicationType[multiplicationType["MUL_MEM_MEM"] = 8] = "MUL_MEM_MEM";
 })(multiplicationType || (multiplicationType = {
 }));
 function subtraction(_this, param) {
@@ -3794,39 +3794,39 @@ function multiplication(_this, param) {
     ][param[1]]();
 }
 var shiftType;
-(function(shiftType1) {
-    shiftType1[shiftType1["LSF_REG_LIT"] = 0] = "LSF_REG_LIT";
-    shiftType1[shiftType1["LSF_REG_REG"] = 1] = "LSF_REG_REG";
-    shiftType1[shiftType1["LSF_REG_MEM"] = 2] = "LSF_REG_MEM";
-    shiftType1[shiftType1["LSF_MEM_LIT"] = 3] = "LSF_MEM_LIT";
-    shiftType1[shiftType1["LSF_MEM_REG"] = 4] = "LSF_MEM_REG";
-    shiftType1[shiftType1["RSF_REG_LIT"] = 5] = "RSF_REG_LIT";
-    shiftType1[shiftType1["RSF_REG_REG"] = 6] = "RSF_REG_REG";
-    shiftType1[shiftType1["RSF_REG_MEM"] = 7] = "RSF_REG_MEM";
-    shiftType1[shiftType1["RSF_MEM_LIT"] = 8] = "RSF_MEM_LIT";
-    shiftType1[shiftType1["RSF_MEM_REG"] = 9] = "RSF_MEM_REG";
+(function(shiftType) {
+    shiftType[shiftType["LSF_REG_LIT"] = 0] = "LSF_REG_LIT";
+    shiftType[shiftType["LSF_REG_REG"] = 1] = "LSF_REG_REG";
+    shiftType[shiftType["LSF_REG_MEM"] = 2] = "LSF_REG_MEM";
+    shiftType[shiftType["LSF_MEM_LIT"] = 3] = "LSF_MEM_LIT";
+    shiftType[shiftType["LSF_MEM_REG"] = 4] = "LSF_MEM_REG";
+    shiftType[shiftType["RSF_REG_LIT"] = 5] = "RSF_REG_LIT";
+    shiftType[shiftType["RSF_REG_REG"] = 6] = "RSF_REG_REG";
+    shiftType[shiftType["RSF_REG_MEM"] = 7] = "RSF_REG_MEM";
+    shiftType[shiftType["RSF_MEM_LIT"] = 8] = "RSF_MEM_LIT";
+    shiftType[shiftType["RSF_MEM_REG"] = 9] = "RSF_MEM_REG";
 })(shiftType || (shiftType = {
 }));
 var andType;
-(function(andType1) {
-    andType1[andType1["AND_REG_LIT"] = 0] = "AND_REG_LIT";
-    andType1[andType1["AND_REG_REG"] = 1] = "AND_REG_REG";
-    andType1[andType1["AND_REG_MEM"] = 2] = "AND_REG_MEM";
-    andType1[andType1["AND_MEM_REG"] = 3] = "AND_MEM_REG";
-    andType1[andType1["AND_LIT_MEM"] = 4] = "AND_LIT_MEM";
-    andType1[andType1["AND_MEM_LIT"] = 5] = "AND_MEM_LIT";
+(function(andType) {
+    andType[andType["AND_REG_LIT"] = 0] = "AND_REG_LIT";
+    andType[andType["AND_REG_REG"] = 1] = "AND_REG_REG";
+    andType[andType["AND_REG_MEM"] = 2] = "AND_REG_MEM";
+    andType[andType["AND_MEM_REG"] = 3] = "AND_MEM_REG";
+    andType[andType["AND_LIT_MEM"] = 4] = "AND_LIT_MEM";
+    andType[andType["AND_MEM_LIT"] = 5] = "AND_MEM_LIT";
 })(andType || (andType = {
 }));
 var orType;
-(function(orType1) {
-    orType1[orType1["OR_REG_LIT"] = 0] = "OR_REG_LIT";
-    orType1[orType1["OR_REG_REG"] = 1] = "OR_REG_REG";
-    orType1[orType1["OR_LIT_MEM"] = 2] = "OR_LIT_MEM";
-    orType1[orType1["OR_REG_MEM"] = 3] = "OR_REG_MEM";
-    orType1[orType1["XOR_REG_LIT"] = 4] = "XOR_REG_LIT";
-    orType1[orType1["XOR_REG_REG"] = 5] = "XOR_REG_REG";
-    orType1[orType1["XOR_LIT_MEM"] = 6] = "XOR_LIT_MEM";
-    orType1[orType1["XOR_REG_MEM"] = 7] = "XOR_REG_MEM";
+(function(orType) {
+    orType[orType["OR_REG_LIT"] = 0] = "OR_REG_LIT";
+    orType[orType["OR_REG_REG"] = 1] = "OR_REG_REG";
+    orType[orType["OR_LIT_MEM"] = 2] = "OR_LIT_MEM";
+    orType[orType["OR_REG_MEM"] = 3] = "OR_REG_MEM";
+    orType[orType["XOR_REG_LIT"] = 4] = "XOR_REG_LIT";
+    orType[orType["XOR_REG_REG"] = 5] = "XOR_REG_REG";
+    orType[orType["XOR_LIT_MEM"] = 6] = "XOR_LIT_MEM";
+    orType[orType["XOR_REG_MEM"] = 7] = "XOR_REG_MEM";
 })(orType || (orType = {
 }));
 function bitwiseShift(_this, param) {
@@ -3993,26 +3993,26 @@ function bitwiseOR(_this, param) {
     ][param[1]]();
 }
 var AccJumpType;
-(function(AccJumpType1) {
-    AccJumpType1[AccJumpType1["JNE_LIT"] = 0] = "JNE_LIT";
-    AccJumpType1[AccJumpType1["JNE_REG"] = 1] = "JNE_REG";
-    AccJumpType1[AccJumpType1["JEQ_REG"] = 2] = "JEQ_REG";
-    AccJumpType1[AccJumpType1["JEQ_LIT"] = 3] = "JEQ_LIT";
-    AccJumpType1[AccJumpType1["JLT_REG"] = 4] = "JLT_REG";
-    AccJumpType1[AccJumpType1["JLT_LIT"] = 5] = "JLT_LIT";
-    AccJumpType1[AccJumpType1["JGT_REG"] = 6] = "JGT_REG";
-    AccJumpType1[AccJumpType1["JGT_LIT"] = 7] = "JGT_LIT";
-    AccJumpType1[AccJumpType1["JLE_REG"] = 8] = "JLE_REG";
-    AccJumpType1[AccJumpType1["JLE_LIT"] = 9] = "JLE_LIT";
-    AccJumpType1[AccJumpType1["JGE_REG"] = 10] = "JGE_REG";
-    AccJumpType1[AccJumpType1["JGE_LIT"] = 11] = "JGE_LIT";
+(function(AccJumpType) {
+    AccJumpType[AccJumpType["JNE_LIT"] = 0] = "JNE_LIT";
+    AccJumpType[AccJumpType["JNE_REG"] = 1] = "JNE_REG";
+    AccJumpType[AccJumpType["JEQ_REG"] = 2] = "JEQ_REG";
+    AccJumpType[AccJumpType["JEQ_LIT"] = 3] = "JEQ_LIT";
+    AccJumpType[AccJumpType["JLT_REG"] = 4] = "JLT_REG";
+    AccJumpType[AccJumpType["JLT_LIT"] = 5] = "JLT_LIT";
+    AccJumpType[AccJumpType["JGT_REG"] = 6] = "JGT_REG";
+    AccJumpType[AccJumpType["JGT_LIT"] = 7] = "JGT_LIT";
+    AccJumpType[AccJumpType["JLE_REG"] = 8] = "JLE_REG";
+    AccJumpType[AccJumpType["JLE_LIT"] = 9] = "JLE_LIT";
+    AccJumpType[AccJumpType["JGE_REG"] = 10] = "JGE_REG";
+    AccJumpType[AccJumpType["JGE_LIT"] = 11] = "JGE_LIT";
 })(AccJumpType || (AccJumpType = {
 }));
 var CallType;
-(function(CallType1) {
-    CallType1[CallType1["CAL_LIT"] = 0] = "CAL_LIT";
-    CallType1[CallType1["CAL_REG"] = 1] = "CAL_REG";
-    CallType1[CallType1["CAL_MEM"] = 2] = "CAL_MEM";
+(function(CallType) {
+    CallType[CallType["CAL_LIT"] = 0] = "CAL_LIT";
+    CallType[CallType["CAL_REG"] = 1] = "CAL_REG";
+    CallType[CallType["CAL_MEM"] = 2] = "CAL_MEM";
 })(CallType || (CallType = {
 }));
 function jumpBasedOnAcc(_this, param) {
@@ -4135,10 +4135,10 @@ function callALocation(_this, param) {
     ][param[1]]();
 }
 var RandomType;
-(function(RandomType1) {
-    RandomType1[RandomType1["RAND_LIT_LIT"] = 0] = "RAND_LIT_LIT";
-    RandomType1[RandomType1["RAND_REG_REG"] = 1] = "RAND_REG_REG";
-    RandomType1[RandomType1["RAND_MEM_MEM"] = 2] = "RAND_MEM_MEM";
+(function(RandomType) {
+    RandomType[RandomType["RAND_LIT_LIT"] = 0] = "RAND_LIT_LIT";
+    RandomType[RandomType["RAND_REG_REG"] = 1] = "RAND_REG_REG";
+    RandomType[RandomType["RAND_MEM_MEM"] = 2] = "RAND_MEM_MEM";
 })(RandomType || (RandomType = {
 }));
 function randomToAccumulator(_this, param) {
@@ -4167,20 +4167,20 @@ function randomToAccumulator(_this, param) {
     }
 }
 var PixelModificationType;
-(function(PixelModificationType1) {
-    PixelModificationType1[PixelModificationType1["MODIFY_PIXEL_REG_REG_REG"] = 0] = "MODIFY_PIXEL_REG_REG_REG";
-    PixelModificationType1[PixelModificationType1["MODIFY_PIXEL_LIT_LIT_LIT"] = 1] = "MODIFY_PIXEL_LIT_LIT_LIT";
-    PixelModificationType1[PixelModificationType1["MODIFY_PIXEL_MEM_MEM_MEM"] = 2] = "MODIFY_PIXEL_MEM_MEM_MEM";
+(function(PixelModificationType) {
+    PixelModificationType[PixelModificationType["MODIFY_PIXEL_REG_REG_REG"] = 0] = "MODIFY_PIXEL_REG_REG_REG";
+    PixelModificationType[PixelModificationType["MODIFY_PIXEL_LIT_LIT_LIT"] = 1] = "MODIFY_PIXEL_LIT_LIT_LIT";
+    PixelModificationType[PixelModificationType["MODIFY_PIXEL_MEM_MEM_MEM"] = 2] = "MODIFY_PIXEL_MEM_MEM_MEM";
 })(PixelModificationType || (PixelModificationType = {
 }));
 var LuminosityModificationType;
-(function(LuminosityModificationType1) {
-    LuminosityModificationType1[LuminosityModificationType1["MODIFY_PIXEL_LUMINOSITY_REG"] = 0] = "MODIFY_PIXEL_LUMINOSITY_REG";
-    LuminosityModificationType1[LuminosityModificationType1["MODIFY_PIXEL_LUMINOSITY_MEM"] = 1] = "MODIFY_PIXEL_LUMINOSITY_MEM";
-    LuminosityModificationType1[LuminosityModificationType1["MODIFY_PIXEL_LUMINOSITY_LIT"] = 2] = "MODIFY_PIXEL_LUMINOSITY_LIT";
-    LuminosityModificationType1[LuminosityModificationType1["MODIFY_IMAGE_LUMINOSITY_REG"] = 3] = "MODIFY_IMAGE_LUMINOSITY_REG";
-    LuminosityModificationType1[LuminosityModificationType1["MODIFY_IMAGE_LUMINOSITY_MEM"] = 4] = "MODIFY_IMAGE_LUMINOSITY_MEM";
-    LuminosityModificationType1[LuminosityModificationType1["MODIFY_IMAGE_LUMINOSITY_LIT"] = 5] = "MODIFY_IMAGE_LUMINOSITY_LIT";
+(function(LuminosityModificationType) {
+    LuminosityModificationType[LuminosityModificationType["MODIFY_PIXEL_LUMINOSITY_REG"] = 0] = "MODIFY_PIXEL_LUMINOSITY_REG";
+    LuminosityModificationType[LuminosityModificationType["MODIFY_PIXEL_LUMINOSITY_MEM"] = 1] = "MODIFY_PIXEL_LUMINOSITY_MEM";
+    LuminosityModificationType[LuminosityModificationType["MODIFY_PIXEL_LUMINOSITY_LIT"] = 2] = "MODIFY_PIXEL_LUMINOSITY_LIT";
+    LuminosityModificationType[LuminosityModificationType["MODIFY_IMAGE_LUMINOSITY_REG"] = 3] = "MODIFY_IMAGE_LUMINOSITY_REG";
+    LuminosityModificationType[LuminosityModificationType["MODIFY_IMAGE_LUMINOSITY_MEM"] = 4] = "MODIFY_IMAGE_LUMINOSITY_MEM";
+    LuminosityModificationType[LuminosityModificationType["MODIFY_IMAGE_LUMINOSITY_LIT"] = 5] = "MODIFY_IMAGE_LUMINOSITY_LIT";
 })(LuminosityModificationType || (LuminosityModificationType = {
 }));
 function modifyPixel(_this, params) {
@@ -4270,23 +4270,23 @@ function modifyLuminosityIns(_this, params) {
     }
 }
 var NeighborRetrievalType;
-(function(NeighborRetrievalType1) {
-    NeighborRetrievalType1[NeighborRetrievalType1["NEIGHBORING_PIXEL_INDEX_TO_REG"] = 0] = "NEIGHBORING_PIXEL_INDEX_TO_REG";
-    NeighborRetrievalType1[NeighborRetrievalType1["NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG"] = 1] = "NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG";
+(function(NeighborRetrievalType) {
+    NeighborRetrievalType[NeighborRetrievalType["NEIGHBORING_PIXEL_INDEX_TO_REG"] = 0] = "NEIGHBORING_PIXEL_INDEX_TO_REG";
+    NeighborRetrievalType[NeighborRetrievalType["NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG"] = 1] = "NEIGHBORING_PIXEL_INDEX_FROM_REG_TO_REG";
 })(NeighborRetrievalType || (NeighborRetrievalType = {
 }));
 var PixelColorByIndexType;
-(function(PixelColorByIndexType1) {
-    PixelColorByIndexType1[PixelColorByIndexType1["FETCH_PIXEL_COLOR_REG"] = 0] = "FETCH_PIXEL_COLOR_REG";
-    PixelColorByIndexType1[PixelColorByIndexType1["FETCH_PIXEL_COLOR_MEM"] = 1] = "FETCH_PIXEL_COLOR_MEM";
-    PixelColorByIndexType1[PixelColorByIndexType1["FETCH_PIXEL_COLOR_LIT"] = 2] = "FETCH_PIXEL_COLOR_LIT";
+(function(PixelColorByIndexType) {
+    PixelColorByIndexType[PixelColorByIndexType["FETCH_PIXEL_COLOR_REG"] = 0] = "FETCH_PIXEL_COLOR_REG";
+    PixelColorByIndexType[PixelColorByIndexType["FETCH_PIXEL_COLOR_MEM"] = 1] = "FETCH_PIXEL_COLOR_MEM";
+    PixelColorByIndexType[PixelColorByIndexType["FETCH_PIXEL_COLOR_LIT"] = 2] = "FETCH_PIXEL_COLOR_LIT";
 })(PixelColorByIndexType || (PixelColorByIndexType = {
 }));
 var PixelIndexFetchType;
-(function(PixelIndexFetchType1) {
-    PixelIndexFetchType1[PixelIndexFetchType1["FETCH_PIXEL_INDEX_REG_REG"] = 0] = "FETCH_PIXEL_INDEX_REG_REG";
-    PixelIndexFetchType1[PixelIndexFetchType1["FETCH_PIXEL_INDEX_LIT_LIT"] = 1] = "FETCH_PIXEL_INDEX_LIT_LIT";
-    PixelIndexFetchType1[PixelIndexFetchType1["FETCH_PIXEL_INDEX_MEM_MEM"] = 2] = "FETCH_PIXEL_INDEX_MEM_MEM";
+(function(PixelIndexFetchType) {
+    PixelIndexFetchType[PixelIndexFetchType["FETCH_PIXEL_INDEX_REG_REG"] = 0] = "FETCH_PIXEL_INDEX_REG_REG";
+    PixelIndexFetchType[PixelIndexFetchType["FETCH_PIXEL_INDEX_LIT_LIT"] = 1] = "FETCH_PIXEL_INDEX_LIT_LIT";
+    PixelIndexFetchType[PixelIndexFetchType["FETCH_PIXEL_INDEX_MEM_MEM"] = 2] = "FETCH_PIXEL_INDEX_MEM_MEM";
 })(PixelIndexFetchType || (PixelIndexFetchType = {
 }));
 function fetchNeighboringPixel(_this, params) {
@@ -4339,10 +4339,10 @@ function fetchPixelIndex(_this, params) {
     }
 }
 var RGBConversionType;
-(function(RGBConversionType1) {
-    RGBConversionType1[RGBConversionType1["RGB_TO_COLOR_LIT_LIT_LIT"] = 0] = "RGB_TO_COLOR_LIT_LIT_LIT";
-    RGBConversionType1[RGBConversionType1["RGB_TO_COLOR_MEM_MEM_MEM"] = 1] = "RGB_TO_COLOR_MEM_MEM_MEM";
-    RGBConversionType1[RGBConversionType1["RGB_TO_COLOR_REG_REG_REG"] = 2] = "RGB_TO_COLOR_REG_REG_REG";
+(function(RGBConversionType) {
+    RGBConversionType[RGBConversionType["RGB_TO_COLOR_LIT_LIT_LIT"] = 0] = "RGB_TO_COLOR_LIT_LIT_LIT";
+    RGBConversionType[RGBConversionType["RGB_TO_COLOR_MEM_MEM_MEM"] = 1] = "RGB_TO_COLOR_MEM_MEM_MEM";
+    RGBConversionType[RGBConversionType["RGB_TO_COLOR_REG_REG_REG"] = 2] = "RGB_TO_COLOR_REG_REG_REG";
 })(RGBConversionType || (RGBConversionType = {
 }));
 function RGBConversion(_this, params) {
@@ -4386,13 +4386,13 @@ function RGBConversion(_this, params) {
     }
 }
 var ImageInfoFetchType;
-(function(ImageInfoFetchType1) {
-    ImageInfoFetchType1[ImageInfoFetchType1["IMAGE_WIDTH_REG"] = 0] = "IMAGE_WIDTH_REG";
-    ImageInfoFetchType1[ImageInfoFetchType1["IMAGE_WIDTH_MEM"] = 1] = "IMAGE_WIDTH_MEM";
-    ImageInfoFetchType1[ImageInfoFetchType1["IMAGE_HEIGHT_REG"] = 2] = "IMAGE_HEIGHT_REG";
-    ImageInfoFetchType1[ImageInfoFetchType1["IMAGE_HEIGHT_MEM"] = 3] = "IMAGE_HEIGHT_MEM";
-    ImageInfoFetchType1[ImageInfoFetchType1["IMAGE_TOTAL_PIXELS_REG"] = 4] = "IMAGE_TOTAL_PIXELS_REG";
-    ImageInfoFetchType1[ImageInfoFetchType1["IMAGE_TOTAL_PIXELS_MEM"] = 5] = "IMAGE_TOTAL_PIXELS_MEM";
+(function(ImageInfoFetchType) {
+    ImageInfoFetchType[ImageInfoFetchType["IMAGE_WIDTH_REG"] = 0] = "IMAGE_WIDTH_REG";
+    ImageInfoFetchType[ImageInfoFetchType["IMAGE_WIDTH_MEM"] = 1] = "IMAGE_WIDTH_MEM";
+    ImageInfoFetchType[ImageInfoFetchType["IMAGE_HEIGHT_REG"] = 2] = "IMAGE_HEIGHT_REG";
+    ImageInfoFetchType[ImageInfoFetchType["IMAGE_HEIGHT_MEM"] = 3] = "IMAGE_HEIGHT_MEM";
+    ImageInfoFetchType[ImageInfoFetchType["IMAGE_TOTAL_PIXELS_REG"] = 4] = "IMAGE_TOTAL_PIXELS_REG";
+    ImageInfoFetchType[ImageInfoFetchType["IMAGE_TOTAL_PIXELS_MEM"] = 5] = "IMAGE_TOTAL_PIXELS_MEM";
 })(ImageInfoFetchType || (ImageInfoFetchType = {
 }));
 function fetchImageInfo(_this, params) {
@@ -4424,27 +4424,27 @@ function fetchImageInfo(_this, params) {
     ][params[1]]();
 }
 var RectangleDrawingType;
-(function(RectangleDrawingType1) {
-    RectangleDrawingType1[RectangleDrawingType1["DRAW_BOX_WLIT_HLIT"] = 0] = "DRAW_BOX_WLIT_HLIT";
-    RectangleDrawingType1[RectangleDrawingType1["DRAW_BOX_WREG_HREG"] = 1] = "DRAW_BOX_WREG_HREG";
+(function(RectangleDrawingType) {
+    RectangleDrawingType[RectangleDrawingType["DRAW_BOX_WLIT_HLIT"] = 0] = "DRAW_BOX_WLIT_HLIT";
+    RectangleDrawingType[RectangleDrawingType["DRAW_BOX_WREG_HREG"] = 1] = "DRAW_BOX_WREG_HREG";
 })(RectangleDrawingType || (RectangleDrawingType = {
 }));
 var ManualRectangleDrawingType;
-(function(ManualRectangleDrawingType1) {
-    ManualRectangleDrawingType1[ManualRectangleDrawingType1["DRAW_BOX_LIT_LIT_LIT_LIT_LIT"] = 0] = "DRAW_BOX_LIT_LIT_LIT_LIT_LIT";
+(function(ManualRectangleDrawingType) {
+    ManualRectangleDrawingType[ManualRectangleDrawingType["DRAW_BOX_LIT_LIT_LIT_LIT_LIT"] = 0] = "DRAW_BOX_LIT_LIT_LIT_LIT_LIT";
 })(ManualRectangleDrawingType || (ManualRectangleDrawingType = {
 }));
 var DrawLineType;
-(function(DrawLineType1) {
-    DrawLineType1[DrawLineType1["DRAW_LINE_P1REG_P2REG"] = 0] = "DRAW_LINE_P1REG_P2REG";
-    DrawLineType1[DrawLineType1["DRAW_LINE_P1LIT_P2LIT"] = 1] = "DRAW_LINE_P1LIT_P2LIT";
+(function(DrawLineType) {
+    DrawLineType[DrawLineType["DRAW_LINE_P1REG_P2REG"] = 0] = "DRAW_LINE_P1REG_P2REG";
+    DrawLineType[DrawLineType["DRAW_LINE_P1LIT_P2LIT"] = 1] = "DRAW_LINE_P1LIT_P2LIT";
 })(DrawLineType || (DrawLineType = {
 }));
 var DrawCircleType;
-(function(DrawCircleType1) {
-    DrawCircleType1[DrawCircleType1["DRAW_CIRCLE_LIT"] = 0] = "DRAW_CIRCLE_LIT";
-    DrawCircleType1[DrawCircleType1["DRAW_CIRCLE_REG"] = 1] = "DRAW_CIRCLE_REG";
-    DrawCircleType1[DrawCircleType1["DRAW_CIRCLE_MEM"] = 2] = "DRAW_CIRCLE_MEM";
+(function(DrawCircleType) {
+    DrawCircleType[DrawCircleType["DRAW_CIRCLE_LIT"] = 0] = "DRAW_CIRCLE_LIT";
+    DrawCircleType[DrawCircleType["DRAW_CIRCLE_REG"] = 1] = "DRAW_CIRCLE_REG";
+    DrawCircleType[DrawCircleType["DRAW_CIRCLE_MEM"] = 2] = "DRAW_CIRCLE_MEM";
 })(DrawCircleType || (DrawCircleType = {
 }));
 function drawBox(_this, params) {
@@ -4589,9 +4589,9 @@ function drawCircleA(_this, params) {
     }
 }
 var RenderInstructionSet;
-(function(RenderInstructionSet1) {
-    RenderInstructionSet1[RenderInstructionSet1["MODIFY_PIXEL"] = 0] = "MODIFY_PIXEL";
-    RenderInstructionSet1[RenderInstructionSet1["FILL"] = 1] = "FILL";
+(function(RenderInstructionSet) {
+    RenderInstructionSet[RenderInstructionSet["MODIFY_PIXEL"] = 0] = "MODIFY_PIXEL";
+    RenderInstructionSet[RenderInstructionSet["FILL"] = 1] = "FILL";
 })(RenderInstructionSet || (RenderInstructionSet = {
 }));
 class IDGVM extends InstructionParser {
@@ -4600,8 +4600,8 @@ class IDGVM extends InstructionParser {
     imageModificationStack = new Array();
     imageRenderCB;
     IPStack = [];
-    constructor(memory1, loadedFile1, interruptVectorAddress1 = 150000){
-        super(memory1, loadedFile1, interruptVectorAddress1);
+    constructor(memory2, loadedFile1, interruptVectorAddress2 = 150000){
+        super(memory2, loadedFile1, interruptVectorAddress2);
         this.image = {
             imageData: loadedFile1.image,
             width: loadedFile1.imageWidth,
@@ -4889,12 +4889,12 @@ class IDGVM extends InstructionParser {
 class IDGLoader {
     vm;
     memoryMapper;
-    constructor(rawFileData1, autoStart = false){
-        const loaded = IDGLoader.fileLoader(rawFileData1);
+    constructor(rawFileData, autoStart = false){
+        const loaded = IDGLoader.fileLoader(rawFileData);
         this.memoryMapper = new MemoryMapper();
-        const memory2 = createMemory(loaded.memoryRequest);
-        this.memoryMapper.map(memory2, 0, memory2.byteLength);
-        const writableBytes = new Uint8Array(memory2.buffer);
+        const memory3 = createMemory(loaded.memoryRequest);
+        this.memoryMapper.map(memory3, 0, memory3.byteLength);
+        const writableBytes = new Uint8Array(memory3.buffer);
         writableBytes.set(loaded.memorySection);
         this.vm = new IDGVM(this.memoryMapper, loaded);
         this.vm.viewMemoryAt(0, 30);
