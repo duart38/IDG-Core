@@ -84,6 +84,7 @@ export default class IDGBuilder {
         `Warning: renamed flag ${name}. you may ignore if intentional`,
       );
     }
+    console.info(`Registered flag '${name}' at index: ${atIndex}`);
     this.flags[name] = atIndex;
     return atIndex;
   }
