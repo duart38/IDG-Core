@@ -60,49 +60,52 @@ export class MemoryMapper {
     }
     return region;
   }
+  private remap(region: Region, address: number){
+    return region.remap ? address - region.start : address;
+  }
 
   getUint16(address: number): number {
     const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    const finalAddress = this.remap(region, address);
     return region.device.getUint16(finalAddress);
   }
   getInt16(address: number): number {
     const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    const finalAddress = this.remap(region, address);
     return region.device.getInt16(finalAddress);
   }
 
   getUint8(address: number): number {
     const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    const finalAddress = this.remap(region, address);
     return region.device.getUint8(finalAddress);
   }
 
   getInt8(address: number): number {
     const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    const finalAddress = this.remap(region, address);
     return region.device.getInt8(finalAddress);
   }
 
   getUint32(address: number): number {
     const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    const finalAddress = this.remap(region, address);
     return region.device.getUint32(finalAddress);
   }
   getInt32(address: number): number {
     const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    const finalAddress = this.remap(region, address);
     return region.device.getInt32(finalAddress);
   }
 
   setUint32(address: number, value: number): void {
     const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    const finalAddress = this.remap(region, address);
     return region.device.setUint32(finalAddress, value);
   }
   setInt32(address: number, value: number): void {
     const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    const finalAddress = this.remap(region, address);
     return region.device.setInt32(finalAddress, value);
   }
   getDataView(ofAddress: number): DataView {
@@ -111,13 +114,13 @@ export class MemoryMapper {
 
   setUint16(address: number, value: number): void {
     const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    const finalAddress = this.remap(region, address);
     return region.device.setUint16(finalAddress, value);
   }
 
   setUint8(address: number, value: number): void {
     const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    const finalAddress = this.remap(region, address);
     return region.device.setUint8(finalAddress, value);
   }
 
