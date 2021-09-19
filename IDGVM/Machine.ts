@@ -35,6 +35,7 @@ import {
   drawLineP,
 } from "./Instructions/shapes.ts";
 import { RenderInstructionSet } from "../interfaces/RenderInstructionSet.ts";
+import { bindToSocket, WSManager } from "./Instructions/socket.ts";
 
 const INSTRUCTION_LENGTH_IN_BYTES = 4;
 //const PLANK = INSTRUCTION_LENGTH_IN_BYTES == 4 ? 0x7FFFFFFF : 0xffff;
@@ -56,6 +57,7 @@ export default class IDGVM extends InstructionParser {
   private imageRenderCB: (newImage: number[][]) => void;
 
   private IPStack: number[] = [];
+  public wsManager?: WSManager;
 
   /**
    *
@@ -501,6 +503,28 @@ export default class IDGVM extends InstructionParser {
         seeds(this, i, onColor, offColor);
       }
      },
+     /**
+      * @see {Instructions.CONNECT_WS}
+      */
+     ()=>{
+        if(!this.wsManager) this.wsManager = new WSManager()
+        this.wsManager.connect(WSManager.decodeIncomingURL(this, instruction[1]));
+     },
+     /**
+      * @see {Instructions.DISCONNECT_WS}
+      */
+     ()=>{
+        if(!this.wsManager) this.wsManager = new WSManager()
+        this.wsManager.disconnect(WSManager.decodeIncomingURL(this, instruction[1]));
+     },
+     /**
+      * @see {Instructions.BIND_CONNECTED_WS}
+      */
+      ()=>{
+        if(!this.wsManager) throw new Error("no WebSocket connection was made.");
+        bindToSocket(this, instruction);
+      },
+
      /**
       * @see {Instructions.DEBUG}
       */
