@@ -205,7 +205,7 @@ export enum Instructions {
   SEEDS,
 
   CONNECT_WS,
-  // TODO: disconnect WS.
+  DISCONNECT_WS,
   /**
    * Bind to a websocket event and puts the results in a register or memory location.
    * NOTE: only supports receiving Blobs.
@@ -390,6 +390,9 @@ export const InstructionParams: ParameterFetchType[][] = [
   /** [Instructions.CONNECT_WS]:*/ [
     ParameterFetchType.unsignedINT32, // size of url str
     // -> gets the rest of the uint8array encoded string based on the size.
+  ],
+  /** [Instructions.DISCONNECT_WS]:*/ [
+    ParameterFetchType.unsignedINT32,
   ],
   /** [Instructions.BIND_CONNECTED_WS]:*/ [
     ParameterFetchType.unsignedINT8, // type -> where to bind

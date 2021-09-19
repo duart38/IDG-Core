@@ -172,6 +172,16 @@ export default class IDGBuilder {
     }
     this.socketConnections.push(url);
   }
+  public disconnectWebSocket(url: string){
+    if(this.socketConnections.includes(url)){
+      const encoded = new TextEncoder().encode(url)
+      this.insert8(Instructions.DISCONNECT_WS)
+      this.insert32(encoded.length);
+      for(const strB of encoded){
+          this.insert8(strB);
+      }
+    }
+  }
 
   public bindToWebSocket(url: string, addr: RegisterKey | number){
     if(!this.socketConnections.includes(url)){

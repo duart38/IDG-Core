@@ -511,6 +511,13 @@ export default class IDGVM extends InstructionParser {
         this.wsManager.connect(WSManager.decodeIncomingURL(this, instruction[1]));
      },
      /**
+      * @see {Instructions.DISCONNECT_WS}
+      */
+     ()=>{
+        if(!this.wsManager) this.wsManager = new WSManager()
+        this.wsManager.disconnect(WSManager.decodeIncomingURL(this, instruction[1]));
+     },
+     /**
       * @see {Instructions.BIND_CONNECTED_WS}
       */
       ()=>{

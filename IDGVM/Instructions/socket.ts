@@ -12,6 +12,10 @@ export class WSManager{
         this.sockets.set(url, newWS);
         return newWS;
     }
+    disconnect(url: string){
+        this.sockets.get(url)?.close();
+        this.sockets.delete(url);
+    }
     static decodeIncomingURL(vm: IDGVM, size: number): string{
         const strBuffer = new Uint8Array(size);
         for(let i = 0; i < strBuffer.length; i++){
